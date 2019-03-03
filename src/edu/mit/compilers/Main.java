@@ -31,6 +31,21 @@ class Main {
                case DecafScannerTokenTypes.ID:
                 type = " IDENTIFIER";
                 break;
+               case DecafScannerTokenTypes.CHAR_LITERAL:
+            	   type= " CHARLITERAL";
+                break;
+               case DecafScannerTokenTypes.INT_LITERAL:
+            	   type=" INTLITERAL";
+            	   break;
+               case DecafScannerTokenTypes.STRING:
+            	   type=" STRINGLITERAL";
+            	   break;
+               case DecafScannerTokenTypes.TRUE:
+            	   type= " BOOLEANLITERAL";
+            	   break;
+               case DecafScannerTokenTypes.FALSE:
+            	   type= " BOOLEANLITERAL";
+            	   break;
               }
               outputStream.println(token.getLine() + type + " " + text);
             }
