@@ -63,8 +63,11 @@ class Main {
         DecafParser parser = new DecafParser(scanner);
         parser.setTrace(CLI.debug);
         parser.program();
+        //System.out.println("not in error");
         if(parser.getError()) {
-          System.exit(1);
+        	//System.out.println("it's in error");
+        	 //parser.program();
+        	 System.exit(1);
         }
       }
     } catch(Exception e) {

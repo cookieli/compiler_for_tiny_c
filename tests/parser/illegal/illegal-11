@@ -3,6 +3,6 @@ void foo ( ) {
   a = 0;
 }
 void main ( ) {
-  int;
+  int ;
   // missing variable name
 }

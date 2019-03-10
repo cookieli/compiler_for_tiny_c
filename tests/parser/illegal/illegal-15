@@ -1,4 +1,4 @@
 int main ( int a ) {
-  foo ( int );
+  foo (int );
   // type in function call
 }

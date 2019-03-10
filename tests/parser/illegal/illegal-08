@@ -1,5 +1,4 @@
 void main ( ) {
-  int b;
-  b = 2 + 7 = 12;
+  int b =2 + 7;
   // bad expression
 }

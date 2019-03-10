@@ -1,5 +1,6 @@
 header {
 package edu.mit.compilers.grammar;
+import java.io.*;
 }
 
 options
@@ -28,6 +29,7 @@ options
   public void reportError (RecognitionException ex) {
     // Print the error via some kind of error reporting mechanism.
     error = true;
+    System.out.println(ex.getMessage());
   }
   @Override
   public void reportError (String s) {
@@ -41,10 +43,10 @@ options
   // Selectively turns on debug mode.
 
   /** Whether to display debug information. */
-  private boolean trace = false;
+  private boolean trace = true;
 
   public void setTrace(boolean shouldTrace) {
-    trace = shouldTrace;
+    trace = false;
   }
   @Override
   public void traceIn(String rname) throws TokenStreamException {
@@ -60,4 +62,59 @@ options
   }
 }
 
-program: TK_class ID LCURLY RCURLY EOF;
+program: (import_decl SEMICOLON)* (variable_declaration SEMICOLON)* (func_def)* EOF;
+
+import_decl: IMPORT ID;
+        
+variable_declaration: compound_decl;
+
+compound_decl: type (location_def (COMMA location_def)*) ;
+
+location_def: array_form|ID;
+array_form: ID LBRACKET num_literal RBRACKET;
+
+
+func_def: (VOID | type) ID LPAREN (type ID (COMMA type ID)*)? RPAREN LCURLY (function_body)? RCURLY;
+
+type: INT|BOOL;
+function_body: (variable_declaration SEMICOLON)* (statement)*  (return_assignment (SEMICOLON))?;
+statement: (assignment SEMICOLON) | if_block | for_block | while_block| (func_invoc SEMICOLON)
+    | (BREAK SEMICOLON) | (CONTINUE SEMICOLON)| (return_assignment SEMICOLON);
+assignment: location ((EQUALS expr)| (COMBOUND_ASSIGN_OP expr)| INCREMENT | DECREMENT);
+return_assignment: RETURN expr;
+operand: (location |literal | func_invoc | (LEN LPAREN ID RPAREN));
+location: ID | array_member;
+literal: num_literal | bool_value;
+num_literal: INT_LITERAL | CHAR_LITERAL;
+bool_value: TRUE | FALSE;
+
+array_member: ID LBRACKET expr RBRACKET;
+func_invoc: ID LPAREN (func_arg)? RPAREN;
+func_arg: (expr|STRING) (COMMA (expr|STRING))*;
+
+arithmetic_operator: PLUS | MINUS | MUL_OP;
+
+expr: expr5;
+
+expr0: operand | LPAREN expr4 RPAREN;
+expr1: (MINUS| NOT)*expr0;
+expr2: expr1 (arithmetic_operator expr1)* ;
+expr3: expr2 (COND_OP expr2)*;
+expr4: expr3 (cmp_op expr3)*;
+expr5: expr4 (QUESTION expr5 COLON expr5)*;
+
+cmp_op: REL_OP | EQUAL_OP;
+if_block: (IF LPAREN expr RPAREN LCURLY function_body RCURLY)
+        (ELSE  IF LPAREN expr RPAREN LCURLY function_body RCURLY)*
+        (ELSE  LCURLY function_body  RCURLY)?;
+
+for_block: FOR LPAREN
+        (location (EQUALS expr(COMMA location EQUALS expr)*))? SEMICOLON
+        (expr (COMMA expr)*)? SEMICOLON
+        (location ((COMBOUND_ASSIGN_OP expr) | INCREMENT |DECREMENT)) 
+        RPAREN LCURLY
+        function_body
+        RCURLY;
+
+while_block: WHILE LPAREN expr RPAREN
+        LCURLY function_body RCURLY;

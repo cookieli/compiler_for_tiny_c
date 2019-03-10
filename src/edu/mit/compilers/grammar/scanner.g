@@ -64,7 +64,7 @@ LPAREN options { paraphrase = "("; } : "(";
 RPAREN options { paraphrase = ")"; } : ")";
 SEMICOLON options { paraphrase = ";";} : ";";
 COLON options {paraphrase = ":";} : ":";
-
+COMMA options {paraphrase = ",";} : ",";
 ID options { paraphrase = "an identifier"; } : 
         (ALPHA | '_')(ALPHA|'_' | DIGIT)*;
 
@@ -88,9 +88,7 @@ EQUALS: "=";
 QUESTION: "?";
 INCREMENT: "++";
 DECREMENT: "--";
-COMBOUND_ASSIGN_OP: "+=" | "-=" | "*=" | "/="
-COMMA: ",";
-
+COMBOUND_ASSIGN_OP: "+=" | "-=" | "*=" | "/=";
 
 
 STRING : '"' (CHAR)* '"';
