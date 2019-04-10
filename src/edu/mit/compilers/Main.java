@@ -1,78 +1,124 @@
 package edu.mit.compilers;
 
 import java.io.*;
+
+import antlr.CharStreamException;
+import antlr.RecognitionException;
 import antlr.Token;
+import antlr.TokenStreamException;
+import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.grammar.*;
 import edu.mit.compilers.tools.CLI;
 import edu.mit.compilers.tools.CLI.Action;
+import edu.mit.compilers.trees.AstCreator;
+import edu.mit.compilers.trees.ParseTreeNode;
+import edu.mit.compilers.trees.SemanticCheckerNode;
 
 class Main {
-  public static void main(String[] args) {
-    try {
-      CLI.parse(args, new String[0]);
-      InputStream inputStream = args.length == 0 ?
-          System.in : new java.io.FileInputStream(CLI.infile);
-      PrintStream outputStream = CLI.outfile == null ? System.out : new java.io.PrintStream(new java.io.FileOutputStream(CLI.outfile));
-      if (CLI.target == Action.SCAN) {
-        DecafScanner scanner =
-            new DecafScanner(new DataInputStream(inputStream));
-        scanner.setTrace(CLI.debug);
-        Token token;
-        boolean done = false;
-        while (!done) {
-          try {
-            for (token = scanner.nextToken();
-                 token.getType() != DecafParserTokenTypes.EOF;
-                 token = scanner.nextToken()) {
-              String type = "";
-              String text = token.getText();
-              switch (token.getType()) {
-               // TODO: add strings for the other types here...
-               case DecafScannerTokenTypes.ID:
-                type = " IDENTIFIER";
-                break;
-               case DecafScannerTokenTypes.CHAR_LITERAL:
-            	   type= " CHARLITERAL";
-                break;
-               case DecafScannerTokenTypes.INT_LITERAL:
-            	   type=" INTLITERAL";
-            	   break;
-               case DecafScannerTokenTypes.STRING:
-            	   type=" STRINGLITERAL";
-            	   break;
-               case DecafScannerTokenTypes.TRUE:
-            	   type= " BOOLEANLITERAL";
-            	   break;
-               case DecafScannerTokenTypes.FALSE:
-            	   type= " BOOLEANLITERAL";
-            	   break;
-              }
-              outputStream.println(token.getLine() + type + " " + text);
-            }
-            done = true;
-          } catch(Exception e) {
-            // print the error:
-            System.err.println(CLI.infile + " " + e);
-            scanner.consume();
-          }
-        }
-      } else if (CLI.target == Action.PARSE ||
-                 CLI.target == Action.DEFAULT) {
-        DecafScanner scanner =
-            new DecafScanner(new DataInputStream(inputStream));
-        DecafParser parser = new DecafParser(scanner);
-        parser.setTrace(CLI.debug);
-        parser.program();
-        //System.out.println("not in error");
-        if(parser.getError()) {
-        	//System.out.println("it's in error");
-        	 //parser.program();
-        	 System.exit(1);
-        }
-      }
-    } catch(Exception e) {
-      // print the error:
-      System.err.println(CLI.infile+" "+e);
-    }
-  }
+	public static void main(String[] args) {
+		try {
+			CLI.parse(args, new String[0]);
+			InputStream inputStream = args.length == 0 ? System.in : new java.io.FileInputStream(CLI.infile);
+			PrintStream outputStream = CLI.outfile == null ? System.out
+					: new java.io.PrintStream(new java.io.FileOutputStream(CLI.outfile));
+			if (CLI.target == Action.SCAN) {
+				scan(inputStream, outputStream);
+			} else if (CLI.target == Action.PARSE || CLI.target == Action.DEFAULT) {
+				parse(inputStream);
+				//ParseTreeNode tree = parser.getParseTree();
+				//tree.PrintTree();
+				//tree = ParseTreeNode.compressTree(tree);
+				//tree.printTree();
+			} else if(CLI.target == Action.INTER) {
+				DecafParser parser = parse(inputStream);
+				ParseTreeNode tree = parser.getParseTree();
+				tree = ParseTreeNode.compressTree(tree);
+				tree.setFileName(CLI.infile);
+				tree.printTree();
+				System.out.println("------------------");
+				IrProgram p = AstCreator.parseProgram(tree, CLI.infile);
+				System.out.println(p);
+				System.out.println("------------------");
+				SemanticCheckerNode checker = new SemanticCheckerNode();
+				p.accept(checker);
+				//System.out.println(p);
+				//System.out.println(p.importNodesToString());
+				//System.out.println(p.allVariableToString());
+				
+			}
+		} catch (Exception e) {
+			// print the error:
+			System.err.println(CLI.infile + " " + e);
+			// parser.reportError(e.printStackTrace(););
+			e.printStackTrace();
+		}
+	}
+
+	public static void scan(InputStream inputStream, PrintStream outputStream) {
+		DecafScanner scanner = new DecafScanner(new DataInputStream(inputStream));
+		scanner.setTrace(CLI.debug);
+		Token token;
+		boolean done = false;
+		while (!done) {
+			try {
+				for (token = scanner.nextToken(); token.getType() != DecafParserTokenTypes.EOF; token = scanner
+						.nextToken()) {
+					String type = "";
+					String text = token.getText();
+					switch (token.getType()) {
+					// TODO: add strings for the other types here...
+					case DecafScannerTokenTypes.ID:
+						type = " IDENTIFIER";
+						break;
+					case DecafScannerTokenTypes.CHAR_LITERAL:
+						type = " CHARLITERAL";
+						break;
+					case DecafScannerTokenTypes.INT_LITERAL:
+						type = " INTLITERAL";
+						break;
+					case DecafScannerTokenTypes.STRING:
+						type = " STRINGLITERAL";
+						break;
+					case DecafScannerTokenTypes.TRUE:
+						type = " BOOLEANLITERAL";
+						break;
+					case DecafScannerTokenTypes.FALSE:
+						type = " BOOLEANLITERAL";
+						break;
+					}
+					outputStream.println(token.getLine() + type + " " + text);
+				}
+				done = true;
+			} catch (Exception e) {
+				// print the error:
+				System.err.println(CLI.infile + " " + e);
+				try {
+					scanner.consume();
+				} catch (CharStreamException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}
+		// return null;
+
+	}
+
+	public static DecafParser parse(InputStream inputStream) {
+		DecafScanner scanner = new DecafScanner(new DataInputStream(inputStream));
+		DecafParser parser = new DecafParser(scanner);
+		try {
+			parser.setTrace(CLI.debug);
+			parser.program();
+			if (parser.getError()) {
+				System.exit(1);
+			}
+		} catch (RecognitionException | TokenStreamException e) {
+			// TODO Auto-generated catch block
+			if (e instanceof RecognitionException)
+				parser.reportError((RecognitionException) e);
+			System.exit(-1);
+		}
+		return parser;
+	}
 }

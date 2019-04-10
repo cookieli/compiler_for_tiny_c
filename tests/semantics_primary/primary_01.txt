@@ -1,0 +1,7 @@
+import print;
+
+int a;
+
+int main(){
+
+}

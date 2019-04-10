@@ -68,7 +68,6 @@ COMMA options {paraphrase = ",";} : ",";
 ID options { paraphrase = "an identifier"; } : 
         (ALPHA | '_')(ALPHA|'_' | DIGIT)*;
 
-
 // Note that here, the {} syntax allows you to literally command the lexer
 // to skip mark this token as skipped, or to advance to the next line
 // by directly adding Java commands.

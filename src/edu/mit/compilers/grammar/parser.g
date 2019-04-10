@@ -1,6 +1,7 @@
 header {
 package edu.mit.compilers.grammar;
 import java.io.*;
+import edu.mit.compilers.trees.ParseTreeNode;
 }
 
 options
@@ -37,7 +38,7 @@ options
     error = true;
   }
   public boolean getError () {
-    return error;
+        return error;
   }
 
   // Selectively turns on debug mode.
@@ -46,38 +47,49 @@ options
   private boolean trace = true;
 
   public void setTrace(boolean shouldTrace) {
-    trace = false;
+    trace = shouldTrace;
   }
+
+  private ParseTreeNode parseTree = ParseTreeNode.root();
+  public ParseTreeNode getParseTree(){ return parseTree.getFirstChild();}
   @Override
   public void traceIn(String rname) throws TokenStreamException {
+     parseTree = parseTree.addChild(rname);
     if (trace) {
       super.traceIn(rname);
     }
   }
   @Override
   public void traceOut(String rname) throws TokenStreamException {
+      parseTree = parseTree.getParent();
     if (trace) {
       super.traceOut(rname);
     }
+  }
+
+  @Override
+  public void match(int t)throws MismatchedTokenException,TokenStreamException{
+      if(LT(1).getText() != null){
+         // System.out.println("match: "+LT(1).getText());
+          parseTree.addChild(LT(1));
+      }
+     super.match(t);
   }
 }
 
 program: (import_decl SEMICOLON)* (variable_declaration SEMICOLON)* (func_def)* EOF;
 
 import_decl: IMPORT ID;
-        
-variable_declaration: compound_decl;
-
-compound_decl: type (location_def (COMMA location_def)*) ;
+variable_declaration: type (location_def (COMMA location_def)*) ;
 
 location_def: array_form|ID;
 array_form: ID LBRACKET num_literal RBRACKET;
 
 
-func_def: (VOID | type) ID LPAREN (type ID (COMMA type ID)*)? RPAREN LCURLY (function_body)? RCURLY;
-
+func_def: (VOID | type) ID LPAREN (func_def_arg)? RPAREN LCURLY (function_body)? RCURLY;
+func_def_arg: (type ID (COMMA type ID)*);
 type: INT|BOOL;
-function_body: (variable_declaration SEMICOLON)* (statement)*  (return_assignment (SEMICOLON))?;
+function_body: (variable_declaration SEMICOLON)* (statement)* ;
 statement: (assignment SEMICOLON) | if_block | for_block | while_block| (func_invoc SEMICOLON)
     | (BREAK SEMICOLON) | (CONTINUE SEMICOLON)| (return_assignment SEMICOLON);
 assignment: location ((EQUALS expr)| (COMBOUND_ASSIGN_OP expr)| INCREMENT | DECREMENT);
@@ -96,7 +108,7 @@ arithmetic_operator: PLUS | MINUS | MUL_OP;
 
 expr: expr5;
 
-expr0: operand | LPAREN expr4 RPAREN;
+expr0: operand | LPAREN expr RPAREN;
 expr1: (MINUS| NOT)*expr0;
 expr2: expr1 (arithmetic_operator expr1)* ;
 expr3: expr2 (COND_OP expr2)*;
