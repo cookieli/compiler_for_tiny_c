@@ -90,7 +90,8 @@ func_def: (VOID | type) ID LPAREN (func_def_arg)? RPAREN LCURLY (function_body)?
 func_def_arg: (type ID (COMMA type ID)*);
 type: INT|BOOL;
 function_body: (variable_declaration SEMICOLON)* (statement)* ;
-statement: (assignment SEMICOLON) | if_block | for_block | while_block| (func_invoc SEMICOLON)
+statement: (assignment SEMICOLON)
+    | if_block | for_block | while_block| (func_invoc SEMICOLON)
     | (BREAK SEMICOLON) | (CONTINUE SEMICOLON)| (return_assignment SEMICOLON);
 assignment: location ((EQUALS expr)| (COMBOUND_ASSIGN_OP expr)| INCREMENT | DECREMENT);
 return_assignment: RETURN expr;

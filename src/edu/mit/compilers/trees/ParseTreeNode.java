@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import antlr.Token;
+import edu.mit.compilers.grammar.DecafParserTokenTypes;
 
 public class ParseTreeNode {
 	public static String fileName = null;
@@ -61,6 +62,37 @@ public class ParseTreeNode {
 	
 	public boolean isVariableNode() {
 		return NodeName.equals("variable_declaration");
+	}
+	public boolean isMethodNode() {
+		return NodeName.equals("func_def");
+	}
+	public boolean isAssignment() {
+		return NodeName.equals("assignment");
+	}
+	
+	public boolean isLiteral() {
+		return isBoolLiteral() || isNumLiteral();
+	}
+	
+	public boolean isBoolLiteral() {
+		return getToken().getType() == DecafParserTokenTypes.FALSE || getToken().getType() == DecafParserTokenTypes.TRUE;
+	}
+	
+	public boolean isNumLiteral() {
+		return isIntLiteral()|| isCharLiteral();
+	}
+	private boolean isIntLiteral() {
+		return getToken().getType() == DecafParserTokenTypes.INT_LITERAL;        
+	}
+	private boolean isCharLiteral() {
+		return getToken().getType() == DecafParserTokenTypes.CHAR_LITERAL;
+	}
+	public boolean isFuncBody() {
+		return NodeName.equals("function_body");
+	}
+	
+	public boolean isLocation() {
+		return getToken().getType() == DecafParserTokenTypes.ID;
 	}
 	public String getName() {
 		return this.NodeName;

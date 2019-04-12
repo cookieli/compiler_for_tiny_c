@@ -18,10 +18,16 @@ public abstract class SymbolTable<K extends SymbolTable<K, V>, V extends Named> 
 		this(null);
 		
 	}
+	public int size() {
+		return idList.size();
+	}
 	public SymbolTable(K parent) {
 		this.parent = parent;
 		idList = new ArrayList<>();
 		table = new LinkedHashMap<>();
+	}
+	public void addParent(K parent) {
+		this.parent = parent;
 	}
 	public K getParent() {return parent;}
 	
@@ -29,11 +35,13 @@ public abstract class SymbolTable<K extends SymbolTable<K, V>, V extends Named> 
 	
 	public Collection<V> values() {return table.values();}
 	
-	public boolean hasKey(String key) {
-		return idList.contains(key);
-	}
 	public V get(String key) {
-		return table.get(key);
+		if(table.get(key) != null)
+			return table.get(key);
+		else if(parent != null)
+			return parent.get(key);
+		else
+			return null;
 	}
 	
 	public void put(String key, V v) {

@@ -1,7 +1,6 @@
 package edu.mit.compilers.IR.IR_decl_Node;
 
 import edu.mit.compilers.IR.IrNode;
-import edu.mit.compilers.IR.IrNodeVistor;
 
 public abstract class IrDeclaration extends IrNode implements Comparable<IrDeclaration>{
 	String id;
@@ -21,6 +20,9 @@ public abstract class IrDeclaration extends IrNode implements Comparable<IrDecla
 	public String getName() {
 		return id;
 	}
+	public String getId() {
+		return id;
+	}
 	
 	@Override
 	public boolean equals(Object obj) {
@@ -31,7 +33,7 @@ public abstract class IrDeclaration extends IrNode implements Comparable<IrDecla
 		if(!(obj instanceof IrDeclaration))
 			return false;
 		IrDeclaration i = (IrDeclaration)obj;
-		if(i.getName().equals(getName()))
+		if(i.getId().equals(id))
 			return true;
 		return false;
 	}
@@ -39,7 +41,9 @@ public abstract class IrDeclaration extends IrNode implements Comparable<IrDecla
 	@Override
 	public int compareTo(IrDeclaration o) {
 		// TODO Auto-generated method stub
-		return getName().compareTo(o.getName());
+		if(o.getId().equals(this.getId()))
+			return ((Integer)this.getLineNumber()).compareTo(o.getLineNumber());
+		return getId().compareTo(o.getId());
 	}
 	
 }

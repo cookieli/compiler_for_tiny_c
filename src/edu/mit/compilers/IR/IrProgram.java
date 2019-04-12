@@ -5,17 +5,21 @@ import java.util.List;
 import java.util.Set;
 
 import edu.mit.compilers.IR.IR_decl_Node.Import_decl;
+import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.SymbolTables.ImportTable;
+import edu.mit.compilers.SymbolTables.MethodTable;
 import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class IrProgram extends IrNode{
 	public ImportTable importIR;
 	public VariableTable globalVariableTable;
+	public MethodTable globalMethodTable;
 	public String fileName;
 	public IrProgram(String name) {
 		importIR = null;
 		globalVariableTable = null;
+		globalMethodTable = null;
 		fileName = name;
 	}
 	public VariableTable getGlobalVariableTable() {return globalVariableTable; }
@@ -38,6 +42,11 @@ public class IrProgram extends IrNode{
 			addGlobalVariable(va);
 		}
 	}
+	public void addGlobalMethod(MethodDecl method) {
+		if(globalMethodTable == null)
+			globalMethodTable = new MethodTable();
+		globalMethodTable.put(method);
+	}
 	public void addGlobalVariable(Variable_decl va) {
 		AddGlobalVariable(va.getId(), va);
 	}
@@ -58,16 +67,22 @@ public class IrProgram extends IrNode{
 	}
 	
 	public String allVariableToString() {
+		if(globalVariableTable == null)
+			return "no variable defined";
 		StringBuilder sb = new StringBuilder();
 		for(Variable_decl v: globalVariableTable) {
 			sb.append(v.getName());
-			sb.append(", ");
-			sb.append(" lineNumber: ");
-			sb.append(v.getLineNumber());
-			sb.append(" columnNumber: ");
-			sb.append(v.getColumnNumber());
-			sb.append(" filename: ");
-			sb.append(v.getFilename());
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
+	
+	public String allMethodToString() {
+		if(globalMethodTable == null)
+			return "no methods defined";
+		StringBuilder sb = new StringBuilder();
+		for(MethodDecl m: globalMethodTable) {
+			sb.append(m.toString());
 			sb.append("\n");
 		}
 		return sb.toString();
@@ -75,7 +90,8 @@ public class IrProgram extends IrNode{
 	@Override
 	public String toString() {
 		return "import Nodes:\n"+ importNodesToString() 
-		+ "\n"+"all variables: \n"+ allVariableToString();
+		+ "\n"+"all variables: \n"+ allVariableToString()
+		+ "\n"+"all methods: \n" + allMethodToString();
 	}
 	
 	@Override
