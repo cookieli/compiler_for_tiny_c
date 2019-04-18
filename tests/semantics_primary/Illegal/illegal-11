@@ -1,0 +1,6 @@
+void main(){
+   int a;
+   int c;
+   a = len(b);
+   a = len(c);
+}

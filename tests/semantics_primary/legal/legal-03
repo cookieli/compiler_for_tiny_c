@@ -1,0 +1,11 @@
+int a[6];
+bool b[7];
+int c[5];
+int func(int a, int b, int c){
+
+}
+
+void main(){
+    int a;
+    a = 0;
+}

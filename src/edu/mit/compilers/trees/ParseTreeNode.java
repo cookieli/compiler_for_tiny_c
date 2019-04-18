@@ -61,7 +61,11 @@ public class ParseTreeNode {
 	}
 	
 	public boolean isVariableNode() {
-		return NodeName.equals("variable_declaration");
+		return NodeName.equals("variable_declaration") || NodeName.equals("array_form");
+	}
+	
+	public boolean isArrayForm() {
+		return NodeName.equals("array_form");
 	}
 	public boolean isMethodNode() {
 		return NodeName.equals("func_def");
@@ -71,11 +75,16 @@ public class ParseTreeNode {
 	}
 	
 	public boolean isLiteral() {
+		if(getToken() == null) return false;
 		return isBoolLiteral() || isNumLiteral();
 	}
 	
 	public boolean isBoolLiteral() {
 		return getToken().getType() == DecafParserTokenTypes.FALSE || getToken().getType() == DecafParserTokenTypes.TRUE;
+	}
+	
+	public boolean isFuncInvoke() {
+		return NodeName.equals("func_invoc");
 	}
 	
 	public boolean isNumLiteral() {
@@ -90,9 +99,44 @@ public class ParseTreeNode {
 	public boolean isFuncBody() {
 		return NodeName.equals("function_body");
 	}
-	
+	public boolean isFuncArg() {
+		return NodeName.equals("func_def_arg");
+	}
 	public boolean isLocation() {
-		return getToken().getType() == DecafParserTokenTypes.ID;
+		if(!isArrayMember()) {
+			if(getToken() == null)  return false;
+			return getToken().getType() == DecafParserTokenTypes.ID;
+		}
+		return true;
+	}
+	
+	public boolean isLenExpr() {
+		if(NodeName.equals("operand"))
+			if(this.getFirstChild() != null && (this.getFirstChild().getToken().getType() == DecafParserTokenTypes.LEN))
+				if(this.getFirstChild().getRightSibling() != null)
+					return true;
+		return false;
+				
+	}
+	
+	public boolean isArrayMember() {
+		return NodeName.equals("array_member");
+	}
+	
+	public boolean isUnaryExpr() {
+		return NodeName.equals("expr1");
+	}
+	
+	public boolean isTernaryExpr() {
+		return NodeName.equals("expr7");
+	}
+	
+	public boolean isBinaryExpr() {
+		return isExpr() && (!isUnaryExpr()) && (!isTernaryExpr());
+	}
+	
+	public boolean isExpr() {
+		return NodeName.contains("expr");
 	}
 	public String getName() {
 		return this.NodeName;
@@ -235,7 +279,7 @@ public class ParseTreeNode {
 			return null;
 		filterChild(filter, node);
 		ParseTreeNode parent = node.parent;
-		while (node.getFirstChild() != null && (node.getFirstChild() == node.getLastChild())) {
+		while (node.getFirstChild() != null && (node.getFirstChild() == node.getLastChild()) && (!node.isFuncInvoke())) {
 			ParseTreeNode childNode = node.getFirstChild();
 			childNode.parent = node.parent;
 			if (node.getleftSibling() == null && node.getRightSibling() == null) {

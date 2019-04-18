@@ -27,11 +27,17 @@ public class IrAssignment extends IrStatement{
 	public IrExpression getRhs() {
 		return rhs;
 	}
-
+	
+	public String getSymbol() {
+		return symbol;
+	}
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
-		return lhs.getName()+ " "+ symbol +" " +rhs.getName();
+		if(rhs != null)
+			return lhs.getName()+ " "+ symbol +" " +rhs.getName();
+		else
+			return lhs.getName() + " "+ symbol+" ";
 	}
 
 	@Override

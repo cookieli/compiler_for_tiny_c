@@ -22,7 +22,7 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	
 	public IrType getVariableType(String var) {
 		if(!containsVariable(var)) 
-			throw new IllegalArgumentException("the whole scope doesn't have var ");
+			throw new IllegalArgumentException("the whole scope doesn't have var "+ var);
 		return get(var).type;
 	}
 	@Override

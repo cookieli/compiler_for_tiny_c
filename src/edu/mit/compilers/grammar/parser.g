@@ -88,6 +88,7 @@ array_form: ID LBRACKET num_literal RBRACKET;
 
 func_def: (VOID | type) ID LPAREN (func_def_arg)? RPAREN LCURLY (function_body)? RCURLY;
 func_def_arg: (type ID (COMMA type ID)*);
+
 type: INT|BOOL;
 function_body: (variable_declaration SEMICOLON)* (statement)* ;
 statement: (assignment SEMICOLON)
@@ -105,16 +106,19 @@ array_member: ID LBRACKET expr RBRACKET;
 func_invoc: ID LPAREN (func_arg)? RPAREN;
 func_arg: (expr|STRING) (COMMA (expr|STRING))*;
 
-arithmetic_operator: PLUS | MINUS | MUL_OP;
-
-expr: expr5;
+plus_or_minus: PLUS | MINUS;
+expr: expr7;
 
 expr0: operand | LPAREN expr RPAREN;
 expr1: (MINUS| NOT)*expr0;
-expr2: expr1 (arithmetic_operator expr1)* ;
-expr3: expr2 (COND_OP expr2)*;
+expr2: expr1 (MUL_OP expr1)*;
+expr3: expr2 (plus_or_minus expr2)* ;
+
 expr4: expr3 (cmp_op expr3)*;
-expr5: expr4 (QUESTION expr5 COLON expr5)*;
+expr5: expr4 (COND_AND expr4)*;
+expr6: expr5 (COND_OR expr5)*;
+
+expr7: expr6 (QUESTION expr7 COLON expr7)*;
 
 cmp_op: REL_OP | EQUAL_OP;
 if_block: (IF LPAREN expr RPAREN LCURLY function_body RCURLY)

@@ -5,10 +5,15 @@ import java.util.List;
 
 import antlr.Token;
 import edu.mit.compilers.IR.IrProgram;
+import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Import_decl;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
+import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.UnaryExpression;
+import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
+import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.statement.IrAssignment;
@@ -47,6 +52,8 @@ public class AstCreator {
 		}
 		return program;
 	}
+	
+	
 	public static Import_decl parseImportDecl(ParseTreeNode node) {
 		if(node.isImportNode()) {
 			return (new Import_decl(node.getLastChild().getToken(), ParseTreeNode.fileName));
@@ -59,13 +66,32 @@ public class AstCreator {
 			Token type = node.getFirstChild().getToken();
 			ParseTreeNode id = node.getFirstChild().getRightSibling();
 			while(id != null) {
-				lst.add(new Variable_decl(type,id.getToken(), ParseTreeNode.fileName));
+				if(id.isArrayForm()) {
+					ParseTreeNode idNode = id.getFirstChild();
+					int size = Integer.parseInt(idNode.getRightSibling().getName());
+					lst.add(new ArrayDecl(type, idNode.getToken(), size, ParseTreeNode.fileName));
+				} else 
+					lst.add(new Variable_decl(type,id.getToken(), ParseTreeNode.fileName));
 				id = id.getRightSibling();
 			}
 			return lst;
 		} else {
 			throw new IllegalArgumentException("this node is not Variable_decl Node");
 		}
+	}
+	
+	public static List<Variable_decl> parseParameterForMethod(ParseTreeNode node){
+		List<Variable_decl> lst = new ArrayList<>();
+		if(node.isFuncArg()) {
+			ParseTreeNode typeNode = node.getFirstChild();
+			while(typeNode != null) {
+				ParseTreeNode idNode = typeNode.getRightSibling();
+				lst.add(new Variable_decl(typeNode.getToken(), idNode.getToken(), ParseTreeNode.fileName));
+				typeNode = idNode.getRightSibling();
+			}
+			return lst;
+		} else
+			throw new IllegalArgumentException("this node is function_arg node");
 	}
 	
 	public static IrAssignment parseAssignment(ParseTreeNode node) {
@@ -78,11 +104,17 @@ public class AstCreator {
 			symbol = node.getName();
 			if(node.getRightSibling() != null) {
 				node = node.getRightSibling();
-				if(node.isLiteral()) {
-					expr = new IrLiteral(node);
-					//return new IrAssignment(loc, expr, symbol);
-				} else if(node.isLocation())
+				if(node.isFuncInvoke()) {
+					expr = parseFuncInvoke(node);
+				} else if(node.isLocation()) {
 					expr = parseLocation(node);
+				} else if(node.isLiteral()) {
+					expr = new IrLiteral(node, ParseTreeNode.fileName);
+				}else if(node.isLenExpr()) {
+					expr = parseLenExpr(node);
+				} else if(node.isExpr()) {
+					expr = parseBinaryExpr(node);
+				}
 			}
 			return new IrAssignment(loc, expr, symbol);
 		} else
@@ -91,9 +123,44 @@ public class AstCreator {
 	}
 	
 	public static IrLocation parseLocation(ParseTreeNode node) {
-		if(node.isLocation())
-			return new IrLocation(node.token, ParseTreeNode.fileName);
+		if(node == null)
+			System.out.println("the node is null");
+		if(node.isLocation()) {
+			if(node.isArrayMember())
+				return new IrLocation(node, ParseTreeNode.fileName);
+			else
+				return new IrLocation(node.token, ParseTreeNode.fileName);
+		}
 		throw new IllegalArgumentException("the node isn't location node");
+	}
+	
+	public static IrFuncInvocation parseFuncInvoke(ParseTreeNode node) {
+		if(node.isFuncInvoke()) {
+			ParseTreeNode funcNode = node.getFirstChild();
+			IrFuncInvocation funcInvoke = new IrFuncInvocation(funcNode.getToken(), ParseTreeNode.fileName);
+			funcInvoke.addFuncName(funcNode.getName());
+			ParseTreeNode paraNode = funcNode.getRightSibling();
+			while(paraNode != null) {
+				if(paraNode.isLiteral()) {
+					funcInvoke.addFuncArg(new IrLiteral(paraNode, ParseTreeNode.fileName));
+				} else if(paraNode.isLocation()) {
+					funcInvoke.addFuncArg(parseLocation(paraNode));
+				}
+				paraNode = paraNode.getRightSibling();
+			}
+			return funcInvoke;
+		}
+		throw new IllegalArgumentException("the node isn't funcInvoke node");
+	}
+	
+	public static IrLenExpr parseLenExpr(ParseTreeNode node) {
+		if(node.isLenExpr()) {
+			Token opr = node.getFirstChild().getRightSibling().getToken();
+			IrLenExpr len = new IrLenExpr(opr, ParseTreeNode.fileName);
+			return len;
+			
+		}
+		throw new IllegalArgumentException("the len expr can't work");
 	}
 	
 	public static MethodDecl parseMethodDecl(ParseTreeNode node, VariableTable localVariableParent) {
@@ -103,13 +170,27 @@ public class AstCreator {
 			MethodDecl method = new MethodDecl(type, id.getToken(), ParseTreeNode.fileName);
 			method.addLocalVarParent(localVariableParent);
 			ParseTreeNode n = id.getRightSibling();
+			if(n.isFuncArg()) {
+				addFunctionArgForMethod(n, method);
+			     n = n.getRightSibling();
+			}
 			addFunctionBodyForMethod(n, method);
 			return method;
 		}
 		return null;
 	}
+	
+	
+	public static void addFunctionArgForMethod(ParseTreeNode n, MethodDecl method) {
+		if(n.isFuncArg()) {
+			method.addParameter(parseParameterForMethod(n));
+		} else
+			throw new IllegalArgumentException("the node isn't func arg def node");
+	}
+	
 	public static void addFunctionBodyForMethod(ParseTreeNode n, MethodDecl method) {
-		if(n.isVariableNode()) {
+		
+		if(n.isVariableNode()) {//it means the method have nothing except for just a variable declariation
 			method.addLocalVariable(parseVariableDecl(n));
 		} else if(n.isFuncBody()) {
 			ParseTreeNode node = n.getFirstChild();
@@ -123,6 +204,49 @@ public class AstCreator {
 		} else if(n.isAssignment()) {
 			method.addIrStatement(parseAssignment(n));
 		}
+	}
+	public static IrExpression getSpecificExpr(ParseTreeNode n) {
+		if(n.isLiteral())
+			return new IrLiteral(n, ParseTreeNode.fileName);
+		if(n.isLocation() && n.isArrayMember()) {
+			return new IrLocation(n, ParseTreeNode.fileName);
+		}
+		else if(n.isLocation())
+			return new IrLocation(n.getToken(), ParseTreeNode.fileName);
+		else if(n.isBinaryExpr()) {
+			return parseBinaryExpr(n);
+		} else if(n.isUnaryExpr()){
+			return parseUnaryExpr(n);
+		}else if(n.isFuncInvoke()) {
+			return parseFuncInvoke(n);
+		} else if(n.isLenExpr())
+			return parseLenExpr(n);
+		return null;
+	}
+	public static BinaryExpression parseBinaryExpr(ParseTreeNode n) {
+		if(n.isExpr()) {
+			ParseTreeNode firstOperand = n.getFirstChild();
+			ParseTreeNode symbolNode = firstOperand.getRightSibling();
+			ParseTreeNode secondOperand = symbolNode.getRightSibling();
+			BinaryExpression expr = new BinaryExpression(getSpecificExpr(firstOperand), getSpecificExpr(secondOperand), symbolNode.getName());
+			symbolNode = secondOperand.getRightSibling();
+			while(symbolNode != null) {
+				secondOperand = symbolNode.getRightSibling();
+				expr = new BinaryExpression(expr, getSpecificExpr(secondOperand), symbolNode.getName());
+				symbolNode = secondOperand.getRightSibling();
+			}
+			return expr;
+		}
+		throw new IllegalArgumentException("the tree node isn't binary expression");
+	}
+	
+	public static UnaryExpression parseUnaryExpr(ParseTreeNode n) {
+		if(n.isUnaryExpr()) {
+			String symbol = n.getFirstChild().getName();
+			IrExpression expr = getSpecificExpr(n.getLastChild());
+			return new UnaryExpression(symbol, expr);
+		}
+		throw new IllegalArgumentException("the tree node isn't unary expression");
 	}
 	
 	

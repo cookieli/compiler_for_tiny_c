@@ -1,0 +1,4 @@
+int a;
+bool a[6];
+void main(){
+}

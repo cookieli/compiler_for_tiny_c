@@ -1,26 +1,33 @@
 package edu.mit.compilers.IR.expr.operand;
 
-import edu.mit.compilers.IR.IrNode;
+import antlr.Token;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.expr.IrExpression;
-import edu.mit.compilers.trees.ParseTreeNode;
 
-public class IrLiteral extends IrOperand{
+public class IrLenExpr extends IrOperand{
 	
-	IrType type;
-	public IrLiteral(ParseTreeNode node, String filename) {
-		super(node.getToken().getLine(), node.getToken().getColumn(), filename);
-		type = new IrType(node);
-			
+	
+	private final IrType type = new IrType(IrType.Type.INT);
+	
+	public IrLocation operand;
+	
+	public IrLenExpr(Token opr, String filename) {
+		operand = new IrLocation(opr, filename);
+		
+	}
+	
+	public IrLocation getOperand() {
+		return operand;
 	}
 	public IrType getType() {
 		return type;
 	}
+	
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
-		return type.toString() + " "+ "Literal";
+		return "len(" + operand.getId() +")";
 	}
 
 	@Override

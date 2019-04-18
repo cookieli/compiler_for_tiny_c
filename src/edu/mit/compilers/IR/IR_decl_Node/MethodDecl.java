@@ -5,6 +5,7 @@ import java.util.List;
 
 import antlr.Token;
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.SymbolTables.VariableTable;
 
@@ -36,6 +37,11 @@ public class MethodDecl extends Variable_decl{
 		paraList.add(var.getId());
 		localVars.put(var);
 	}
+	
+	public void addParameter(List<Variable_decl> lst) {
+		for(Variable_decl v: lst)
+			addParameter(v);
+	}
 	public void addIrStatement(IrStatement s) {
 		statements.add(s);
 	}
@@ -47,7 +53,6 @@ public class MethodDecl extends Variable_decl{
 	public boolean isParameter(Variable_decl v) {
 		return isParameter(v.getId());
 	}
-	
 	public void addLocalVariable(List<Variable_decl> lst) {
 		for(Variable_decl v: lst) {
 			addLocalVariable(v);
@@ -91,6 +96,13 @@ public class MethodDecl extends Variable_decl{
 		}
 		sb.append("\n");
 		return sb.toString();
+	}
+	public IrType getMethodType() {
+		return this.type;
+	}
+	
+	public boolean hasParameter() {
+		return !paraList.isEmpty();
 	}
 	
 	@Override

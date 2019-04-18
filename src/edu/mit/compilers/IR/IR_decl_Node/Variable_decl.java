@@ -6,6 +6,7 @@ import edu.mit.compilers.IR.IrType;
 
 public class Variable_decl extends IrDeclaration{
 	public IrType type;
+	public boolean isArray = false;
 	
 	public Variable_decl(Token type, Token id, String fileName) {
 		super(id.getLine(), id.getColumn(),fileName);
@@ -17,7 +18,7 @@ public class Variable_decl extends IrDeclaration{
 		// TODO Auto-generated method stub
 		return id+ " "+ type.toString();
 	}
-	
+	@Override
 	public String getId() {
 		return id;
 	}
@@ -25,6 +26,11 @@ public class Variable_decl extends IrDeclaration{
 	public String getType() {
 		return type.toString();
 	}
+	
+	public boolean isArray() {
+		return isArray;
+	}
+	
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub

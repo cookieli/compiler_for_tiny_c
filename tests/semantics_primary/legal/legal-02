@@ -1,0 +1,6 @@
+bool a;
+void main(){
+   bool b;
+   a = false;
+   b = a;
+}

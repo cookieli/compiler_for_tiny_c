@@ -15,12 +15,12 @@ public class IrProgram extends IrNode{
 	public ImportTable importIR;
 	public VariableTable globalVariableTable;
 	public MethodTable globalMethodTable;
-	public String fileName;
+	//public String fileName;
 	public IrProgram(String name) {
 		importIR = null;
 		globalVariableTable = null;
 		globalMethodTable = null;
-		fileName = name;
+		filename = name;
 	}
 	public VariableTable getGlobalVariableTable() {return globalVariableTable; }
 	
@@ -99,6 +99,8 @@ public class IrProgram extends IrNode{
 		// TODO Auto-generated method stub
 		return "program";
 	}
+	
+	
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub

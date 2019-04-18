@@ -9,6 +9,8 @@ public class IrType {
 		INT,
 		BOOL,
 		VOID,
+		INT_ARRAY,
+		BOOL_ARRAY,
 		UNSPECIFIED
 	}
 	
@@ -27,10 +29,13 @@ public class IrType {
 			break;
 		}
 	}
+	public IrType(Type t) {
+		type = t;
+	}
 	
 	public IrType(ParseTreeNode node) {
-		if(node.isBoolLiteral()) type = type.BOOL;
-		else if(node.isNumLiteral()) type = type.INT;
+		if(node.isBoolLiteral()) type = Type.BOOL;
+		else if(node.isNumLiteral()) type = Type.INT;
 		else
 			throw new IllegalArgumentException("this node isn't literal node");
 	}
@@ -48,8 +53,15 @@ public class IrType {
 		return false;
 		
 	}
+	
+	public boolean typeIs(Type t) {
+		return type == t;
+	}
 	@Override
 	public String toString() {
 		return type.name();
+	}
+	public Type getType() {
+		return type;
 	}
 }

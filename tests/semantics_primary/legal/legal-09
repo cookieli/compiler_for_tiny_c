@@ -1,0 +1,9 @@
+void main(){
+  bool a;
+  int b;
+  int c;
+  a = true && false || false;
+  a = 3 > 2 && 3 == 3;
+  a = (b > c || c > b) && false || 3 > 2;
+  a = b > c || c > b && false || 3 > 2;
+}

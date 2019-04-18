@@ -1,0 +1,8 @@
+void main(){
+   int a;
+   int b;
+   bool c;
+   c = a && b;
+   c = false && a > b || a + 4 * 5;
+   c = (false && true) > 4;
+}

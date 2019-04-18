@@ -1,0 +1,9 @@
+void main(){
+  int b;
+  int c;
+  bool d;
+  int e;
+  e = b + 2 > c* 10;
+  b = d <= 3+2+1;
+  c = b > c> 2;
+}

@@ -1,0 +1,8 @@
+bool func(){
+
+}
+
+int main(){
+   int a;
+   a = func();
+}
