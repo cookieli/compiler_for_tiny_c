@@ -102,6 +102,10 @@ public class ParseTreeNode {
 	public boolean isFuncArg() {
 		return NodeName.equals("func_def_arg");
 	}
+	
+	public boolean isFuncInvokeArg() {
+		return NodeName.equals("func_arg");
+	}
 	public boolean isLocation() {
 		if(!isArrayMember()) {
 			if(getToken() == null)  return false;

@@ -1,5 +1,8 @@
 package edu.mit.compilers.IR.expr.operand;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import antlr.Token;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
@@ -36,6 +39,10 @@ public class IrLocation extends IrOperand{
 		return isArray;
 	}
 	
+	public IrExpression getSizeExpr() {
+		return sizeExpr;
+	}
+	
 	public String getId() {
 		return location;
 	}
@@ -51,6 +58,14 @@ public class IrLocation extends IrOperand{
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public List<IrOperand> operandList() {
+		// TODO Auto-generated method stub
+		List<IrOperand> lst = new ArrayList<>();
+		lst.add(this);
+		return lst;
 	}
 
 }

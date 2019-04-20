@@ -1,5 +1,8 @@
 package edu.mit.compilers.IR.expr.operand;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
@@ -27,6 +30,13 @@ public class IrLiteral extends IrOperand{
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		
+	}
+	@Override
+	public List<IrOperand> operandList() {
+		// TODO Auto-generated method stub
+		List<IrOperand> lst = new ArrayList<>();
+		lst.add(this);
+		return lst;
 	}
 
 }

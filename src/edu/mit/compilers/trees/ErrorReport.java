@@ -7,6 +7,7 @@ import edu.mit.compilers.IR.IR_decl_Node.Import_decl;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.TernaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
@@ -21,6 +22,37 @@ public class ErrorReport {
 		sb.append(":");
 		sb.append(v.getColumnNumber());
 		sb.append(":");
+		return sb.toString();
+	}
+	
+	public static String ArraySubscriptNotInt(IrLocation i) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(i));
+		sb.append("error: " + i.getName()+" subscript isn't int type");
+		sb.append("\n");
+		return sb.toString();
+	}
+	
+	public static String notHaveSamePara(IrFuncInvocation func, MethodDecl m) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(func));
+		sb.append("error: the func invoke "+ func.getName() + " has improper parameter size");
+		sb.append(" the correct method decl is ");
+		sb.append(m.getName());
+		sb.append("\n");
+		return sb.toString();
+	}
+	
+	public static String notHaveSamePara(IrFuncInvocation func, MethodDecl m, int i, IrType rightType, IrType wrongType) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(func));
+		sb.append("error: ");
+		sb.append("the func invoke " + func.getName() + " " +  i+"th"+ " type " + wrongType.toString());
+		sb.append(" not equals " + rightType.toString());
+		sb.append(" the correct method decl is ");
+		sb.append(m.getName());
+		sb.append("\n");
+		
 		return sb.toString();
 	}
 	
@@ -44,11 +76,23 @@ public class ErrorReport {
 		return sb.toString();
 	}
 	
-	public static String typeNotMatchForBinary(IrExpression expr, IrType type, IrType shouldBe) {
+	public static String typeNotMatchForExpr(IrExpression expr, IrType type, IrType shouldBe) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getErrLocation(expr));
-		sb.append(expr.getName() + "'s type" + type.toString());
-		sb.append("  can't match binary expression operand should be type: " + shouldBe.toString());
+		sb.append("error: ");
+		sb.append(expr.getName() + "'s type " + type.toString());
+		sb.append("  can't match expression operand should be type: " + shouldBe.toString());
+		sb.append("\n");
+		return sb.toString();
+	}
+	
+	public static String typeNotMatchForTernary(TernaryExpression expr, IrType lhsType, IrType rhsType) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(expr));
+		sb.append("error: ");
+		sb.append(expr.getName() + " " + "first expr type is " + lhsType.toString());
+		sb.append(".  it's second expr type is "+ rhsType.toString());
+		sb.append(".  they are not match");
 		sb.append("\n");
 		return sb.toString();
 	}

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.IR.expr.operand.IrOperand;
 
 public class BinaryExpression extends IrExpression {
 	
@@ -47,19 +48,11 @@ public class BinaryExpression extends IrExpression {
 		
 	}
 	
-	public List<IrExpression> operandList(){
-		List<IrExpression> list = new ArrayList<>();
-		addList(list, lhs);
-		addList(list, rhs);
+	public List<IrOperand> operandList(){
+		List<IrOperand> list = new ArrayList<>();
+		list.addAll(lhs.operandList());
+		list.addAll(rhs.operandList());
 		return list;
-	}
-	private void addList(List<IrExpression> lst, IrExpression expr) {
-		if(IrExpression.isOperand(expr)) {
-			lst.add(expr);
-		}
-		else if( IrExpression.isBinaryExpr(expr)) {
-			lst.addAll(((BinaryExpression)expr).operandList());
-		}
 	}
 	
 }

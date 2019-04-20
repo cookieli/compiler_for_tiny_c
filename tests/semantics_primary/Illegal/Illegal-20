@@ -1,0 +1,15 @@
+int func(int a, int b){
+  return a+ b;
+}
+
+int func2(int a, bool b){
+    return 2;
+}
+void main(){
+   int a;
+   bool d;
+   bool e;
+   a = func(c, f);
+   a = func(d, e);
+   a = func2(func1(a, 3) + 3 > 2 && true || 2 + 3 > 5, a + 2 + 3 * 5 / 6);
+}

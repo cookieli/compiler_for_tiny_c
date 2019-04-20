@@ -31,6 +31,9 @@ public class IrFuncInvocation extends IrOperand {
 	public String getId() {
 		return funcName;
 	}
+	public int getFuncArgNum() {
+		return funcArgs.size();
+	}
 	
 	@Override
 	public String getName() {
@@ -39,17 +42,33 @@ public class IrFuncInvocation extends IrOperand {
 		sb.append(funcName);
 		sb.append("(");
 		for(IrExpression e: funcArgs) {
+			if(e == null) continue;
 			sb.append(e.getName());
 			sb.append(",");
 		}
 		sb.append(")");
 		return sb.toString();
 	}
+	
+	public IrExpression getFunctionArg(int i) {
+		if (i > funcArgs.size())
+			throw new IllegalArgumentException("it is beyond funcArg's size");
+		return funcArgs.get(i);
+	}
 
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public List<IrOperand> operandList() {
+		// TODO Auto-generated method stub
+		List<IrOperand> lst = new ArrayList<>();
+		lst.add(this);
+		//lst.addAll(funcArgs);
+		return lst;
 	}
 
 }

@@ -1,5 +1,8 @@
 package edu.mit.compilers.IR.expr.operand;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import antlr.Token;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
@@ -34,6 +37,14 @@ public class IrLenExpr extends IrOperand{
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public List<IrOperand> operandList() {
+		// TODO Auto-generated method stub
+		List<IrOperand> lst = new ArrayList<>();
+		lst.add(operand);
+		return lst;
 	}
 
 }

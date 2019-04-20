@@ -1,0 +1,7 @@
+void main(){
+  int a[6];
+  bool b;
+  a[false] = 3;
+  a[3>2 && b] = 2;
+  a[c + d * g+ f] = 4;
+}

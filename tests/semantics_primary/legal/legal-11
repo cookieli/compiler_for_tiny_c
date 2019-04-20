@@ -1,0 +1,15 @@
+int func(int a, int b, int c){
+  return a;
+}
+int func2(int a, bool b){
+   return 0;
+}
+void main(){
+    int a;
+    int b;
+    int c;
+    int g[6];
+    int d;
+    d = func(len(g), a+b+c, func(a, b, c));
+    d = g[3];
+}

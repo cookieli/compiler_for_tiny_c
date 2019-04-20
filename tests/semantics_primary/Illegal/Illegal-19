@@ -1,0 +1,10 @@
+int func(int a, int b, int c){
+   return 1;
+}
+
+void main(){
+   int a;
+   bool b;
+   a  = c + d;
+   h = c > d && a+b < c || c > 2 && func();
+}

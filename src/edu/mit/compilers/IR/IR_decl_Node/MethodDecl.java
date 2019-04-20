@@ -64,21 +64,22 @@ public class MethodDecl extends Variable_decl{
 	//in future we need a function body, but before that we need same basic things
 	@Override
 	public String getName() {
-		return type.toString()+" "+ id;
-	}
-	
-	@Override
-	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getName());
-		sb.append("\n");
-		sb.append("parameters: ");
+		sb.append(type.toString() + " " + id + "(");
 		for(String para: paraList) {
 			if(isParameter(para)) {
 				sb.append(localVars.get(para).getName());
 				sb.append(",");
 			}
 		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getName());
 		sb.append("\n");
 		sb.append("variables: ");
 		for(Variable_decl v: localVars) {
@@ -103,6 +104,20 @@ public class MethodDecl extends Variable_decl{
 	
 	public boolean hasParameter() {
 		return !paraList.isEmpty();
+	}
+	
+	public IrType getParameterType(int i) {
+		if (i >= paraList.size())
+			throw new IllegalArgumentException("the int "+ i+ " is out of parameter list");
+		return getParameterType(paraList.get(i));
+		
+	}
+	public int getParameterSize() {
+		return paraList.size();
+	}
+	
+	public IrType getParameterType(String para) {
+		return localVars.getVariableType(para);
 	}
 	
 	@Override

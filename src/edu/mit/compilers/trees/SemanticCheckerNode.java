@@ -12,6 +12,8 @@ import edu.mit.compilers.IR.IR_decl_Node.IrDeclaration;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.TernaryExpression;
+import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
@@ -95,23 +97,28 @@ public class SemanticCheckerNode implements IrNodeVistor{
 	
 	public boolean checkUsedBeforeDecledErr(VariableTable v, MethodTable m, IrAssignment assign)  {
 		IrLocation loc = assign.getLhs();
-		boolean lhsUsedBeforeDecled = checkLocationUsedBeforeDecled(loc, v);
+		boolean lhsUsedBeforeDecled = checkUsedBeforeDecledForExprList(loc, v, m);
 		IrExpression expr = assign.getRhs();
 		boolean rhsUsedBeforeDecled = false;;
-		if(expr instanceof BinaryExpression) {
-			rhsUsedBeforeDecled = checkBinaryExprOperandUsedBeforeDecled((BinaryExpression) expr, v, m);
-		}
-		else if(expr instanceof IrOperand)
-			rhsUsedBeforeDecled = checkUsedBeforeDecled(expr, v, m);
+		if(expr != null)
+			rhsUsedBeforeDecled = checkUsedBeforeDecledForExprList(expr, v, m);
 		return lhsUsedBeforeDecled || rhsUsedBeforeDecled;
 	}
 	
+	public boolean checkUsedBeforeDecledForExprList(IrExpression expr, VariableTable v, MethodTable m) {
+		boolean hasErr = false;
+		for(IrOperand o: expr.operandList()) {
+			if(checkUsedBeforeDecled(o, v, m))
+				hasErr = true;
+		}
+		return hasErr;
+	}
 	public boolean checkUsedBeforeDecled(IrExpression expr, VariableTable v, MethodTable m) {
 		//System.out.println(expr.getName());
 		if (expr instanceof IrLocation)
-			return checkLocationUsedBeforeDecled((IrLocation)expr, v);
+			return checkLocationUsedBeforeDecled((IrLocation)expr, v, m);
 		if(expr instanceof IrFuncInvocation)
-			return checkFuncInvokeUsedBeforeDecled((IrFuncInvocation)expr, m);
+			return checkFuncInvokeUsedBeforeDecled((IrFuncInvocation)expr, v, m);
 		if(expr instanceof IrLenExpr)
 			return checkLenExprErr((IrLenExpr) expr, v);
 		if(expr instanceof IrLiteral)
@@ -121,19 +128,12 @@ public class SemanticCheckerNode implements IrNodeVistor{
 			throw new IllegalArgumentException("the expr isn't IrLocation or IrFuncInvocation "+ expr.getName());
 	}
 	
-	public boolean checkBinaryExprOperandUsedBeforeDecled(BinaryExpression expr, VariableTable v, MethodTable m) {
-		boolean hasErr =false;
-		for(IrExpression e: expr.operandList()) {
-			if(checkUsedBeforeDecled(e, v, m))  hasErr = true;
-		}
-		return hasErr;
-	}
 	
 	public void checkTypeMatchForAssignment(IrAssignment assign, VariableTable v, MethodTable m) {
 		IrLocation loc = assign.getLhs();
 		if(checkUsedBeforeDecledErr(v, m, assign))  return;
 		String symbol = assign.getSymbol();
-		IrType leftType = v.getVariableType(loc.getId());
+		IrType leftType = getIrExpressionType(loc, v, m);
 		if(Arrays.asList(mustBeIntSymbol).contains(symbol)){
 			if(!leftType.equals(new IrType(IrType.Type.INT))) {
 				hasError = true;
@@ -142,8 +142,6 @@ public class SemanticCheckerNode implements IrNodeVistor{
 		}
 		IrExpression expr = assign.getRhs();
 		if(expr == null) return;
-		//if(expr instanceof IrLenExpr)
-		//	if(checkLenExprErr((IrLenExpr) expr, v))  return;
 		IrType rightType = getIrExpressionType(expr, v, m);
 		if(! leftType.equals(rightType)) {
 			hasError = true;
@@ -153,14 +151,33 @@ public class SemanticCheckerNode implements IrNodeVistor{
 	public IrType getIrExpressionType(IrExpression expr, VariableTable v, MethodTable m) {
 		if(expr instanceof BinaryExpression)
 			return getBinaryExpressionType((BinaryExpression)expr, v, m);
+		else if(expr instanceof UnaryExpression)
+			return getIrUnaryExpressionType((UnaryExpression) expr, v, m);
+		else if(expr instanceof TernaryExpression)
+			return getTernaryExprType((TernaryExpression) expr, v, m);
 		else
 			return getIrOperandType(expr, v, m);
 		
 	}
+	
+	private IrType typeTransformation(IrType type) {
+		IrType boolArrayType = new IrType(IrType.Type.BOOL_ARRAY);
+		IrType intArrayType = new IrType(IrType.Type.INT_ARRAY);
+		IrType boolType = new IrType(IrType.Type.BOOL);
+		IrType intType = new IrType(IrType.Type.INT);
+		if(type.equals(boolArrayType))
+			return boolType;
+		else if(type.equals(intArrayType))
+			return intType;
+		else 
+			return type;
+	}
 	public IrType getIrOperandType(IrExpression expr, VariableTable v, MethodTable m) {
 		IrType res;
-		if(expr instanceof IrLocation)
+		if(expr instanceof IrLocation) {
 			res = v.getVariableType(((IrLocation)expr).getId());
+			res = typeTransformation(res);
+		}
 		else if(expr instanceof IrLiteral)
 			res = ((IrLiteral)expr).getType();
 		else if(expr instanceof IrFuncInvocation)
@@ -171,6 +188,27 @@ public class SemanticCheckerNode implements IrNodeVistor{
 			res = new IrType();
 		return res;
 	}
+	
+	private IrType getIrUnaryExprType(UnaryExpression expr, VariableTable v, MethodTable m, IrType shouldBe) {
+		IrExpression child = expr.getIrExpression();
+		IrType childType = getIrExpressionType(child, v, m);
+		if(!childType.equals(shouldBe)) {
+			hasError = true;
+			errorMessage.append(ErrorReport.typeNotMatchForExpr(expr, childType, shouldBe));
+			return new IrType(IrType.Type.UNSPECIFIED);
+		} else
+			return shouldBe;
+	}
+	
+	public IrType getIrUnaryExpressionType(UnaryExpression expr, VariableTable v, MethodTable m) {
+		if(expr.getSymbol().equals("!")){
+			return getIrUnaryExprType(expr, v, m, new IrType(Type.BOOL));
+		} else if(expr.getSymbol().equals("-"))
+			return getIrUnaryExprType(expr, v, m, new IrType(Type.INT));
+		return new IrType(IrType.Type.UNSPECIFIED);
+	}
+	
+	
 	
 	public IrType getBinaryExpressionType(BinaryExpression expr, VariableTable v, MethodTable m) {
 		if(Arrays.asList(mustBeIntSymbol).contains(expr.getSymbol())) {
@@ -196,12 +234,12 @@ public class SemanticCheckerNode implements IrNodeVistor{
 		IrType rightType = getIrExpressionType(rhs, v, m);
 		if(!leftType.equals(operandType)) {
 			hasError = true;
-			errorMessage.append(ErrorReport.typeNotMatchForBinary(lhs, leftType, operandType));
+			errorMessage.append(ErrorReport.typeNotMatchForExpr(lhs, leftType, operandType));
 			return wrongType;
 		}
 		if(!rightType.equals(operandType)) {
 			hasError = true;
-			errorMessage.append(ErrorReport.typeNotMatchForBinary(rhs, rightType, operandType));
+			errorMessage.append(ErrorReport.typeNotMatchForExpr(rhs, rightType, operandType));
 			return wrongType;
 		}
 		return resultType;
@@ -213,6 +251,27 @@ public class SemanticCheckerNode implements IrNodeVistor{
 	
 	public IrType getCondExprType(BinaryExpression expr, VariableTable v, MethodTable m) {
 		return getBinaryExprType(expr, v, m, new IrType(IrType.Type.BOOL), new IrType(IrType.Type.BOOL));
+	}
+	
+	public IrType getTernaryExprType(TernaryExpression expr, VariableTable v, MethodTable m) {
+		IrExpression cond = expr.getCondExpr();
+		IrType condShouldBe = new IrType(Type.BOOL);
+		IrType condType = getIrExpressionType(cond, v, m);
+		if(!condType.equals(condShouldBe)) {
+			hasError = true;
+			errorMessage.append(ErrorReport.typeNotMatchForExpr(cond, condType, condShouldBe));
+			return new IrType(Type.UNSPECIFIED);
+		}
+		IrExpression firstExpr = expr.getFirstExpr();
+		IrExpression secondExpr = expr.getSecondExpr();
+		IrType firstType = getIrExpressionType(firstExpr, v, m);
+		IrType secondType = getIrExpressionType(secondExpr, v, m);
+		if(firstType != null && secondType != null && (!firstType.equals(secondType))) {
+			hasError = true;
+			errorMessage.append(ErrorReport.typeNotMatchForTernary(expr, firstType, secondType));
+			return new IrType(Type.UNSPECIFIED);
+		}
+		return firstType;
 	}
 	
 	public boolean checkLenExprErr(IrLenExpr len, VariableTable v) {
@@ -228,23 +287,59 @@ public class SemanticCheckerNode implements IrNodeVistor{
 		}
 		return false;
 	}
-	public boolean checkLocationUsedBeforeDecled(IrLocation loc, VariableTable v) {
+	public boolean checkLocationUsedBeforeDecled(IrLocation loc, VariableTable v, MethodTable m) {
 		
 		if(!v.containsVariable(loc.getId())) {
 			errorMessage.append(ErrorReport.UsedBeforeDecledError(loc));
 			hasError = true;
 			return true;
+		} else if(loc.locationIsArray()) {
+			return checkArrayHasWrongFormat(loc, v, m);
 		}
 		return false;
 	}
 	
-	public boolean checkFuncInvokeUsedBeforeDecled(IrFuncInvocation func, MethodTable m) {
+	public boolean checkArrayHasWrongFormat(IrLocation loc, VariableTable v, MethodTable m) {
+		if(loc.locationIsArray()) {
+			IrExpression size = loc.getSizeExpr();
+			if(checkUsedBeforeDecledForExprList(size, v, m))   return true;
+			IrType type = getIrExpressionType(size, v, m);
+			if(!type.equals(new IrType(Type.INT))) {
+				hasError = true;
+				errorMessage.append(ErrorReport.ArraySubscriptNotInt(loc));
+				return true;
+			} 
+			return false;
+		} else
+			throw new IllegalArgumentException("the location isn't array ");
+	}
+	
+	public boolean checkFuncInvokeUsedBeforeDecled(IrFuncInvocation func, VariableTable v, MethodTable m) {
 		if(!m.containsMethod(func.getId())) {
 			hasError = true;
 			errorMessage.append(ErrorReport.UsedBeforeDecledError(func));
 			return true;
+		} else {
+			MethodDecl method = m.get(func.getId());
+			if(method.getParameterSize() != func.getFuncArgNum()) {
+				hasError = true;
+				errorMessage.append(ErrorReport.notHaveSamePara(func, method));
+				return true;
+			} else {
+				boolean hasErr = false;
+				for(int i = 0; i < func.getFuncArgNum(); i++) {
+					if(checkUsedBeforeDecledForExprList(func.getFunctionArg(i), v, m)) continue;
+					IrType realType = getIrExpressionType(func.getFunctionArg(i), v, m);
+					IrType shouldBeType = method.getParameterType(i);
+					if(!realType.equals(shouldBeType)){
+						hasErr = true;
+						errorMessage.append(ErrorReport.notHaveSamePara(func, method, i, shouldBeType, realType));
+					}
+				}
+				return hasErr;
+			}
+				
 		}
-		return false;
 	}
 	
 	public void checkReDeclariationErr(VariableTable v, MethodTable m, ImportTable i) {

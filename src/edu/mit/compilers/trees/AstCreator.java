@@ -11,6 +11,7 @@ import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.TernaryExpression;
 import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
@@ -104,17 +105,7 @@ public class AstCreator {
 			symbol = node.getName();
 			if(node.getRightSibling() != null) {
 				node = node.getRightSibling();
-				if(node.isFuncInvoke()) {
-					expr = parseFuncInvoke(node);
-				} else if(node.isLocation()) {
-					expr = parseLocation(node);
-				} else if(node.isLiteral()) {
-					expr = new IrLiteral(node, ParseTreeNode.fileName);
-				}else if(node.isLenExpr()) {
-					expr = parseLenExpr(node);
-				} else if(node.isExpr()) {
-					expr = parseBinaryExpr(node);
-				}
+				expr = getSpecificExpr(node);
 			}
 			return new IrAssignment(loc, expr, symbol);
 		} else
@@ -140,12 +131,10 @@ public class AstCreator {
 			IrFuncInvocation funcInvoke = new IrFuncInvocation(funcNode.getToken(), ParseTreeNode.fileName);
 			funcInvoke.addFuncName(funcNode.getName());
 			ParseTreeNode paraNode = funcNode.getRightSibling();
+			if(paraNode != null &&paraNode.isFuncInvokeArg())
+				paraNode = paraNode.getFirstChild();
 			while(paraNode != null) {
-				if(paraNode.isLiteral()) {
-					funcInvoke.addFuncArg(new IrLiteral(paraNode, ParseTreeNode.fileName));
-				} else if(paraNode.isLocation()) {
-					funcInvoke.addFuncArg(parseLocation(paraNode));
-				}
+				funcInvoke.addFuncArg(getSpecificExpr(paraNode));
 				paraNode = paraNode.getRightSibling();
 			}
 			return funcInvoke;
@@ -208,23 +197,31 @@ public class AstCreator {
 	public static IrExpression getSpecificExpr(ParseTreeNode n) {
 		if(n.isLiteral())
 			return new IrLiteral(n, ParseTreeNode.fileName);
-		if(n.isLocation() && n.isArrayMember()) {
-			return new IrLocation(n, ParseTreeNode.fileName);
+		else if(n.isLocation()) {
+			return parseLocation(n);
 		}
-		else if(n.isLocation())
-			return new IrLocation(n.getToken(), ParseTreeNode.fileName);
-		else if(n.isBinaryExpr()) {
-			return parseBinaryExpr(n);
-		} else if(n.isUnaryExpr()){
-			return parseUnaryExpr(n);
+		else if(n.isExpr()) {
+			return parseIrExpression(n);
 		}else if(n.isFuncInvoke()) {
 			return parseFuncInvoke(n);
 		} else if(n.isLenExpr())
 			return parseLenExpr(n);
 		return null;
 	}
+	
+	public static IrExpression parseIrExpression(ParseTreeNode n) {
+		if(n.isBinaryExpr())
+			return parseBinaryExpr(n);
+		else if(n.isUnaryExpr()) {
+			return parseUnaryExpr(n);
+		} else if(n.isTernaryExpr()) {
+			return parseTernaryExpression(n);
+		}else
+			return null;
+	}
+	
 	public static BinaryExpression parseBinaryExpr(ParseTreeNode n) {
-		if(n.isExpr()) {
+		if(n.isBinaryExpr()) {
 			ParseTreeNode firstOperand = n.getFirstChild();
 			ParseTreeNode symbolNode = firstOperand.getRightSibling();
 			ParseTreeNode secondOperand = symbolNode.getRightSibling();
@@ -249,5 +246,14 @@ public class AstCreator {
 		throw new IllegalArgumentException("the tree node isn't unary expression");
 	}
 	
+	public static TernaryExpression parseTernaryExpression(ParseTreeNode n) {
+		if(n.isTernaryExpr()) {
+			ParseTreeNode condNode = n.getFirstChild();
+			ParseTreeNode firstExprNode = condNode.getRightSibling().getRightSibling();
+			ParseTreeNode secondExprNode = firstExprNode.getRightSibling().getRightSibling();
+			return new TernaryExpression(getSpecificExpr(condNode), getSpecificExpr(firstExprNode),getSpecificExpr(secondExprNode));
+		} else
+			throw new IllegalArgumentException("this node isn't ternaryExpr Node");
+	}
 	
 }
