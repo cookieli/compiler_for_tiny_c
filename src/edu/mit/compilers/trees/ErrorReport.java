@@ -11,6 +11,8 @@ import edu.mit.compilers.IR.expr.TernaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
+import edu.mit.compilers.IR.statement.LoopStatement;
+import edu.mit.compilers.IR.statement.Return_Assignment;
 
 
 public class ErrorReport {
@@ -32,7 +34,32 @@ public class ErrorReport {
 		sb.append("\n");
 		return sb.toString();
 	}
+	public static String methodReturnTypeNotMatch(Return_Assignment ret, IrType retType, MethodDecl m) {
+		StringBuilder sb = new StringBuilder();
+		if(ret.getExpr() == null)
+			sb.append(getErrLocation(ret));
+		else 
+			sb.append(getErrLocation(ret.getExpr()));
+		sb.append("error: ");
+		sb.append("the method real type is " + m.getName());
+		sb.append("  ");
+		sb.append("but the return type is ");
+		if(ret.getExpr() == null)
+			sb.append("void\n");
+		else
+			sb.append(retType.toString() + "\n");
+		
+		return sb.toString();
+	}
 	
+	public static String loopStatementNotInLoop(LoopStatement loop) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(loop));
+		sb.append("error: ");
+		sb.append(loop.getName() + " not in loop");
+		sb.append("\n");
+		return sb.toString();
+	}
 	public static String notHaveSamePara(IrFuncInvocation func, MethodDecl m) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getErrLocation(func));

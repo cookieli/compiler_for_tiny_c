@@ -1,0 +1,7 @@
+void main(){
+    int a;
+    a = 6;
+    while(a > 0){
+      a--;
+    }
+}

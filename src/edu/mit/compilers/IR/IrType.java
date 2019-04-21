@@ -11,7 +11,8 @@ public class IrType {
 		VOID,
 		INT_ARRAY,
 		BOOL_ARRAY,
-		UNSPECIFIED
+		UNSPECIFIED,
+		NOTKNOWN
 	}
 	
 	private Type type = Type.UNSPECIFIED;
@@ -49,6 +50,8 @@ public class IrType {
 			return false;
 		IrType i = (IrType)o;
 		if(this.type == i.type)
+			return true;
+		if(this.type == Type.NOTKNOWN || i.type == Type.NOTKNOWN)
 			return true;
 		return false;
 		

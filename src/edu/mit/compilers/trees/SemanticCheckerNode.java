@@ -19,8 +19,15 @@ import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
+import edu.mit.compilers.IR.statement.FuncInvokeStatement;
 import edu.mit.compilers.IR.statement.IrAssignment;
 import edu.mit.compilers.IR.statement.IrStatement;
+import edu.mit.compilers.IR.statement.LoopStatement;
+import edu.mit.compilers.IR.statement.Return_Assignment;
+import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
+import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
+import edu.mit.compilers.IR.statement.codeBlock.IrForBlock;
+import edu.mit.compilers.IR.statement.codeBlock.IrWhileBlock;
 import edu.mit.compilers.SymbolTables.ImportTable;
 import edu.mit.compilers.SymbolTables.MethodTable;
 import edu.mit.compilers.SymbolTables.VariableTable;
@@ -32,6 +39,9 @@ public class SemanticCheckerNode implements IrNodeVistor{
 	public final String[] condOp = {"&&", "||"};
 	public EnvStack envs;
 	public boolean hasError;
+	public ImportTable importIr = null;
+	public boolean inLoop = false;
+	public MethodDecl currentMethod = null;
 	public StringBuilder errorMessage;
 	public SemanticCheckerNode() {
 		envs = new EnvStack();
@@ -45,7 +55,11 @@ public class SemanticCheckerNode implements IrNodeVistor{
 		envs.pushMethods(p.globalMethodTable);
 		checkReDeclariationErr(envs.peekVariables(), envs.peekMethod(), p.importIR);
 		checkMainMethodFormat(envs.peekMethod(), p);
+		if(p.getImportTable() != null) {
+			importIr = p.getImportTable();
+		}
 		for(MethodDecl m: p.globalMethodTable) {
+			currentMethod = m;
 			m.accept(this);
 		}
 		if(hasError)
@@ -69,6 +83,80 @@ public class SemanticCheckerNode implements IrNodeVistor{
 	}
 	
 	@Override
+	public boolean visit(FuncInvokeStatement func) {
+		checkFuncInvokeUsedBeforeDecled(func.getFunc(), envs.peekVariables(), envs.peekMethod());
+		return hasError;
+	}
+	
+	@Override
+	public boolean visit(IfBlock if_code) {
+		if(!checkUsedBeforeDecledForExprList(if_code.getBoolExpr(), envs.peekVariables(), envs.peekMethod()))
+			typeCheckForExpr(if_code.getBoolExpr(), envs.peekVariables(), envs.peekMethod(), new IrType(Type.BOOL));
+		if_code.getTrueBlock().accept(this);
+		if(if_code.getFalseBlock() != null)
+			if_code.getFalseBlock().accept(this);
+		return hasError;
+	}
+	@Override
+	public boolean visit(Return_Assignment r) {
+		if(r.getExpr() == null && !(currentMethod.getMethodType().equals(new IrType(Type.VOID)))) {
+			hasError = true;
+			errorMessage.append(ErrorReport.methodReturnTypeNotMatch(r, null, currentMethod));
+		}
+		else if(r.getExpr() != null) {
+			IrType retType = getIrExpressionType(r.getExpr(), envs.peekVariables(), envs.peekMethod());
+			if(!retType.equals(currentMethod.getMethodType())) {
+				hasError = true;
+				errorMessage.append(ErrorReport.methodReturnTypeNotMatch(r, retType, currentMethod));
+			}
+		}
+		return hasError;
+	}
+	
+	@Override
+	public boolean visit(IrBlock block) {
+		envs.pushVariables(block.localVars);
+		inLoop = true;
+		checkReDeclariationErr(envs.peekVariables(), null, null);
+		for(IrStatement s: block.getStatements()) {
+			s.accept(this);
+		}
+		envs.popVariables();
+		return hasError;
+	}
+	@Override
+	public boolean visit(IrWhileBlock whileBlock) {
+		if(!checkUsedBeforeDecledForExprList(whileBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod()))
+			typeCheckForExpr(whileBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod(), new IrType(Type.BOOL));
+		boolean tempLoop = inLoop;
+		inLoop = true;
+		whileBlock.getCodeBlock().accept(this);
+		inLoop = tempLoop;
+		return hasError;
+	}
+	@Override
+	public boolean visit(IrForBlock forBlock) {
+		checkUsedBeforeDecledErr(envs.peekVariables(), envs.peekMethod(), forBlock.getInitialAssign());
+		if(!checkUsedBeforeDecledForExprList(forBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod()))
+			typeCheckForExpr(forBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod(), new IrType(Type.BOOL));
+		checkUsedBeforeDecledErr(envs.peekVariables(), envs.peekMethod(), forBlock.getStepFunction());
+		boolean tempLoop = inLoop;
+		inLoop = true;
+		forBlock.getBlock().accept(this);
+		inLoop = tempLoop;
+		return hasError;
+	}
+	@Override
+	public boolean visit(LoopStatement l) {
+		if(inLoop != true) {
+			hasError = true;
+			errorMessage.append(ErrorReport.loopStatementNotInLoop(l));
+		}
+		return hasError;
+	}
+	
+	
+	@Override
 	public boolean visit(IrAssignment assign) {
 		// TODO Auto-generated method stub
 		//checkUsedBeforeDecledErr(envs.peekVariables(), assign);
@@ -76,7 +164,13 @@ public class SemanticCheckerNode implements IrNodeVistor{
 		return hasError;
 	}
 	
-	
+	public void typeCheckForExpr(IrExpression expr, VariableTable v, MethodTable m, IrType shouldBe) {
+		IrType type = getIrExpressionType(expr, v, m);
+		if(!type.equals(shouldBe)) {
+			hasError = true;
+			errorMessage.append(ErrorReport.typeNotMatchForExpr(expr, type, shouldBe));
+		}
+	}
 	
 	public void checkMainMethodFormat(MethodTable m, IrProgram p) {
 		if(! m.lastMethodIsMain()) {
@@ -180,8 +274,12 @@ public class SemanticCheckerNode implements IrNodeVistor{
 		}
 		else if(expr instanceof IrLiteral)
 			res = ((IrLiteral)expr).getType();
-		else if(expr instanceof IrFuncInvocation)
-			res = m.getMethodType(((IrFuncInvocation)expr).getId());
+		else if(expr instanceof IrFuncInvocation) {
+			if(importIr.contains(((IrFuncInvocation)expr).getId()))
+				res = new IrType(Type.NOTKNOWN);
+			else
+				res = m.getMethodType(((IrFuncInvocation)expr).getId());
+		}
 		else if(expr instanceof IrLenExpr)
 			res = new IrType(IrType.Type.INT);
 		else
@@ -315,6 +413,8 @@ public class SemanticCheckerNode implements IrNodeVistor{
 	}
 	
 	public boolean checkFuncInvokeUsedBeforeDecled(IrFuncInvocation func, VariableTable v, MethodTable m) {
+		if(importIr.contains(func.getId()))
+			return false;
 		if(!m.containsMethod(func.getId())) {
 			hasError = true;
 			errorMessage.append(ErrorReport.UsedBeforeDecledError(func));

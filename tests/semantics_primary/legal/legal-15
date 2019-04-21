@@ -1,0 +1,25 @@
+void main(){
+   int a;
+   int b;
+   for(a = 0; a < 10; a++){
+      b += a;
+   }
+   for(a = 0; a < 4; a+=b){
+      int a;
+      int b;
+      b += a;
+   }
+   while(a > 0){
+      int c;
+      int b;
+      c +=b;
+      a--;
+   }
+   if(a > 0){
+      int c, d;
+      a +=c;
+   }else{
+      int c, d;
+      a += d;
+   }
+}

@@ -120,6 +120,10 @@ public class MethodDecl extends Variable_decl{
 		return localVars.getVariableType(para);
 	}
 	
+	public VariableTable getVariableTable() {
+		return localVars;
+	}
+	
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		vistor.visit(this);

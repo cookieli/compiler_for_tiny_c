@@ -32,6 +32,9 @@ public class IrProgram extends IrNode{
 			addImportIR(i);
 		}
 	}
+	public ImportTable getImportTable() {
+		return importIR;
+	}
 	public void addImportIR(Import_decl ir) {
 		if(importIR == null)
 			importIR = new ImportTable();

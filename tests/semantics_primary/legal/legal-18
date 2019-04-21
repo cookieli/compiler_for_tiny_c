@@ -1,0 +1,13 @@
+void main(){
+  int a;
+  int b;
+  while(a > b){
+     a --;
+     if(a < 3){continue;}
+     else{
+       if(a == 0) {
+         break;
+       }
+     }
+  }
+}

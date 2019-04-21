@@ -95,7 +95,7 @@ statement: (assignment SEMICOLON)
     | if_block | for_block | while_block| (func_invoc SEMICOLON)
     | (BREAK SEMICOLON) | (CONTINUE SEMICOLON)| (return_assignment SEMICOLON);
 assignment: location ((EQUALS expr)| (COMBOUND_ASSIGN_OP expr)| INCREMENT | DECREMENT);
-return_assignment: RETURN expr;
+return_assignment: RETURN (expr)?;
 operand: (location |literal | func_invoc | (LEN LPAREN ID RPAREN));
 location: ID | array_member;
 literal: num_literal | bool_value;
@@ -122,12 +122,11 @@ expr7: expr6 (QUESTION expr7 COLON expr7)*;
 
 cmp_op: REL_OP | EQUAL_OP;
 if_block: (IF LPAREN expr RPAREN LCURLY function_body RCURLY)
-        (ELSE  IF LPAREN expr RPAREN LCURLY function_body RCURLY)*
         (ELSE  LCURLY function_body  RCURLY)?;
 
 for_block: FOR LPAREN
-        (location (EQUALS expr(COMMA location EQUALS expr)*))? SEMICOLON
-        (expr (COMMA expr)*)? SEMICOLON
+        (location (EQUALS expr)) SEMICOLON
+        (expr) SEMICOLON
         (location ((COMBOUND_ASSIGN_OP expr) | INCREMENT |DECREMENT)) 
         RPAREN LCURLY
         function_body

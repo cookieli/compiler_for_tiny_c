@@ -74,6 +74,30 @@ public class ParseTreeNode {
 		return NodeName.equals("assignment");
 	}
 	
+	public boolean isIfBlock() {
+		return NodeName.equals("if_block");
+	}
+	
+	public boolean isWhileBlock() {
+		return NodeName.equals("while_block");
+	}
+	
+	public boolean isForBlock() {
+		return NodeName.equals("for_block");
+	}
+	
+	public boolean isReturnAssignment() {
+		return NodeName.contains("return");
+	}
+	
+	public boolean isLoopStatement() {
+		return NodeName.equals("continue") || NodeName.equals("break");
+	}
+	
+	public boolean isIrStatement() {
+		return isAssignment() || isIfBlock() || isWhileBlock() || isForBlock() || isFuncInvoke() || isReturnAssignment() || isLoopStatement();
+	}
+	
 	public boolean isLiteral() {
 		if(getToken() == null) return false;
 		return isBoolLiteral() || isNumLiteral();

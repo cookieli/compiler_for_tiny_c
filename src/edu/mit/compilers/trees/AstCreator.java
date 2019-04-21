@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import antlr.Token;
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Import_decl;
@@ -17,7 +18,15 @@ import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
+import edu.mit.compilers.IR.statement.FuncInvokeStatement;
 import edu.mit.compilers.IR.statement.IrAssignment;
+import edu.mit.compilers.IR.statement.IrStatement;
+import edu.mit.compilers.IR.statement.LoopStatement;
+import edu.mit.compilers.IR.statement.Return_Assignment;
+import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
+import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
+import edu.mit.compilers.IR.statement.codeBlock.IrForBlock;
+import edu.mit.compilers.IR.statement.codeBlock.IrWhileBlock;
 import edu.mit.compilers.SymbolTables.VariableTable;
 import edu.mit.compilers.grammar.DecafParserTokenTypes;
 
@@ -113,6 +122,16 @@ public class AstCreator {
 		
 	}
 	
+	private static IrAssignment parseAssignment(ParseTreeNode locNode, ParseTreeNode symbolNode) {
+		IrLocation loc = parseLocation(locNode);
+		String symbol = symbolNode.getName();
+		IrExpression expr = null;
+		if(!(symbolNode.getName().equals("++") || symbolNode.getName().equals("--"))) {
+			expr = getSpecificExpr(symbolNode.getRightSibling());
+		}
+		return new IrAssignment(loc, expr, symbol);
+	}
+	
 	public static IrLocation parseLocation(ParseTreeNode node) {
 		if(node == null)
 			System.out.println("the node is null");
@@ -186,12 +205,30 @@ public class AstCreator {
 			while(node != null && node.isVariableNode()) {
 				method.addLocalVariable(parseVariableDecl(node));
 				node = node.getRightSibling();
-			}while(node != null && node.isAssignment()) {
-				method.addIrStatement(parseAssignment(node));
+			}while(node != null && node.isIrStatement()) {
+				
+				method.addIrStatement(parseIrStatement(node, method.getVariableTable()));
 				node = node.getRightSibling();
 			}
-		} else if(n.isAssignment()) {
-			method.addIrStatement(parseAssignment(n));
+		} else if(n.isIrStatement()) {
+			method.addIrStatement(parseIrStatement(n, method.getVariableTable()));
+		}
+	}
+	
+	public static void  addFunctionBodyForBlock(ParseTreeNode n, IrBlock method, VariableTable parent) {
+		if(n.isVariableNode()) {//it means the method have nothing except for just a variable declariation
+			method.addLocalVariable(parseVariableDecl(n));
+		} else if(n.isFuncBody()) {
+			ParseTreeNode node = n.getFirstChild();
+			while(node != null && node.isVariableNode()) {
+				method.addLocalVariable(parseVariableDecl(node));
+				node = node.getRightSibling();
+			}while(node != null && node.isIrStatement()) {
+				method.addIrStatement(parseIrStatement(node, parent));
+				node = node.getRightSibling();
+			}
+		} else if(n.isIrStatement()) {
+			method.addIrStatement(parseIrStatement(n, parent));
 		}
 	}
 	public static IrExpression getSpecificExpr(ParseTreeNode n) {
@@ -254,6 +291,109 @@ public class AstCreator {
 			return new TernaryExpression(getSpecificExpr(condNode), getSpecificExpr(firstExprNode),getSpecificExpr(secondExprNode));
 		} else
 			throw new IllegalArgumentException("this node isn't ternaryExpr Node");
+	}
+	
+	public static IfBlock parseIfBlock(ParseTreeNode n, VariableTable parent) {
+		if(n.isIfBlock()) {
+			ParseTreeNode boolNode = n.getFirstChild().getRightSibling();
+			ParseTreeNode trueNode = boolNode.getRightSibling();
+			ParseTreeNode falseNode = null;
+			IrBlock falseBlock = null;
+			if(trueNode.getRightSibling() != null) {
+				falseNode = trueNode.getRightSibling().getRightSibling();
+				falseBlock = parseIrBlock(falseNode, parent);
+			}
+			IrExpression boolExpr = getSpecificExpr(boolNode);
+			IrBlock trueBlock = parseIrBlock(trueNode, parent);
+		
+			return new IfBlock(boolExpr, trueBlock, falseBlock);
+		}
+		throw new IllegalArgumentException("this node isn't block");
+	}
+	
+	public static IrWhileBlock parseWhileBlock(ParseTreeNode n, VariableTable parent) {
+		if(n.isWhileBlock()) {
+			ParseTreeNode boolNode = n.getFirstChild().getRightSibling();
+			ParseTreeNode bodyNode = boolNode.getRightSibling();
+			IrExpression boolExpr = getSpecificExpr(boolNode);
+			IrBlock body = parseIrBlock(bodyNode, parent);
+			return new IrWhileBlock(boolExpr, body);
+		}
+		throw new IllegalArgumentException("this node isn't while block");
+	}
+	
+	public static IrForBlock parseForBlock(ParseTreeNode n, VariableTable parent) {
+		if(n.isForBlock()) {
+			ParseTreeNode locNode = n.getFirstChild().getRightSibling();
+			ParseTreeNode symbolNode = locNode.getRightSibling();
+			IrAssignment initialAssign = parseAssignment(locNode, symbolNode);
+			ParseTreeNode exprNode = symbolNode.getRightSibling().getRightSibling();
+			IrExpression boolExpr = getSpecificExpr(exprNode);
+			ParseTreeNode stepFuncLocNode = exprNode.getRightSibling();
+			ParseTreeNode stepFuncSymbolNode = stepFuncLocNode.getRightSibling();
+			IrAssignment stepFunction = parseAssignment(stepFuncLocNode, stepFuncSymbolNode);
+			ParseTreeNode blockNode;
+			if(stepFuncSymbolNode.getName().equals("++") || stepFuncSymbolNode.getName().equals("--")) {
+				blockNode = stepFuncSymbolNode.getRightSibling();
+			} else {
+				blockNode = stepFuncSymbolNode.getRightSibling().getRightSibling();
+			}
+			IrBlock block = parseIrBlock(blockNode, parent);
+			return new IrForBlock(initialAssign, boolExpr, stepFunction, block);
+		}else
+			throw new IllegalArgumentException("this node isn't For block node");
+	}
+	
+	public static FuncInvokeStatement parseFuncInvocStatement(ParseTreeNode n) {
+		if(n.isFuncInvoke()) {
+			IrFuncInvocation func = parseFuncInvoke(n);
+			return new FuncInvokeStatement(func);
+		} else
+			throw new IllegalArgumentException("it is not func invokeStatement");
+	}
+	
+	public static IrBlock parseIrBlock(ParseTreeNode n, VariableTable parent) {
+		IrBlock block = new IrBlock(parent);
+		addFunctionBodyForBlock(n, block, parent);
+		return block;
+	}
+	
+	public static Return_Assignment parseIrReturnAssignment(ParseTreeNode n) {
+		if(n.isReturnAssignment()) {
+			if(n.getName().equals("return"))
+				return new Return_Assignment(n.getToken(), ParseTreeNode.fileName);
+			else {
+				IrExpression expr = getSpecificExpr(n.getLastChild());
+				return new Return_Assignment(expr);
+			}
+		}else
+			throw new IllegalArgumentException("this isn't return assignment");
+	}
+	
+	public static LoopStatement parseLoopStatement(ParseTreeNode n) {
+		if(n.isLoopStatement()) {
+			return new LoopStatement(n, ParseTreeNode.fileName);
+		}else
+			throw new IllegalArgumentException("it isn't continue or break");
+	}
+	
+	public static IrStatement parseIrStatement(ParseTreeNode n, VariableTable parent) {
+		if(n.isAssignment())
+			return parseAssignment(n);
+		else if (n.isIfBlock())
+			return parseIfBlock(n, parent);
+		else if(n.isWhileBlock()) {
+			return parseWhileBlock(n, parent);
+		} else if(n.isForBlock())
+			return parseForBlock(n, parent);
+		else if(n.isFuncInvoke())
+			return parseFuncInvocStatement(n);
+		else if(n.isReturnAssignment())
+			return parseIrReturnAssignment(n);
+		else if(n.isLoopStatement())
+			return parseLoopStatement(n);
+		else
+			throw new IllegalArgumentException("the node isn't parseTreeNode");
 	}
 	
 }

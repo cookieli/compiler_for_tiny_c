@@ -1,0 +1,30 @@
+package edu.mit.compilers.IR.statement;
+
+import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.trees.ParseTreeNode;
+
+public class LoopStatement extends IrStatement{
+	
+	public boolean isContinue = false;
+	
+	public LoopStatement(ParseTreeNode n, String fileName) {
+		super(n.getToken().getLine(), n.getToken().getColumn(), fileName);
+		if(n.getName().equals("continue"))
+			isContinue = true;
+		
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		if(isContinue) return "continue";
+		return "break";
+	}
+
+	@Override
+	public void accept(IrNodeVistor vistor) {
+		// TODO Auto-generated method stub
+		vistor.visit(this);
+	}
+
+}

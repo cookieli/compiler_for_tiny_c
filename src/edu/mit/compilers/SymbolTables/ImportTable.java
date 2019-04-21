@@ -23,6 +23,12 @@ public class ImportTable extends SymbolTable<ImportTable, Import_decl>{
 		}
 		return arr;
 	}
+	
+	public boolean contains(String name) {
+		return table.containsKey(name);
+	}
+	
+	
 	@Override
 	public void put(Import_decl v) {
 		// TODO Auto-generated method stub

@@ -1,0 +1,8 @@
+import print;
+import random;
+void main(){
+  int a;
+   print("hello, world\n");
+   a = random();
+   
+}
