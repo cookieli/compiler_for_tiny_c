@@ -1,11 +1,13 @@
 package edu.mit.compilers.trees;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 import antlr.Token;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrProgram;
+import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Import_decl;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
@@ -78,7 +80,9 @@ public class AstCreator {
 			while(id != null) {
 				if(id.isArrayForm()) {
 					ParseTreeNode idNode = id.getFirstChild();
-					int size = Integer.parseInt(idNode.getRightSibling().getName());
+					//int size = Integer.parseInt(idNode.getRightSibling().getName());
+					IrLiteral size ;
+					size = new IrLiteral(idNode.getRightSibling(), ParseTreeNode.fileName);
 					lst.add(new ArrayDecl(type, idNode.getToken(), size, ParseTreeNode.fileName));
 				} else 
 					lst.add(new Variable_decl(type,id.getToken(), ParseTreeNode.fileName));
@@ -228,7 +232,7 @@ public class AstCreator {
 				node = node.getRightSibling();
 			}
 		} else if(n.isIrStatement()) {
-			method.addIrStatement(parseIrStatement(n, parent));
+			method.addIrStatement(parseIrStatement(n, method.localVars));
 		}
 	}
 	public static IrExpression getSpecificExpr(ParseTreeNode n) {
@@ -243,6 +247,9 @@ public class AstCreator {
 			return parseFuncInvoke(n);
 		} else if(n.isLenExpr())
 			return parseLenExpr(n);
+		else if(n.isStringLiteral()) {
+			return new IrLiteral(n, ParseTreeNode.fileName);
+		}
 		return null;
 	}
 	
@@ -250,12 +257,25 @@ public class AstCreator {
 		if(n.isBinaryExpr())
 			return parseBinaryExpr(n);
 		else if(n.isUnaryExpr()) {
-			return parseUnaryExpr(n);
+			UnaryExpression temp =  parseUnaryExpr(n);
+			if(temp.getSymbol().equals("-")) {
+				if(temp.getIrExpression() instanceof IrLiteral) {
+					IrLiteral literal = (IrLiteral) temp.getIrExpression();
+					if(literal.getType().equals(new IrType(IrType.Type.INT))) {
+						IrLiteral newLiteral = new IrLiteral(literal.getValue(), temp, literal.getType());
+						newLiteral.setPositive(!literal.isPositive());
+						return newLiteral;
+					}
+				}
+			}
+			return temp;
 		} else if(n.isTernaryExpr()) {
 			return parseTernaryExpression(n);
 		}else
 			return null;
 	}
+	
+	
 	
 	public static BinaryExpression parseBinaryExpr(ParseTreeNode n) {
 		if(n.isBinaryExpr()) {
@@ -354,7 +374,7 @@ public class AstCreator {
 	
 	public static IrBlock parseIrBlock(ParseTreeNode n, VariableTable parent) {
 		IrBlock block = new IrBlock(parent);
-		addFunctionBodyForBlock(n, block, parent);
+		addFunctionBodyForBlock(n, block, block.localVars);
 		return block;
 	}
 	

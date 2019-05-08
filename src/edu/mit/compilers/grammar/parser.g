@@ -44,7 +44,7 @@ options
   // Selectively turns on debug mode.
 
   /** Whether to display debug information. */
-  private boolean trace = true;
+  private boolean trace = false;
 
   public void setTrace(boolean shouldTrace) {
     trace = shouldTrace;

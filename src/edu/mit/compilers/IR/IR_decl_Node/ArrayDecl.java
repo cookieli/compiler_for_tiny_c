@@ -1,12 +1,14 @@
 package edu.mit.compilers.IR.IR_decl_Node;
 
+import java.math.BigInteger;
+
 import antlr.Token;
 import edu.mit.compilers.IR.IrType;
+import edu.mit.compilers.IR.expr.operand.IrLiteral;
 
 public class ArrayDecl extends Variable_decl{
-	public int arraySize;
-	
-	public ArrayDecl(Token type, Token id, int size, String fileName) {
+	public IrLiteral arraySize;
+	public ArrayDecl(Token type, Token id, IrLiteral size, String fileName) {
 		super(type, id, fileName);
 		this.arraySize = size;
 		this.isArray = true;
@@ -17,11 +19,11 @@ public class ArrayDecl extends Variable_decl{
 	}
 	@Override
 	public String getName() {
-		return this.getType()+ " "+ this.id +"["+ arraySize + "]";
+		return  this.id +"["+ arraySize + "]"+ " "+this.getType();
 	}
 	
-	public int getSize() {
-		return arraySize;
+	public String getSize() {
+		return arraySize.toString();
 	}
 	
 	

@@ -17,9 +17,9 @@ public class IrProgram extends IrNode{
 	public MethodTable globalMethodTable;
 	//public String fileName;
 	public IrProgram(String name) {
-		importIR = null;
-		globalVariableTable = null;
-		globalMethodTable = null;
+		importIR = new ImportTable();
+		globalVariableTable = new VariableTable(null);
+		globalMethodTable = new MethodTable();
 		filename = name;
 	}
 	public VariableTable getGlobalVariableTable() {return globalVariableTable; }

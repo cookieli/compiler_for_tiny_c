@@ -10,6 +10,7 @@ import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.TernaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
+import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.statement.LoopStatement;
 import edu.mit.compilers.IR.statement.Return_Assignment;
@@ -27,6 +28,39 @@ public class ErrorReport {
 		return sb.toString();
 	}
 	
+	public static String notFuncButVariable(IrFuncInvocation invoke) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(invoke));
+		sb.append("error: ");
+		sb.append(invoke.getId() + " is a variable not a function");
+		sb.append("\n");
+		return sb.toString();
+	}
+	
+	public static String exprNotArrayType(IrLocation loc) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(loc));
+		sb.append("error: "+ loc.getName() + " not array type. But opr want to access its member");
+		sb.append("\n");
+		return sb.toString();
+	}
+	
+	public static String IntLiteralOutOfRange(IrLiteral literal, String smallest, String biggest) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(literal));
+		sb.append("error: "+literal.getIntValue() + " out of range. ");
+		sb.append("the int value should be in "+  smallest + " to "+ biggest);
+		sb.append("\n");
+		return sb.toString();
+	}
+	
+	public static String ForBlockInitialAssignNotInt(IrLocation loc) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getErrLocation(loc));
+		sb.append("error: "+ loc.getName() + "in for block  not int");
+		sb.append("\n");
+		return sb.toString();
+	}
 	public static String ArraySubscriptNotInt(IrLocation i) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getErrLocation(i));

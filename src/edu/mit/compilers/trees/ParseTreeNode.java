@@ -103,6 +103,11 @@ public class ParseTreeNode {
 		return isBoolLiteral() || isNumLiteral();
 	}
 	
+	public boolean isStringLiteral() {
+		if(getToken() == null)  return false;
+		return getToken().getType() == DecafParserTokenTypes.STRING;
+	}
+	
 	public boolean isBoolLiteral() {
 		return getToken().getType() == DecafParserTokenTypes.FALSE || getToken().getType() == DecafParserTokenTypes.TRUE;
 	}
@@ -114,10 +119,10 @@ public class ParseTreeNode {
 	public boolean isNumLiteral() {
 		return isIntLiteral()|| isCharLiteral();
 	}
-	private boolean isIntLiteral() {
+	public boolean isIntLiteral() {
 		return getToken().getType() == DecafParserTokenTypes.INT_LITERAL;        
 	}
-	private boolean isCharLiteral() {
+	public boolean isCharLiteral() {
 		return getToken().getType() == DecafParserTokenTypes.CHAR_LITERAL;
 	}
 	public boolean isFuncBody() {

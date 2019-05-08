@@ -4,5 +4,6 @@ void main(){
   int a;
    print("hello, world\n");
    a = random();
+   a = 300000;
    
 }

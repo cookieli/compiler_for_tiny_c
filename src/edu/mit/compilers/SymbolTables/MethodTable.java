@@ -33,8 +33,20 @@ public class MethodTable extends SymbolTable<MethodTable, MethodDecl>{
 		else                         return false;
 	}
 	
+	public boolean canBeInvoked(String cur, String invoked) {
+		if(table.containsKey(cur) && table.containsKey(invoked)) {
+			if(idList.indexOf(table.get(cur)) >= idList.indexOf(table.get(invoked)))
+				return true;
+		}
+		return false;
+	}
+	
 	public boolean lastMethodIsMain() {
+		if(idList.size() == 0) {
+			return false;
+		}
 		MethodDecl method = idList.get(idList.size()-1);
+		//System.out.println("method: "+method);
 		if(method == null)   return false;
 		if(method.getId().equals("main")) {
 			return true;

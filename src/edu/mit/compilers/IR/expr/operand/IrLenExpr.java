@@ -43,7 +43,7 @@ public class IrLenExpr extends IrOperand{
 	public List<IrOperand> operandList() {
 		// TODO Auto-generated method stub
 		List<IrOperand> lst = new ArrayList<>();
-		lst.add(operand);
+		lst.add(this);
 		return lst;
 	}
 

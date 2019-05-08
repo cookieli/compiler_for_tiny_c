@@ -25,22 +25,26 @@ class Main {
 				scan(inputStream, outputStream);
 			} else if (CLI.target == Action.PARSE || CLI.target == Action.DEFAULT) {
 				parse(inputStream);
-				//ParseTreeNode tree = parser.getParseTree();
-				//tree.PrintTree();
-				//tree = ParseTreeNode.compressTree(tree);
-				//tree.printTree();
 			} else if(CLI.target == Action.INTER) {
 				DecafParser parser = parse(inputStream);
 				ParseTreeNode tree = parser.getParseTree();
 				tree = ParseTreeNode.compressTree(tree);
 				tree.setFileName(CLI.infile);
-				tree.printTree();
-				System.out.println("------------------");
+				if(CLI.debug) {
+					System.out.println("--------tree-------");
+					tree.printTree();
+					System.out.println("--------tree----------");
+				}
 				IrProgram p = AstCreator.parseProgram(tree, CLI.infile);
-				System.out.println(p);
-				System.out.println("------------------");
+				if(CLI.debug) {
+					System.out.println("-----ir-------");
+					System.out.println(p);
+					System.out.println("-------ir-------");
+				}
 				SemanticCheckerNode checker = new SemanticCheckerNode();
-				p.accept(checker);
+				//p.accept(checker);
+				if(checker.visit(p))
+					System.exit(-1);
 				//System.out.println(p);
 				//System.out.println(p.importNodesToString());
 				//System.out.println(p.allVariableToString());
@@ -92,12 +96,12 @@ class Main {
 			} catch (Exception e) {
 				// print the error:
 				System.err.println(CLI.infile + " " + e);
-				try {
-					scanner.consume();
-				} catch (CharStreamException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				  try { 
+					  scanner.consume(); 
+					  } catch (CharStreamException e1) {
+						  // TODOAuto-generated catch block 
+						  e1.printStackTrace(); }
+				 
 			}
 		}
 		// return null;
@@ -108,7 +112,7 @@ class Main {
 		DecafScanner scanner = new DecafScanner(new DataInputStream(inputStream));
 		DecafParser parser = new DecafParser(scanner);
 		try {
-			parser.setTrace(CLI.debug);
+			//parser.setTrace(CLI.debug);
 			parser.program();
 			if (parser.getError()) {
 				System.exit(1);

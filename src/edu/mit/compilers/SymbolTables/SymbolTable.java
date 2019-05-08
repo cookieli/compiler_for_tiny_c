@@ -44,6 +44,8 @@ public abstract class SymbolTable<K extends SymbolTable<K, V>, V extends Named> 
 			return null;
 	}
 	
+	
+	
 	public void put(String key, V v) {
 		idList.add(v);
 		table.put(key, v);

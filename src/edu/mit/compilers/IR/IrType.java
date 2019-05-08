@@ -11,6 +11,7 @@ public class IrType {
 		VOID,
 		INT_ARRAY,
 		BOOL_ARRAY,
+		STRING_LITERAL,
 		UNSPECIFIED,
 		NOTKNOWN
 	}
@@ -37,8 +38,12 @@ public class IrType {
 	public IrType(ParseTreeNode node) {
 		if(node.isBoolLiteral()) type = Type.BOOL;
 		else if(node.isNumLiteral()) type = Type.INT;
+		else if(node.isStringLiteral()) type = Type.STRING_LITERAL;
 		else
 			throw new IllegalArgumentException("this node isn't literal node");
+	}
+	public boolean isNotKnownType() {
+		return type ==Type.NOTKNOWN;
 	}
 	@Override
 	public boolean equals(Object o) {
