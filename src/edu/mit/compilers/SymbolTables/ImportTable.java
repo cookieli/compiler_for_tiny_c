@@ -34,5 +34,13 @@ public class ImportTable extends SymbolTable<ImportTable, Import_decl>{
 		// TODO Auto-generated method stub
 		super.put(v.getName(), v);
 	}
+	
+	public ImportTable copy() {
+		ImportTable im = new ImportTable();
+		for(Import_decl decl: this) {
+			im.put(decl);
+		}
+		return im;
+	}
 
 }

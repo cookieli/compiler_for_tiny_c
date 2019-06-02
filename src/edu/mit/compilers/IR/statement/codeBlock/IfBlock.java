@@ -1,8 +1,10 @@
 package edu.mit.compilers.IR.statement.codeBlock;
 
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.statement.IrStatement;
+import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class IfBlock extends IrStatement{
 	
@@ -16,6 +18,11 @@ public class IfBlock extends IrStatement{
 		this.boolExpr = boolExpr;
 		this.trueBlock = trueBlock;
 		this.falseBlock = falseBlock;
+	}
+	public IfBlock(IfBlock ifBlock) {
+		this.boolExpr = (IrExpression) ifBlock.getBoolExpr().copy();
+		this.trueBlock = (IrBlock) ifBlock.trueBlock.copy();
+		this.falseBlock = (IrBlock) ifBlock.falseBlock.copy();
 	}
 	@Override
 	public String getName() {
@@ -52,5 +59,16 @@ public class IfBlock extends IrStatement{
 		vistor.visit(this);
 		
 	}
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new IfBlock(this);
+	}
+	@Override
+	public void setLocalVarTableParent(VariableTable v) {
+		trueBlock.setLocalVarTableParent(v);
+		falseBlock.setLocalVarTableParent(v);
+	}
+	
 
 }

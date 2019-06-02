@@ -1,0 +1,17 @@
+import printf;
+void main(){
+   int a;
+   int b;
+   int c;
+   int d;
+   int e;
+   int f;
+   a = 3;
+   b = 4;
+   c = 5;
+   d = a + b;
+   e = a - c;
+   f = -30;
+   printf("%d, %d, %d, %d, %d, %d\n", a, b, c, d, e, f);
+   printf("hello world");
+}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
 
@@ -19,6 +20,13 @@ public class BinaryExpression extends IrExpression {
 		this.lhs = lhs;
 		this.rhs = rhs;
 		this.symbol = symbol;
+	}
+	
+	public BinaryExpression(BinaryExpression binary) {
+		super(binary.getLineNumber(), binary.getColumnNumber(), binary.getFilename());
+		this.lhs = (IrExpression) binary.getlhs().copy();
+		this.rhs = (IrExpression) binary.getrhs().copy();
+		this.symbol = new StringBuilder(binary.getSymbol()).toString();
 	}
 	
 	public String getSymbol() {
@@ -53,6 +61,23 @@ public class BinaryExpression extends IrExpression {
 		list.addAll(lhs.operandList());
 		list.addAll(rhs.operandList());
 		return list;
+	}
+	
+	public List<String> symbolList(){
+		List<String> list = new ArrayList<>();
+		if(lhs instanceof BinaryExpression) {
+			list.addAll(((BinaryExpression) lhs).symbolList());
+		}
+		list.add(this.symbol);
+		if(rhs instanceof BinaryExpression)
+			list.addAll(((BinaryExpression) rhs).symbolList());
+		return list;
+	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new BinaryExpression(this);
 	}
 	
 }

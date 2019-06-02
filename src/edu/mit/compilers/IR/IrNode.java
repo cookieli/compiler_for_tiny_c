@@ -20,7 +20,8 @@ public abstract class IrNode implements Named{
 	public int getLineNumber() {
 		return lineNumber;
 	}
-
+	
+	public abstract IrNode copy(); 
 
 	public void setLineNumber(int lineNumber) {
 		this.lineNumber = lineNumber;

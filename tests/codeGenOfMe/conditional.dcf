@@ -1,0 +1,11 @@
+void main(){
+   int a;
+   int b;
+   bool c, d;
+   c = a > b && 1 < 2 || d;
+   if(a > b){
+      a = b;
+   } else{
+      b = a;
+   }
+}

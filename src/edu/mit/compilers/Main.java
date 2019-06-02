@@ -1,12 +1,19 @@
 package edu.mit.compilers;
 
 import java.io.*;
+import java.util.HashMap;
 
 import antlr.CharStreamException;
 import antlr.RecognitionException;
 import antlr.Token;
 import antlr.TokenStreamException;
+import edu.mit.compilers.CFG.AssemblyFromCFGVistor;
+import edu.mit.compilers.CFG.CFG;
+import edu.mit.compilers.CFG.cfgNodeVistor;
 import edu.mit.compilers.IR.IrProgram;
+import edu.mit.compilers.IR.IrQuadVistor;
+import edu.mit.compilers.IR.IrResolveNameToLocationVistor;
+import edu.mit.compilers.IR.IrWithTemp;
 import edu.mit.compilers.grammar.*;
 import edu.mit.compilers.tools.CLI;
 import edu.mit.compilers.tools.CLI.Action;
@@ -45,10 +52,21 @@ class Main {
 				//p.accept(checker);
 				if(checker.visit(p))
 					System.exit(-1);
-				//System.out.println(p);
-				//System.out.println(p.importNodesToString());
-				//System.out.println(p.allVariableToString());
+				System.out.println("------temp-------");
+				IrProgram newP = IrWithTemp.newProgram(p);
+				System.out.println(newP);
+				System.out.println("------temp-------");
+				IrProgram assemP = IrQuadVistor.newProgram(newP);
+				System.out.println(assemP);
+				assemP = IrResolveNameToLocationVistor.newProgram(assemP);
+				System.out.println(assemP);
+				HashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(assemP);
+				for(String s: maps.keySet()) {
+					System.out.println(maps.get(s));
+				}
 				
+				System.out.println(AssemblyFromCFGVistor.assemblyForWholeCFG(assemP));
+				AssemblyFromCFGVistor.assemblyFile(assemP);
 			}
 		} catch (Exception e) {
 			// print the error:

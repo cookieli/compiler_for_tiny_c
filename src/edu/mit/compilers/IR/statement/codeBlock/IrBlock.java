@@ -3,6 +3,7 @@ package edu.mit.compilers.IR.statement.codeBlock;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.expr.IrExpression;
@@ -20,6 +21,18 @@ public class IrBlock extends IrStatement {
 	public IrBlock(VariableTable v) {
 		this();
 		localVars.addParent(v);
+	}
+	
+	public IrBlock(IrBlock b) {
+		localVars = b.localVars.copy();
+		statements = new ArrayList<>();
+		for(IrStatement s: b.statements) {
+			statements.add((IrStatement) s.copy());
+		}
+		
+		for(IrStatement s: statements) {
+			s.setLocalVarTableParent(this.localVars);
+		}
 	}
 	
 	public void addLocalVarParent(VariableTable parent) {
@@ -68,5 +81,15 @@ public class IrBlock extends IrStatement {
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		vistor.visit(this);
+	}
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new IrBlock(this);
+	}
+	
+	@Override
+	public void setLocalVarTableParent(VariableTable v) {
+		addLocalVarParent(v);
 	}
 }

@@ -1,0 +1,15 @@
+import printf;
+void main(){
+  int a[5];
+  int b;
+  int c;
+  b = 3;
+  c = 4;
+  a[0] = 0;
+  a[1] = 1;
+  a[2] = 3;
+  a[3] = 4;
+  a[4] = 5;
+  a[b] = a[c];
+  printf("%d, %d, %d, %d, %d\n", a[0], a[1], a[2], a[3], a[4]);
+}

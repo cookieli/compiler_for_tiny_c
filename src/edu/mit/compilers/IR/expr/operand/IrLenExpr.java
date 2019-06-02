@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import antlr.Token;
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.expr.IrExpression;
@@ -18,6 +19,10 @@ public class IrLenExpr extends IrOperand{
 	public IrLenExpr(Token opr, String filename) {
 		operand = new IrLocation(opr, filename);
 		
+	}
+	
+	public IrLenExpr(IrLenExpr expr) {
+		operand = (IrLocation) expr.operand.copy();
 	}
 	
 	public IrLocation getOperand() {
@@ -45,6 +50,12 @@ public class IrLenExpr extends IrOperand{
 		List<IrOperand> lst = new ArrayList<>();
 		lst.add(this);
 		return lst;
+	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new IrLenExpr(this);
 	}
 
 }

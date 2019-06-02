@@ -13,6 +13,11 @@ import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.IrDeclaration;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
+import edu.mit.compilers.IR.Quad.IrQuad;
+import edu.mit.compilers.IR.Quad.IrQuadForAssign;
+import edu.mit.compilers.IR.Quad.IrQuadForFuncInvoke;
+import edu.mit.compilers.IR.Quad.IrQuadWithLocForFuncInvoke;
+import edu.mit.compilers.IR.Quad.IrQuadWithLocation;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.TernaryExpression;
@@ -570,6 +575,36 @@ public class SemanticCheckerNode implements IrNodeVistor {
 					errorMessage.append(ErrorReport.redeclariationError(decls[i], decls[i - 1]));
 				}
 		}
+	}
+
+	@Override
+	public boolean visit(IrQuad quad) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean visit(IrQuadForAssign quad) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean visit(IrQuadWithLocation quad) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean visit(IrQuadForFuncInvoke quad) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean visit(IrQuadWithLocForFuncInvoke quad) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

@@ -13,7 +13,7 @@ import edu.mit.compilers.trees.ParseTreeNode;
 public class IrLocation extends IrOperand{
 	
 	public String location;
-	public IrExpression sizeExpr;
+	public IrExpression sizeExpr = null;
 	public boolean isArray = false;
 	public IrLocation() {
 		super();
@@ -22,6 +22,10 @@ public class IrLocation extends IrOperand{
 	public IrLocation(String l) {
 		super();
 		location = l;
+	}
+	
+	public void setSizeExpr(IrExpression sizeExpr) {
+		this.sizeExpr = sizeExpr;
 	}
 	
 	public IrLocation(Token t, String filename) {
@@ -33,6 +37,14 @@ public class IrLocation extends IrOperand{
 		this(n.getFirstChild().getToken(), filename);
 		sizeExpr = AstCreator.getSpecificExpr(n.getLastChild());
 		isArray = true;
+	}
+	public IrLocation(IrLocation l) {
+		super(l.getLineNumber(),l.getColumnNumber(), l.getFilename());
+		location = new StringBuilder(l.location).toString();
+		if(l.sizeExpr != null)
+			sizeExpr = (IrExpression) l.sizeExpr.copy();
+		isArray = l.isArray;
+		
 	}
 	
 	public boolean locationIsArray() {
@@ -66,6 +78,14 @@ public class IrLocation extends IrOperand{
 		List<IrOperand> lst = new ArrayList<>();
 		lst.add(this);
 		return lst;
+	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		//super.copy();
+		
+		return new IrLocation(this);
 	}
 
 }

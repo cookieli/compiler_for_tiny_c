@@ -1,0 +1,10 @@
+import printf;
+void main(){
+  int a, b, c, d;
+  a = 2;
+  b = 6;
+  c = a+b;
+  d = a * b;
+  printf("the sum of %d and %d is %d\n", a, b, c);
+  printf("the product of %d and %d is %d\n",a, b, d);
+}

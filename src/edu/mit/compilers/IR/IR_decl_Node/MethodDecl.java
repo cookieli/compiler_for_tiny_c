@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import antlr.Token;
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.statement.IrStatement;
@@ -25,6 +26,27 @@ public class MethodDecl extends Variable_decl{
 		paraList = new ArrayList<>();
 		localVars = new VariableTable(parent);
 		statements = new ArrayList<>();
+	}
+	
+	public MethodDecl(MethodDecl m) {
+		super(m);
+		this.localVars = m.localVars.copy();
+		this.statements = new ArrayList<>();
+		for(IrStatement s: m.statements) {
+			this.statements.add((IrStatement) s.copy());
+		}
+		this.paraList = new ArrayList<>();
+		for(String e:m.paraList ) {
+			this.paraList.add(new StringBuilder(e).toString());
+		}
+		for(IrStatement s: this.statements) {
+			s.setLocalVarTableParent(this.localVars);
+		}
+		
+	}
+	
+	public int getMethodStackSize() {
+		return this.localVars.getMemSize();
 	}
 	
 	public void addLocalVarParent(VariableTable parent) {
@@ -127,6 +149,11 @@ public class MethodDecl extends Variable_decl{
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		vistor.visit(this);
+	}
+	
+	@Override
+	public IrNode copy() {
+		return new MethodDecl(this);
 	}
 	
 }

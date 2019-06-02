@@ -9,12 +9,28 @@ import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.SymbolTables.ImportTable;
 import edu.mit.compilers.SymbolTables.MethodTable;
+import edu.mit.compilers.SymbolTables.RODataArea;
 import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class IrProgram extends IrNode{
 	public ImportTable importIR;
 	public VariableTable globalVariableTable;
 	public MethodTable globalMethodTable;
+	public RODataArea roData=null;
+	public RODataArea getRoData() {
+		return roData;
+	}
+
+	private void setRoData() {
+		this.roData = new RODataArea();
+	}
+	
+	public void addReadOnlyData(String var) {
+		if(roData == null)
+			setRoData();
+		roData.addData(var);
+	}
+
 	//public String fileName;
 	public IrProgram(String name) {
 		importIR = new ImportTable();
@@ -22,7 +38,21 @@ public class IrProgram extends IrNode{
 		globalMethodTable = new MethodTable();
 		filename = name;
 	}
+	
+	public IrProgram(IrProgram p) {
+		this.setFilename(p.getFilename());
+		importIR = p.importIR.copy();
+		globalVariableTable = p.globalVariableTable.copy();
+		globalMethodTable = new MethodTable();
+		for(MethodDecl method: p.globalMethodTable) {
+			MethodDecl newMethod = (MethodDecl) method.copy();
+			newMethod.addLocalVarParent(globalVariableTable);
+			globalMethodTable.put(newMethod);
+		}
+	}
 	public VariableTable getGlobalVariableTable() {return globalVariableTable; }
+	
+	public MethodTable getGlobalMethodTable() {return globalMethodTable; }
 	
 	public void addImportIR(List<Import_decl> lst) {
 		if(! lst.isEmpty()) {
@@ -111,6 +141,12 @@ public class IrProgram extends IrNode{
 			System.out.println();
 		};
 		
+	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new IrProgram(this);
 	}
 	
 }

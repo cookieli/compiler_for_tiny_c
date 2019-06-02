@@ -1,9 +1,11 @@
 package edu.mit.compilers.IR.statement.codeBlock;
 
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.statement.IrAssignment;
 import edu.mit.compilers.IR.statement.IrStatement;
+import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class IrForBlock extends IrStatement{
 	
@@ -17,6 +19,13 @@ public class IrForBlock extends IrStatement{
 		this.boolExpr = boolExpr;
 		this.stepFunction = stepFunction;
 		this.block = block;
+	}
+	
+	public IrForBlock(IrForBlock forBlock) {
+		initialAssign = (IrAssignment) forBlock.getInitialAssign().copy();
+		boolExpr = (IrExpression)forBlock.getBoolExpr().copy();
+		stepFunction = (IrAssignment)forBlock.getStepFunction().copy();
+		block = (IrBlock) forBlock.copy();
 	}
 	
 	@Override
@@ -52,5 +61,17 @@ public class IrForBlock extends IrStatement{
 		vistor.visit(this);
 		
 	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new IrForBlock(this);
+	}
+	
+	@Override
+	public void setLocalVarTableParent(VariableTable v) {
+		block.setLocalVarTableParent(v);
+	}
+	
 
 }

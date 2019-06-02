@@ -4,16 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 import antlr.Token;
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.IrExpression;
 
 public class IrFuncInvocation extends IrOperand {
 	public String funcName;
 	public List<IrExpression> funcArgs;
+	public boolean isPLT = false;
 	
+	public boolean isPLT() {
+		return isPLT;
+	}
+
+	public void setPLT(boolean isPLT) {
+		this.isPLT = isPLT;
+	}
+
 	public IrFuncInvocation() {
 		funcName = null;
 		funcArgs = new ArrayList<>();
+	}
+	
+	public IrFuncInvocation(IrFuncInvocation func) {
+		funcName = new StringBuilder(func.funcName).toString();
+		funcArgs = new ArrayList<>();
+		for(IrExpression e: func.funcArgs) {
+			funcArgs.add((IrExpression) e.copy());
+		}
 	}
 	
 	public IrFuncInvocation(Token t, String fileName) {
@@ -55,6 +73,10 @@ public class IrFuncInvocation extends IrOperand {
 			throw new IllegalArgumentException("it is beyond funcArg's size");
 		return funcArgs.get(i);
 	}
+	
+	public List<IrExpression> getFuncArgs(){
+		return funcArgs;
+	}
 
 	@Override
 	public void accept(IrNodeVistor vistor) {
@@ -69,6 +91,12 @@ public class IrFuncInvocation extends IrOperand {
 		lst.add(this);
 		//lst.addAll(funcArgs);
 		return lst;
+	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new IrFuncInvocation(this);
 	}
 
 }

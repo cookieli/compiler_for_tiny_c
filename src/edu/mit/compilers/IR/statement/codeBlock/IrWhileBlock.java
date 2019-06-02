@@ -1,8 +1,10 @@
 package edu.mit.compilers.IR.statement.codeBlock;
 
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.statement.IrStatement;
+import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class IrWhileBlock extends IrStatement{
 	public IrExpression boolExpr;
@@ -12,6 +14,11 @@ public class IrWhileBlock extends IrStatement{
 	public IrWhileBlock(IrExpression expr, IrBlock block) {
 		boolExpr = expr;
 		codeBlock = block;
+	}
+	
+	public IrWhileBlock(IrWhileBlock whileBLock) {
+		this.boolExpr = (IrExpression) whileBLock.getBoolExpr().copy();
+		this.codeBlock = (IrBlock) whileBLock.getCodeBlock().copy();
 	}
 
 	public IrExpression getBoolExpr() {
@@ -45,6 +52,17 @@ public class IrWhileBlock extends IrStatement{
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		vistor.visit(this);
+	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public void setLocalVarTableParent(VariableTable v) {
+		codeBlock.setLocalVarTableParent(v);
 	}
 
 }

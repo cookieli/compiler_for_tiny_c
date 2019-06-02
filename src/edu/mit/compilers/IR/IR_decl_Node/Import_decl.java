@@ -16,10 +16,19 @@ public class Import_decl extends IrDeclaration{
 		super(name);
 		// TODO Auto-generated constructor stub
 	}
+	public Import_decl(Import_decl decl) {
+		super(decl.getLineNumber(), decl.getColumnNumber(), decl.getFilename());
+		this.id = decl.id;
+	}
 
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		
+	}
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new Import_decl(this);
 	}
 }

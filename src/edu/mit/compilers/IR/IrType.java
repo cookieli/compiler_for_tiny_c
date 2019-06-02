@@ -72,4 +72,11 @@ public class IrType {
 	public Type getType() {
 		return type;
 	}
+	
+	public static final IrType IntType = new IrType(Type.INT);
+	public static final IrType BoolType = new IrType(Type.BOOL);
+	public static final IrType stringType = new IrType(Type.STRING_LITERAL);
+	public static final IrType IntArray = new IrType(Type.INT_ARRAY);
+	public static final IrType boolArray = new IrType(Type.BOOL_ARRAY);
+	
 }

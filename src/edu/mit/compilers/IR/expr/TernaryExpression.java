@@ -3,6 +3,7 @@ package edu.mit.compilers.IR.expr;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
 
@@ -16,6 +17,10 @@ public class TernaryExpression extends IrExpression{
 		this.cond = cond;
 		this.firstExpr = firstExpr;
 		this.secondExpr = secondExpr;
+	}
+	
+	public TernaryExpression(TernaryExpression t) {
+		this((IrExpression)t.getCondExpr().copy(), (IrExpression)t.firstExpr.copy(), (IrExpression)t.getSecondExpr().copy());
 	}
 
 	@Override
@@ -50,6 +55,12 @@ public class TernaryExpression extends IrExpression{
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		return new TernaryExpression(this);
 	}
 
 }

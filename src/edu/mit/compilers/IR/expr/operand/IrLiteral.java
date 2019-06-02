@@ -30,6 +30,18 @@ public class IrLiteral extends IrOperand{
 		type = new IrType(node);
 			
 	}
+	
+	public IrLiteral(int v) {
+		value = Integer.toString(v);
+		type = new IrType(Type.INT);
+	}
+	
+	public IrLiteral(IrLiteral l) {
+		super(l.getLineNumber(), l.getColumnNumber(), l.getFilename());
+		value = l.getValue();
+		setPositive(l.isPositive);
+		type = new IrType(l.type.getType());
+	}
 	public IrLiteral(String value, UnaryExpression expr, IrType type) {
 		super(expr.getLineNumber(), expr.getColumnNumber(), expr.getFilename());
 		this.value = value;
@@ -71,6 +83,10 @@ public class IrLiteral extends IrOperand{
 	}
 	
 	public String getValue() {
+		if(value.equals("true"))
+			return "1";
+		if(value.equals("false"))
+			return "0";
 		return value;
 	}
 
@@ -95,6 +111,12 @@ public class IrLiteral extends IrOperand{
 		System.out.println(a);
 		String s = "'b'";
 		System.out.println(new BigInteger(s.substring(1, s.length()-1).getBytes()));
+	}
+	@Override
+	public IrNode copy() {
+		// TODO Auto-generated method stub
+		IrLiteral literal = new IrLiteral(this);
+		return literal;
 	}
 
 }
