@@ -29,6 +29,7 @@ import edu.mit.compilers.assembly.AssemblyForArith;
 import edu.mit.compilers.trees.EnvStack;
 import edu.mit.compilers.trees.SemanticCheckerNode;
 import edu.mit.compilers.utils.Util;
+import edu.mit.compilers.utils.X86_64Register;
 
 public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	public EnvStack env;
@@ -160,8 +161,8 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 				else if(size instanceof IrLocation) {
 					int locOfSize = v.getMemLocation(((IrLocation) size).getId());
 					String sizeLoc = setMemLocation(locOfSize, Util.stackBaseReg, null, null);
-					//IrQuadWithLocation quad = new IrQuadWithLocation("movq", sizeLoc, Util.rax);
-					//currentMethod.addIrStatement(quad);
+					IrQuadWithLocation quad = new IrQuadWithLocation("movq", sizeLoc, X86_64Register.getNxtTempForAssign64bit());
+					currentMethod.addIrStatement(quad);
 					return setMemLocation(imm, Util.stackBaseReg, sizeLoc, Integer.toString(step));
 				}
 				return null;

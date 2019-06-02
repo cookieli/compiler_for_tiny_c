@@ -18,11 +18,11 @@ movq $3,-48(%rbp)
 movq $4,-40(%rbp)
 movq $5,-32(%rbp)
 movq -16(%rbp),%rax
-movq -64(%rbp,%rax,8),%rax
+movq -64(%rbp,-16(%rbp),8),%rax
 movq %rax,-8(%rbp)
-movq -24(%rbp),%rax
+movq -24(%rbp),%r10
 movq -8(%rbp),%rax
-movq %rax,-64(%rbp,%rax,8)
+movq %rax,-64(%rbp,-24(%rbp),8)
 movq -32(%rbp),%r9
 movq -40(%rbp),%r8
 movq -48(%rbp),%rcx
