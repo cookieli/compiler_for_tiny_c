@@ -6,14 +6,16 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
-import edu.mit.compilers.IR.Quad.IrQuad;
-import edu.mit.compilers.IR.Quad.IrQuadForAssign;
-import edu.mit.compilers.IR.Quad.IrQuadForFuncInvoke;
-import edu.mit.compilers.IR.Quad.IrQuadWithLocForFuncInvoke;
-import edu.mit.compilers.IR.Quad.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.IrQuad;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.UnaryExpression;
@@ -251,11 +253,53 @@ public class IrWithTemp implements IrNodeVistor {
 		IrLocation lhs = assign.getLhs();
 		IrExpression rhs = assign.getRhs();
 		String symbol = assign.getSymbol();
+		VariableTable vtb = envs.peekVariables();
+		MethodTable mtb = envs.peekMethod();
 		if (symbol.equals("=")) {
-			HandleNoCompoundSymbolAssign(assign, envs.peekVariables(), envs.peekMethod());
+			HandleNoCompoundSymbolAssign(assign, vtb, mtb);
+		} else if(symbol.equals("++") || symbol.equals("--")) {
+			handleIncOrDec(assign, vtb, mtb);
+		} else {
+			handleComboundOp(assign, vtb, mtb);
 		}
 
 		return false;
+	}
+	
+	public  void handleComboundOp(IrAssignment assign, VariableTable vtb, MethodTable mtb) {
+		Pattern comboundOp = Pattern.compile("(\\+|\\-|\\*|\\/)(=)");
+		Matcher m = comboundOp.matcher(assign.getSymbol());
+		String symbol;
+		if(m.matches())   symbol = m.group(1);
+		else 
+			throw new IllegalArgumentException(assign.getSymbol() + "not right");
+		expandComboundAssign(assign.getLhs(), assign.getRhs(), symbol, vtb, mtb);
+		
+		
+	}
+	
+	private void expandComboundAssign(IrLocation lhs, IrExpression rhs,String symbol,  VariableTable vtb, MethodTable mtb) {
+		handleLocation(lhs, vtb, mtb);
+		IrAssignment newAssign;
+		if(lhs.locationIsArray()) {
+			IrLocation lhsTemp = getExprCorrespondTemp(lhs, vtb, mtb);
+			BinaryExpression binary = new BinaryExpression(lhsTemp, rhs, symbol);
+		    newAssign = new IrAssignment(lhsTemp, binary, "=");
+			newAssign.accept(this);
+			currentMethod.addIrStatement(new IrAssignment(lhs, lhsTemp, "="));
+		} else {
+			BinaryExpression binary = new BinaryExpression(lhs, rhs, symbol);
+			newAssign = new IrAssignment(lhs, binary, "=");
+			newAssign.accept(this);
+		}
+	}
+	
+	public void handleIncOrDec(IrAssignment assign,VariableTable v, MethodTable m) {
+		IrLocation lhs = assign.getLhs();
+		String symbol = "-";
+		if(assign.getSymbol().equals("++"))
+			symbol = "+";
+		expandComboundAssign(assign.getLhs(), IrLiteral.getLiteral(1), symbol, v, m);
 	}
 
 	@Override
@@ -303,18 +347,6 @@ public class IrWithTemp implements IrNodeVistor {
 		return false;
 	}
 
-	public static void main(String[] args) {
-		List<StringBuilder> list = new ArrayList<>();
-		StringBuilder sb1 = new StringBuilder("old");
-		StringBuilder sb2 = new StringBuilder("new");
-		list.add(sb1);
-		sb1 = sb2;
-		for (StringBuilder s : list)
-			System.out.println(s.toString());
-		System.out.println(sb1.toString());
-
-	}
-
 	@Override
 	public boolean visit(IrQuad quad) {
 		// TODO Auto-generated method stub
@@ -343,6 +375,17 @@ public class IrWithTemp implements IrNodeVistor {
 	public boolean visit(IrQuadWithLocForFuncInvoke quad) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public static void main(String[] args) {
+		Pattern comboundOp = Pattern.compile("(\\+|\\-|\\*|\\/)(=)");
+		String s = "/=";
+		Matcher m = comboundOp.matcher(s);
+		if(m.matches()) {
+			System.out.println(m.group(1) +" "+ m.group(2));
+		}
+		
+
 	}
 
 }

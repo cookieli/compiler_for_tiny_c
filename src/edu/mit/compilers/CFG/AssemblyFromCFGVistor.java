@@ -7,12 +7,9 @@ import java.util.LinkedHashMap;
 import java.util.Stack;
 
 import edu.mit.compilers.IR.IrProgram;
-import edu.mit.compilers.IR.Quad.EntryPoint;
-import edu.mit.compilers.IR.Quad.ExitPoint;
-import edu.mit.compilers.IR.Quad.IrQuadForFuncInvoke;
-import edu.mit.compilers.IR.Quad.IrQuadWithLocForFuncInvoke;
-import edu.mit.compilers.IR.Quad.IrQuadWithLocation;
-import edu.mit.compilers.IR.Quad.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.assembly.AssemblyForArith;
 
 public class AssemblyFromCFGVistor {
@@ -24,13 +21,13 @@ public class AssemblyFromCFGVistor {
 		sb = new StringBuilder();
 	}
 	
-	public static void assemblyFile(IrProgram p) throws FileNotFoundException {
-		String fileName = p.getFilename();
+	public static void assemblyFile(String code, String file) throws FileNotFoundException {
+		String fileName = file;
 		String newFileName = fileName.replaceAll(".dcf", ".s");
 		//System.out.println(fileName);
 		try {
 			PrintWriter out = new PrintWriter(newFileName);
-			out.println(assemblyForWholeCFG(p));
+			out.println(code);
 			out.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -59,7 +56,7 @@ public class AssemblyFromCFGVistor {
 			if(ir instanceof IrQuadWithLocation)
 				sb.append(AssemblyForArith.getAssembly(((IrQuadWithLocation) ir)));
 			else if(ir instanceof IrQuadWithLocForFuncInvoke) {
-				sb.append(ir.getName());
+				sb.append(AssemblyForArith.getAssemBlyForFuncInvoke((IrQuadWithLocForFuncInvoke) ir));
 				sb.append(AssemblyForArith.SetRaxZero());
 			} else
 				sb.append(ir.getName());

@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
-import edu.mit.compilers.IR.Quad.IrQuad;
-import edu.mit.compilers.IR.Quad.IrQuadForAssign;
-import edu.mit.compilers.IR.Quad.IrQuadForFuncInvoke;
-import edu.mit.compilers.IR.Quad.IrQuadWithLocForFuncInvoke;
-import edu.mit.compilers.IR.Quad.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.IrQuad;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
@@ -28,6 +28,9 @@ import edu.mit.compilers.SymbolTables.VariableTable;
 import edu.mit.compilers.assembly.AssemblyForArith;
 import edu.mit.compilers.trees.EnvStack;
 import edu.mit.compilers.trees.SemanticCheckerNode;
+import edu.mit.compilers.utils.ImmOperandForm;
+import edu.mit.compilers.utils.MemOperandForm;
+import edu.mit.compilers.utils.OperandForm;
 import edu.mit.compilers.utils.Util;
 import edu.mit.compilers.utils.X86_64Register;
 
@@ -137,53 +140,91 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		return false;
 	}
 
-	private String getStringForOperand(IrOperand opr, VariableTable v, MethodTable m) {
-		if (opr instanceof IrLiteral) {
+//	private String getStringForOperand(IrOperand opr, VariableTable v, MethodTable m) {
+//		if (opr instanceof IrLiteral) {
+//			IrLiteral literal = (IrLiteral) opr;
+//			if (literal.getType().equals(IrType.IntType))
+//				return "$" + literal.getIntValue().toString();
+//			else
+//				return "$" + literal.getValue();
+//		} else if (opr instanceof IrLocation) {
+//			IrLocation loc = (IrLocation) opr;
+//			if(!loc.locationIsArray()) {
+//				//return v.getMemLocation(loc.getId());
+//				int imm = v.getMemLocation(loc.getId());
+//				return setMemLocation(imm, Util.stackBaseReg, null, null);
+//			}else {
+//				int step = 8;
+//				if(semantics.getIrOperandType(opr, v, m).equals(IrType.BoolType))
+//					step = 1;
+//				int imm = v.getMemLocation(loc.getId());
+//				IrExpression size = loc.getSizeExpr();
+//				if(size instanceof IrLiteral)
+//					return setMemLocation(imm+ ((IrLiteral)size).getIntValue().intValue()*step,Util.stackBaseReg, null, null);
+//				else if(size instanceof IrLocation) {
+//					int locOfSize = v.getMemLocation(((IrLocation) size).getId());
+//					String sizeLoc = setMemLocation(locOfSize, Util.stackBaseReg, null, null);
+//					IrQuadWithLocation quad = new IrQuadWithLocation("movq", sizeLoc, X86_64Register.getNxtTempForAssign64bit());
+//					currentMethod.addIrStatement(quad);
+//					return setMemLocation(imm, Util.stackBaseReg, sizeLoc, Integer.toString(step));
+//				}
+//				return null;
+//			}
+//		} else
+//			return null;
+//
+//	}
+	
+//	private String setMemLocation(Integer imm, String base, String index, String scale) {
+//		StringBuilder sb = new StringBuilder();
+//		sb.append(imm.toString());
+//		sb.append("(");
+//		sb.append(base);
+//		if(index != null) {
+//			sb.append(","+index);
+//			if(scale != null)
+//				sb.append(","+ scale);
+//		}
+//		sb.append(")");
+//		return sb.toString();
+//	}
+	
+	public OperandForm  getOperandForm(IrOperand opr, VariableTable vtb, MethodTable mtb) {
+		if(opr instanceof IrLiteral) {
 			IrLiteral literal = (IrLiteral) opr;
-			if (literal.getType().equals(IrType.IntType))
-				return "$" + literal.getIntValue().toString();
-			else
-				return "$" + literal.getValue();
-		} else if (opr instanceof IrLocation) {
+			if(literal.getType().equals(IrType.IntType)) {
+				return new ImmOperandForm(literal.getIntValue().intValue(), 8);
+			} else
+				return new ImmOperandForm(Integer.parseInt(literal.getValue()), 1);
+		} else if(opr instanceof IrLocation) {
 			IrLocation loc = (IrLocation) opr;
-			if(!loc.locationIsArray()) {
-				//return v.getMemLocation(loc.getId());
-				int imm = v.getMemLocation(loc.getId());
-				return setMemLocation(imm, Util.stackBaseReg, null, null);
-			}else {
-				int step = 8;
-				if(semantics.getIrOperandType(opr, v, m).equals(IrType.BoolType))
-					step = 1;
-				int imm = v.getMemLocation(loc.getId());
-				IrExpression size = loc.getSizeExpr();
-				if(size instanceof IrLiteral)
-					return setMemLocation(imm+ ((IrLiteral)size).getIntValue().intValue()*step,Util.stackBaseReg, null, null);
-				else if(size instanceof IrLocation) {
-					int locOfSize = v.getMemLocation(((IrLocation) size).getId());
-					String sizeLoc = setMemLocation(locOfSize, Util.stackBaseReg, null, null);
-					IrQuadWithLocation quad = new IrQuadWithLocation("movq", sizeLoc, X86_64Register.getNxtTempForAssign64bit());
-					currentMethod.addIrStatement(quad);
-					return setMemLocation(imm, Util.stackBaseReg, sizeLoc, Integer.toString(step));
+			int step = 1;
+			if(semantics.getIrOperandType(loc, vtb, mtb).equals(IrType.IntType))
+				step = 8;
+			String base = X86_64Register.rbp.getName_64bit();
+			String locForMem = null;
+			Integer imm = null;
+			imm = vtb.getMemLocation(loc.getId());
+			if(loc.locationIsArray()) {
+				IrExpression sizeExpr = loc.getSizeExpr();
+				if(sizeExpr instanceof IrLiteral) {
+					IrLiteral sizeL = (IrLiteral) sizeExpr;
+					imm += sizeL.getIntValue().intValue()*step;
+					return new MemOperandForm(imm,base,null, step);
+				} else {
+					IrLocation sizeLoc = (IrLocation) sizeExpr;
+					locForMem = getMemLocForNotArrayLocation(sizeLoc, vtb, mtb);
+					return new MemOperandForm(imm, base, locForMem, step);
 				}
-				return null;
-			}
-		} else
-			return null;
-
+			} else
+				return new MemOperandForm(imm, base, null, step);
+		}
+		return null;
 	}
 	
-	private String setMemLocation(Integer imm, String base, String index, String scale) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(imm.toString());
-		sb.append("(");
-		sb.append(base);
-		if(index != null) {
-			sb.append(","+index);
-			if(scale != null)
-				sb.append(","+ scale);
-		}
-		sb.append(")");
-		return sb.toString();
+	private String getMemLocForNotArrayLocation(IrLocation loc, VariableTable vtb, MethodTable mtb) {
+		int imm = vtb.getMemLocation(loc.getId());
+		return new MemOperandForm(imm, X86_64Register.rbp.getName_64bit()).toString();
 	}
 
 	@Override
@@ -191,16 +232,16 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		VariableTable vtb = env.peekVariables();
 		MethodTable mtb = env.peekMethod();
 		String symbol = quad.getSymbol();
-		String op1 = null;
-		String op2 = null;
-		String dest = null;
+		OperandForm op1 = null;
+		OperandForm op2 = null;
+		OperandForm dest = null;
 		if (quad.getOp1() != null) {
-			op1 = getStringForOperand(quad.getOp1(), vtb, mtb);
+			op1 = getOperandForm(quad.getOp1(), vtb, mtb);
 		}
 		if (quad.getOp2() != null)
-			op2 = getStringForOperand(quad.getOp2(), vtb, mtb);
+			op2 = getOperandForm(quad.getOp2(), vtb, mtb);
 		if (quad.getDest() != null)
-			dest = getStringForOperand(quad.getDest(), vtb, mtb);
+			dest = getOperandForm(quad.getDest(), vtb, mtb);
 		
 
 		currentMethod.addIrStatement(new IrQuadWithLocation(symbol, op1, op2, dest));
@@ -220,50 +261,27 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		IrQuadWithLocForFuncInvoke funcQuad = new IrQuadWithLocForFuncInvoke(func.getId());
 		if(func.isPLT())
 			funcQuad.setFuncName(func.getId() + "@PLT");
-		//int i = 0;
-		String paraLoc = null;
-		int pushNum = func.getFuncArgNum() - paraPassReg.length;
-		int allocSize = pushNum % 2;
-		if(allocSize > 0)
-		funcQuad.addOprBeforeCall(IrQuadWithLocation.reallocStack(allocSize* 8));
-		
-		for(int i = func.getFuncArgNum()-1 ; i >=0; i--) {
-			IrExpression e = func.getFunctionArg(i);
-			if(i > 5) {
-				paraLoc = paraPassReg[0];
+		for(IrExpression e: func.funcArgs) {
+			if(e instanceof IrLiteral && ((IrLiteral) e).getType().equals(IrType.stringType)) {
+				funcQuad.addParameter(setStringLiteralForFunc((IrLiteral) e));
 			} else
-				paraLoc = paraPassReg[i];
-			if (e instanceof IrLiteral && ((IrLiteral) e).getType().equals(IrType.stringType)) {
-				funcQuad.addOprBeforeCall(getStrLiteralLeaqForProgram((IrLiteral) e, paraLoc));
-			}
-			else if(e instanceof IrOperand) {
-				String src = getStringForOperand((IrOperand) e, env.peekVariables(), env.peekMethod());
-				funcQuad.addOprBeforeCall(IrQuadWithLocation.movToReg((IrOperand) e, src, paraLoc, env.peekVariables(), env.peekMethod()));
-			}
-			if(i > 5) {
-				//funcQuad.addOprBeforeCall(IrQuadWithLocation.reallocStack(8));
-				funcQuad.addOprBeforeCall(IrQuadWithLocation.push(paraLoc));
-			}
-			
-			
+				funcQuad.addParameter(getOperandForm((IrOperand) e, env.peekVariables(), env.peekMethod()));
 		}
-		funcQuad.addOprBeforeCall(IrQuadWithLocation.setRaxZero());
-		int deallocSize = func.getFuncArgNum() - 6;
-		if(deallocSize + allocSize > 0) {
-			funcQuad.addOprAfterCall(IrQuadWithLocation.deallocStack((deallocSize + allocSize)*8));
-		}
-		
-		//funcQuad.addOprBeforeCall(AssemblyForArith.SetRaxZero());
 		
 		currentMethod.addIrStatement(funcQuad);
 		return false;
 	}
 	
-	public IrQuadWithLocation getStrLiteralLeaqForProgram(IrLiteral l, String reg) {
+	public MemOperandForm setStringLiteralForFunc(IrLiteral l) {
 		program.addReadOnlyData(l.getValue());
-		String loc = program.getRoData().getLastLabel() + "(" + rip +")";
-		return IrQuadWithLocation.setLeaqOpr(loc, reg);
+		MemOperandForm mem = new MemOperandForm(program.getRoData().getLastLabel(), X86_64Register.rip.name_64bit);
+		mem.setMemReadOnlyString();
+		mem.setScale(8);
+		return mem;
 	}
+	
+	
+	
 
 	@Override
 	public boolean visit(IrQuadWithLocForFuncInvoke quad) {

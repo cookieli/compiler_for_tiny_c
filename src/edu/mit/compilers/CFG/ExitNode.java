@@ -2,7 +2,7 @@ package edu.mit.compilers.CFG;
 
 import java.util.ArrayList;
 
-import edu.mit.compilers.IR.Quad.ExitPoint;
+import edu.mit.compilers.IR.LowLevelIR.ExitPoint;
 
 public class ExitNode extends CFGNode{
 	public ExitNode() {

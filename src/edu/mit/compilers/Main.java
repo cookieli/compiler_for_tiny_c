@@ -64,9 +64,9 @@ class Main {
 				for(String s: maps.keySet()) {
 					System.out.println(maps.get(s));
 				}
-				
-				System.out.println(AssemblyFromCFGVistor.assemblyForWholeCFG(assemP));
-				AssemblyFromCFGVistor.assemblyFile(assemP);
+				String code = AssemblyFromCFGVistor.assemblyForWholeCFG(assemP);
+				System.out.println(code);
+				AssemblyFromCFGVistor.assemblyFile(code, p.getFilename());
 			}
 		} catch (Exception e) {
 			// print the error:

@@ -1,4 +1,4 @@
-package edu.mit.compilers.IR.Quad;
+package edu.mit.compilers.IR.LowLevelIR;
 
 
 import edu.mit.compilers.IR.IrNodeVistor;

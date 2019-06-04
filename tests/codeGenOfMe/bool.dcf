@@ -4,5 +4,5 @@ void main(){
    a = true;
    b = a;
    printf("%d, %d\n", a, b);
-   //printf("%d, %d, %d, %d, %d, %d, %dthe 8th is %d\n",false, true,1, 2, 3, 4, 3, true);
+   printf("%d, %d, %d, %d, %d, %d, %dthe 8th is %d\n",false, true,1, 2, 3, 4, 3, true);
 }

@@ -1,7 +1,14 @@
+import printf;
 void main(){
    int a;
    int b;
    int c;
    int d;
+   a = 8;
+   b = 2;
+   c = 5;
+   d = 3;
    d = a+b+c-d- a*b /(4-2) ;
+   printf("%d, %d, %d, %d, %d, %d, %d\n", a, b, c, d, 1, true, 8);
+   
 }

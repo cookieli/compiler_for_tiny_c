@@ -6,7 +6,7 @@ import java.util.List;
 
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
-import edu.mit.compilers.IR.Quad.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 
 public class CFGNode extends IrNode{
 	public List<LowLevelIR> statements;

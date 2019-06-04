@@ -1,7 +1,7 @@
 package edu.mit.compilers.CFG;
 
 
-import edu.mit.compilers.IR.Quad.EntryPoint;
+import edu.mit.compilers.IR.LowLevelIR.EntryPoint;
 
 public class EntryNode extends CFGNode{
 	

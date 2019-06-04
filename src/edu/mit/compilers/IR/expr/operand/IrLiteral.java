@@ -36,6 +36,10 @@ public class IrLiteral extends IrOperand{
 		type = new IrType(Type.INT);
 	}
 	
+	public static IrLiteral getLiteral(int v) {
+		return new IrLiteral(v);
+	}
+	
 	public IrLiteral(IrLiteral l) {
 		super(l.getLineNumber(), l.getColumnNumber(), l.getFilename());
 		value = l.getValue();

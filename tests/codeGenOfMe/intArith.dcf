@@ -1,0 +1,19 @@
+import printf;
+void main(){
+    int a;
+    int b;
+    int c;
+    int d;
+    int e, f;
+    b = 10;
+    c = 2;
+    d = 3;
+    e = 6;
+    a = 4;
+    a++;
+    b--;
+    a += b;
+    f = 2;
+    f += b - c *2/ 4 +(1+2+3%2);
+    printf("%d, %d, %d\n", a, b, f);
+}

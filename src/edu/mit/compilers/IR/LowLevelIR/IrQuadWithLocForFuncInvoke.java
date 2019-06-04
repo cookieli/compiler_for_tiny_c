@@ -1,16 +1,16 @@
-package edu.mit.compilers.IR.Quad;
+package edu.mit.compilers.IR.LowLevelIR;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.utils.OperandForm;
 
 public class IrQuadWithLocForFuncInvoke extends LowLevelIR{
 	
-	public List<IrQuadWithLocation> beforeCallOpr = null;
+	public List<OperandForm> parameters = null;
 	
-	public List<IrQuadWithLocation> afterCallOpr = null;
 	public String opr = "call";
 	public String funcName;
 	
@@ -19,38 +19,43 @@ public class IrQuadWithLocForFuncInvoke extends LowLevelIR{
 		
 	}
 	
-	public void addOprBeforeCall(IrQuadWithLocation quad) {
-		if(beforeCallOpr == null)
-			beforeCallOpr = new ArrayList<>();
-		beforeCallOpr.add(quad);
+	public void addParameter(OperandForm para) {
+		if(parameters == null)
+			parameters = new ArrayList<>();
+		parameters.add(para);
 	}
 	
-	public void addOprAfterCall(IrQuadWithLocation quad) {
-		if(afterCallOpr == null)
-			afterCallOpr = new ArrayList<>();
-		afterCallOpr.add(quad);
+	public int getParaNum() {
+		if(parameters == null) return 0;
+		return parameters.size();
 	}
+	public OperandForm getParameter(int i) {
+		return parameters.get(i);
+	}
+	
+	public List<OperandForm> getParameters(){
+		return parameters;
+	}
+	
 	
 	
 	public void setFuncName(String name) {
 		this.funcName = name;
+	}
+	
+	public String getFuncName() {
+		return this.funcName;
 	}
 
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
-		if(beforeCallOpr != null) 
-			for(IrQuadWithLocation quad: beforeCallOpr) {
-				sb.append(quad.getName());
-			}
 		sb.append(opr + " " + funcName);
+		sb.append("parameters: ");
+		for(OperandForm o: parameters)
+			sb.append(o.toString() + " ");
 		sb.append("\n");
-		if(afterCallOpr != null) {
-			for(IrQuadWithLocation quad: afterCallOpr) {
-				sb.append(quad.getName());
-			}
-		}
 		return sb.toString();
 	}
 

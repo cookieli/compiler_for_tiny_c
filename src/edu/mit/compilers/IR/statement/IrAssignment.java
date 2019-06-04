@@ -23,7 +23,10 @@ public class IrAssignment extends IrStatement{
 	
 	public IrAssignment(IrAssignment assign) {
 		lhs = (IrLocation) assign.getLhs().copy();
-		rhs = (IrExpression)assign.getRhs().copy();
+		if(assign.getRhs() != null)
+			rhs = (IrExpression)assign.getRhs().copy();
+		else
+			rhs = null;
 		symbol = new StringBuilder(assign.symbol).toString();
 		
 	}
