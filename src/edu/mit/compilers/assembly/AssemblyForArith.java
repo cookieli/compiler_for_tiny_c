@@ -5,6 +5,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.utils.ImmOperandForm;
 import edu.mit.compilers.utils.MemOperandForm;
 import edu.mit.compilers.utils.OperandForm;
+import edu.mit.compilers.utils.Util;
 import edu.mit.compilers.utils.X86_64Register;
 
 public class AssemblyForArith {
@@ -41,6 +42,16 @@ public class AssemblyForArith {
 		return code.toString();
 	}
 	
+	private static void resembleMemOperandForm(MemOperandForm op ,StringBuilder code) {
+		if(!Util.isInteger(op.getImm()) && op.getLoc() !=null) {
+			MemOperandForm mem = new MemOperandForm(op.getImm(), op.getBase(), null, op.getScale());
+			String reg = X86_64Register.getNxtTempForAssign64bit();
+			code.append(new AssemblyForm("leaq", mem.toString(), reg).toString());
+			op.setImm(0);
+			op.setBase(reg);
+		}
+	}
+	
 	
 	public static String getAssemblyForMov(IrQuadWithLocation quad) {
 		StringBuilder code = new StringBuilder();
@@ -58,6 +69,7 @@ public class AssemblyForArith {
 		changeMemOperandFormLocToReg(memOp2, code);
 		if(op1 instanceof MemOperandForm) {
 			MemOperandForm memOp1 = (MemOperandForm) op1;
+			
 			changeMemOperandFormLocToReg(memOp1, code);
 			String reg;
 			if(is_64bit) reg = X86_64Register.getNxtTempForAssign64bit();
@@ -74,6 +86,7 @@ public class AssemblyForArith {
 	}
 	
 	private static void changeMemOperandFormLocToReg(MemOperandForm op, StringBuilder code) {
+		resembleMemOperandForm(op, code);
 		if(op.getLoc() != null) {
 			String loc = op.getLoc();
 			String reg = X86_64Register.getNxtTempForAssign64bit();

@@ -2,15 +2,21 @@ package edu.mit.compilers.IR;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
+import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
+import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
+import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
+import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
@@ -37,6 +43,7 @@ import edu.mit.compilers.utils.X86_64Register;
 public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	public EnvStack env;
 	public MethodDecl currentMethod = null;
+	public IrBlock currentBlock = null;
 	public IrProgram program;
 	public SemanticCheckerNode semantics;
 
@@ -55,6 +62,13 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		IrResolveNameToLocationVistor vistor = new IrResolveNameToLocationVistor();
 		p.accept(vistor);
 		return p;
+	}
+	
+	public void addIrStatement(IrStatement s) {
+		if(currentBlock == null)
+			currentMethod.addIrStatement(s);
+		else
+			currentBlock.addIrStatement(s);
 	}
 
 	@Override
@@ -77,14 +91,30 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		currentMethod = m;
 		List<IrStatement> statements = currentMethod.statements;
 		currentMethod.statements = new ArrayList<>();
-
+		if(Util.isMainMethod(m)) {
+			setArraySizeForAllVar(env.peekVariables(), env.peekMethod(), true);
+		}
 		env.pushVariables(m.localVars);
+		setArraySizeForAllVar(env.peekVariables(), env.peekMethod(), false);
+		
+		
+		
 		for (IrStatement s : statements) {
 			s.accept(this);
 		}
 		env.popVariables();
 		return false;
 	}
+	
+	private void setArraySizeForAllVar(VariableTable vtb, MethodTable mtb, boolean isGlobl) {
+		for(Variable_decl v: vtb) {
+			if(v instanceof ArrayDecl)
+				addIrStatement(setArraySize((ArrayDecl) v, vtb, mtb, isGlobl));
+		}
+	}
+	
+	
+	
 
 	@Override
 	public boolean visit(IrAssignment assign) {
@@ -92,11 +122,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		return false;
 	}
 
-	@Override
-	public boolean visit(IrBlock block) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 	@Override
 	public boolean visit(IfBlock ifCode) {
@@ -139,57 +165,37 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
-//	private String getStringForOperand(IrOperand opr, VariableTable v, MethodTable m) {
-//		if (opr instanceof IrLiteral) {
-//			IrLiteral literal = (IrLiteral) opr;
-//			if (literal.getType().equals(IrType.IntType))
-//				return "$" + literal.getIntValue().toString();
-//			else
-//				return "$" + literal.getValue();
-//		} else if (opr instanceof IrLocation) {
-//			IrLocation loc = (IrLocation) opr;
-//			if(!loc.locationIsArray()) {
-//				//return v.getMemLocation(loc.getId());
-//				int imm = v.getMemLocation(loc.getId());
-//				return setMemLocation(imm, Util.stackBaseReg, null, null);
-//			}else {
-//				int step = 8;
-//				if(semantics.getIrOperandType(opr, v, m).equals(IrType.BoolType))
-//					step = 1;
-//				int imm = v.getMemLocation(loc.getId());
-//				IrExpression size = loc.getSizeExpr();
-//				if(size instanceof IrLiteral)
-//					return setMemLocation(imm+ ((IrLiteral)size).getIntValue().intValue()*step,Util.stackBaseReg, null, null);
-//				else if(size instanceof IrLocation) {
-//					int locOfSize = v.getMemLocation(((IrLocation) size).getId());
-//					String sizeLoc = setMemLocation(locOfSize, Util.stackBaseReg, null, null);
-//					IrQuadWithLocation quad = new IrQuadWithLocation("movq", sizeLoc, X86_64Register.getNxtTempForAssign64bit());
-//					currentMethod.addIrStatement(quad);
-//					return setMemLocation(imm, Util.stackBaseReg, sizeLoc, Integer.toString(step));
-//				}
-//				return null;
-//			}
-//		} else
-//			return null;
-//
-//	}
 	
-//	private String setMemLocation(Integer imm, String base, String index, String scale) {
-//		StringBuilder sb = new StringBuilder();
-//		sb.append(imm.toString());
-//		sb.append("(");
-//		sb.append(base);
-//		if(index != null) {
-//			sb.append(","+index);
-//			if(scale != null)
-//				sb.append(","+ scale);
-//		}
-//		sb.append(")");
-//		return sb.toString();
-//	}
+	public String setRealLocationForArray(String imm) {
+		if(Util.isInteger(imm))
+			return Integer.toString(Integer.parseInt(imm) + Util.ArrayHeaderSize);
+		else
+			return imm + "+" + Util.ArrayHeaderSize;
+	}
+	
+	
+	private OperandForm arrayStartMemLoc(ArrayDecl arr, VariableTable vtb, MethodTable mtb, boolean isGlobl) {
+		String imm = vtb.getMemLocation(arr.getId());
+		String base = X86_64Register.rbp.getName_64bit();
+		int step = 8;
+		if(isGlobl)  base = X86_64Register.rip.getName_64bit();
+		//if(arr.type.equals(IrType.boolArray))    step = 1;
+		return new MemOperandForm(imm, base, null, step);
+	}
+	private IrQuadWithLocation setArraySize(ArrayDecl arr, VariableTable vtb, MethodTable mtb, boolean isGlobl) {
+		OperandForm operand = arrayStartMemLoc(arr, vtb, mtb, isGlobl);
+		int size = arr.getArraySize();
+		return new IrQuadWithLocation("movq", new ImmOperandForm(size, 8), operand);
+	}
+	
+
 	
 	public OperandForm  getOperandForm(IrOperand opr, VariableTable vtb, MethodTable mtb) {
+		if(opr == null)
+			return null;
+		int step = 1;
+		String base = X86_64Register.rbp.getName_64bit();
+		String imm;
 		if(opr instanceof IrLiteral) {
 			IrLiteral literal = (IrLiteral) opr;
 			if(literal.getType().equals(IrType.IntType)) {
@@ -198,18 +204,25 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 				return new ImmOperandForm(Integer.parseInt(literal.getValue()), 1);
 		} else if(opr instanceof IrLocation) {
 			IrLocation loc = (IrLocation) opr;
-			int step = 1;
+			
 			if(semantics.getIrOperandType(loc, vtb, mtb).equals(IrType.IntType))
 				step = 8;
-			String base = X86_64Register.rbp.getName_64bit();
+			
+			if(vtb.isGloblVariable(loc.getId()))
+				base = X86_64Register.rip.getName_64bit();
 			String locForMem = null;
-			Integer imm = null;
 			imm = vtb.getMemLocation(loc.getId());
 			if(loc.locationIsArray()) {
+				imm = setRealLocationForArray(imm);
 				IrExpression sizeExpr = loc.getSizeExpr();
 				if(sizeExpr instanceof IrLiteral) {
 					IrLiteral sizeL = (IrLiteral) sizeExpr;
-					imm += sizeL.getIntValue().intValue()*step;
+					if(Util.isInteger(imm))
+						imm = Integer.toString(sizeL.getIntValue().intValue()*step+ Integer.parseInt(imm));
+					else {
+						if(sizeL.getIntValue().intValue() != 0)
+						imm = Integer.toString(sizeL.getIntValue().intValue()*step) + "+"+imm;
+					}
 					return new MemOperandForm(imm,base,null, step);
 				} else {
 					IrLocation sizeLoc = (IrLocation) sizeExpr;
@@ -218,13 +231,23 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 				}
 			} else
 				return new MemOperandForm(imm, base, null, step);
+		} else if(opr instanceof IrLenExpr) {
+			step = 8;
+			IrLenExpr lenExpr = (IrLenExpr) opr;
+			imm = vtb.getMemLocation(lenExpr.getOperand().getId());
+			if(vtb.isGloblVariable(lenExpr.getOperand().getId()))
+				base = X86_64Register.rip.getName_64bit();
+			return new MemOperandForm(imm, base, null, step);
 		}
 		return null;
 	}
 	
 	private String getMemLocForNotArrayLocation(IrLocation loc, VariableTable vtb, MethodTable mtb) {
-		int imm = vtb.getMemLocation(loc.getId());
-		return new MemOperandForm(imm, X86_64Register.rbp.getName_64bit()).toString();
+		String base = X86_64Register.rbp.getName_64bit();
+		if(vtb.isGloblVariable(loc.getId()))
+			base = X86_64Register.rip.getName_64bit();
+		String imm = vtb.getMemLocation(loc.getId());
+		return new MemOperandForm(imm, base).toString();
 	}
 
 	@Override
@@ -244,7 +267,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 			dest = getOperandForm(quad.getDest(), vtb, mtb);
 		
 
-		currentMethod.addIrStatement(new IrQuadWithLocation(symbol, op1, op2, dest));
+		addIrStatement(new IrQuadWithLocation(symbol, op1, op2, dest));
 		return false;
 
 	}
@@ -268,7 +291,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 				funcQuad.addParameter(getOperandForm((IrOperand) e, env.peekVariables(), env.peekMethod()));
 		}
 		
-		currentMethod.addIrStatement(funcQuad);
+		addIrStatement(funcQuad);
 		return false;
 	}
 	
@@ -286,6 +309,49 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	@Override
 	public boolean visit(IrQuadWithLocForFuncInvoke quad) {
 		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public IrQuadWithLocation resetQuad(IrQuad quad, VariableTable vtb, MethodTable mtb) {
+		IrOperand op1 = quad.getOp1();
+		IrOperand op2 = quad.getOp2();
+		IrOperand dst = quad.getDest();
+		OperandForm opForm1, opForm2, dstForm;
+		opForm1 = getOperandForm(op1, vtb, mtb);
+		opForm2 = getOperandForm(op2, vtb, mtb);
+		dstForm = getOperandForm(dst, vtb, mtb);
+		
+		return new IrQuadWithLocation(quad.getSymbol(), opForm1, opForm2, dstForm);
+	}
+
+	@Override
+	public void visit(IrIfBlockQuad irIfBlockQuad) {
+		// TODO Auto-generated method stub
+		Stack<LowLevelIR> condStack = irIfBlockQuad.getCondStack();
+		irIfBlockQuad.setCondStack(new Stack<>());
+		for(LowLevelIR quad: condStack) {
+			irIfBlockQuad.addCond(resetQuad((IrQuad) quad, env.peekVariables(), env.peekMethod()));
+		}
+		irIfBlockQuad.getTrueBlock().accept(this);
+		if(irIfBlockQuad.getFalseBlock() != null)
+			irIfBlockQuad.getFalseBlock().accept(this);
+		addIrStatement(irIfBlockQuad);
+		
+	}
+	@Override
+	public boolean visit(IrBlock block) {
+		// TODO Auto-generated method stub
+		IrBlock tempBlock = currentBlock;
+		currentBlock = block;
+		List<IrStatement> stats = currentBlock.statements;
+		currentBlock.statements = new ArrayList<>();
+		env.pushVariables(currentBlock.localVars);
+		for(IrStatement s: stats) {
+			s.accept(this);
+		}
+		
+		env.popVariables();
+		currentBlock = tempBlock;
 		return false;
 	}
 

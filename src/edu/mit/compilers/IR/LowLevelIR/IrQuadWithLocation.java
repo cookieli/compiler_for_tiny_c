@@ -67,7 +67,7 @@ public class IrQuadWithLocation extends LowLevelIR{
 		this.dest = dest;
 	}
 	
-	public IrQuadWithLocation(String symbol, MemOperandForm op1, MemOperandForm op2) {
+	public IrQuadWithLocation(String symbol, OperandForm op1, OperandForm op2) {
 		this(symbol, op1, op2, null);
 	}
 	

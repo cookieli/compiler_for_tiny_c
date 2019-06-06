@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
+import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.expr.BinaryExpression;
+import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.statement.FuncInvokeStatement;
 import edu.mit.compilers.IR.statement.IrAssignment;
 import edu.mit.compilers.IR.statement.IrStatement;
@@ -20,10 +23,13 @@ import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
 import edu.mit.compilers.IR.statement.codeBlock.IrForBlock;
 import edu.mit.compilers.IR.statement.codeBlock.IrWhileBlock;
 import edu.mit.compilers.trees.EnvStack;
-//TODO: add store location for mehod
+//TODO: add store location for method
 public class IrQuadVistor implements IrNodeVistor{
 	public EnvStack env;
 	public MethodDecl currentMethod;
+	
+	public IrBlock currentBlock = null;
+	
 	public IrQuadVistor() {
 		env = new EnvStack();
 	}
@@ -47,6 +53,14 @@ public class IrQuadVistor implements IrNodeVistor{
 		
 		return false;
 	}
+	
+	private void addIrStatement(IrStatement s) {
+		if(currentBlock ==null)
+			currentMethod.addIrStatement(s);
+		else
+			currentBlock.addIrStatement(s);
+	}
+	
 
 	@Override
 	public boolean visit(MethodDecl m) {
@@ -66,19 +80,38 @@ public class IrQuadVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(IrAssignment assign) {
 		// TODO Auto-generated method stub
-		currentMethod.addIrStatement(new IrQuadForAssign(assign, env.peekVariables(), env.peekMethod()));
+		addIrStatement(new IrQuadForAssign(assign, env.peekVariables(), env.peekMethod()));
 		return false;
 	}
 
 	@Override
 	public boolean visit(IrBlock block) {
 		// TODO Auto-generated method stub
+		IrBlock tempBlock = currentBlock;
+		currentBlock = block;
+		List<IrStatement> stats = currentBlock.statements;
+		currentBlock.statements = new ArrayList<>();
+		env.pushVariables(currentBlock.localVars);
+		for(IrStatement s: stats) {
+			s.accept(this);
+		}
+		
+		env.popVariables();
+		currentBlock = tempBlock;
 		return false;
 	}
 
 	@Override
 	public boolean visit(IfBlock ifCode) {
 		// TODO Auto-generated method stub
+		IrExpression expr = ifCode.getBoolExpr();
+		IrBlock trueBlock = ifCode.getTrueBlock();
+		IrBlock falseBlock = ifCode.getFalseBlock();
+		IrQuad quad = new IrQuad((BinaryExpression) expr, env.peekVariables(), env.peekMethod());
+		trueBlock.accept(this);
+		falseBlock.accept(this);
+		IrIfBlockQuad ifBlock = new IrIfBlockQuad(quad, trueBlock, falseBlock);
+		addIrStatement(ifBlock);
 		return false;
 	}
 
@@ -97,7 +130,7 @@ public class IrQuadVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(FuncInvokeStatement func) {
 		// TODO Auto-generated method stub
-		currentMethod.addIrStatement(new IrQuadForFuncInvoke(func, env.peekVariables(), env.peekMethod()));
+		addIrStatement(new IrQuadForFuncInvoke(func, env.peekVariables(), env.peekMethod()));
 		return false;
 	}
 
@@ -136,6 +169,11 @@ public class IrQuadVistor implements IrNodeVistor{
 	public boolean visit(IrQuadWithLocForFuncInvoke quad) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	@Override
+	public void visit(IrIfBlockQuad irIfBlockQuad) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

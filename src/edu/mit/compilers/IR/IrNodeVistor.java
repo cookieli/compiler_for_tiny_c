@@ -1,6 +1,7 @@
 package edu.mit.compilers.IR;
 
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
+import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
@@ -44,5 +45,11 @@ public interface IrNodeVistor {
 	
 	public boolean visit(IrQuadForFuncInvoke quad);
 	
+	
+	
 	public boolean visit(IrQuadWithLocForFuncInvoke quad);
+
+	public void visit(IrIfBlockQuad irIfBlockQuad);
+	
+	
 }

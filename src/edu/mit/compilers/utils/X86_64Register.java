@@ -40,7 +40,7 @@ public class X86_64Register {
 	}
 	
 	public static void freeAllRegisterTempForAssign() {
-		for(int i = 0; i <= tempForAssignCursor; i++) {
+		for(int i = 0; i < tempForAssign.length; i++) {
 			tempForAssign[i].free();
 		}
 		tempForAssignCursor = 0;

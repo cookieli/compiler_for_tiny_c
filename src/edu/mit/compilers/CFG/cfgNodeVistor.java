@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
+import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
@@ -139,6 +140,12 @@ public class cfgNodeVistor implements IrNodeVistor{
 		CFGNode node = new CFGNode(quad);
 		currentCFG.addCFGNode(node);
 		return false;
+	}
+
+	@Override
+	public void visit(IrIfBlockQuad irIfBlockQuad) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

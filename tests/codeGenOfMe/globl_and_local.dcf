@@ -1,0 +1,7 @@
+import printf;
+int a;
+void main(){
+   int a;
+   a = 5;
+   printf("%d\n", a);
+}

@@ -1,0 +1,23 @@
+import printf;
+int e[888];
+bool h[999];
+void main(){
+    int a[7];
+    bool b[10];
+    int c;
+    int d;
+    a[0] = 6;
+    a[1] = 9;
+    a[2] = 0;
+    b[4] = true;
+    c = len(a);
+    d = len(b);
+    printf("%d, %d\n", c, d);
+    d = len(a) + len(b);
+    printf("%d, %d\n", c, d);
+    c = len(e);
+    d = len(h);
+     printf("%d, %d\n", c, d);
+    
+    
+}

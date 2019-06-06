@@ -13,6 +13,7 @@ import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.IrDeclaration;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
+import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
@@ -605,6 +606,12 @@ public class SemanticCheckerNode implements IrNodeVistor {
 	public boolean visit(IrQuadWithLocForFuncInvoke quad) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public void visit(IrIfBlockQuad irIfBlockQuad) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

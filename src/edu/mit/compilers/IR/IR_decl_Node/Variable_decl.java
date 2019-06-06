@@ -59,6 +59,18 @@ public class Variable_decl extends IrDeclaration{
 		return v;
 	}
 	
+	public String getGloblAddr() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(".comm");
+		sb.append("\t");
+		sb.append(getId());
+		sb.append(",");
+		if(type.equals(IrType.IntType))    sb.append("8, 8\n");
+		else                               sb.append("1, 1\n");
+		return sb.toString();
+		
+	}
+	
 	
 	
 }

@@ -38,6 +38,36 @@ public class ArrayDecl extends Variable_decl{
 		return arr;
 		
 	}
+	public int getArraySize() {
+		return arraySize.getIntValue().intValue();
+	}
+	
+	@Override
+	public String getGloblAddr() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(".comm\t");
+		sb.append(getId());
+		sb.append(",");
+		int size, align;
+		if(type.equals(IrType.IntArray)) {
+			size = 8* arraySize.getIntValue().intValue();
+			align = 8;
+			if(size >= 16 && size < 32) align = 16;
+			if(size >= 32)              align = 32;
+			
+		} else {
+			size = arraySize.getIntValue().intValue();
+			align = 1;
+			if(size >= 8 && size < 16) align = 8;
+			if(size >= 16 && size < 32) align = 16;
+			if(size >= 32)   align = 32;
+		}
+		sb.append(size+","+align);
+		sb.append("\n");
+		
+		return sb.toString();
+		
+	}
 	
 	
 	

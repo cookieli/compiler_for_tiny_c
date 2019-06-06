@@ -1,0 +1,22 @@
+import printf;
+int a, b;
+bool c, d;
+int e[5];
+bool l[10];
+void main(){
+  a = 3;
+  b = 5;
+  b += a;
+  e[0] = 4;
+  e[3] = 5;
+  e[a] = b;
+  c = true;
+  d = false;
+  l[b] = true;
+  l[a] = l[b];
+  printf("%d, %d\n", a, b);
+  printf("array e: %d, %d\n", e[0], e[3]);
+  printf("bool: %d, %d\n", c, d);
+  printf("array l: %d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9]);
+
+}

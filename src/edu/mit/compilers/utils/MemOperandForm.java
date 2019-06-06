@@ -15,6 +15,13 @@ public class MemOperandForm extends OperandForm{
 		setScale(scale);
 	}
 	
+	public MemOperandForm(String imm, String base, String loc, int scale) {
+		this.imm = imm;
+		setBase(base);
+		setLoc(loc);
+		setScale(scale);
+	}
+	
 	public MemOperandForm(String label, String base) {
 		setLabel(label);
 		setBase(base);
@@ -30,6 +37,8 @@ public class MemOperandForm extends OperandForm{
 	}
 
 	public void setImm(int imm) {
+		if(imm == 0)
+			this.imm = null;
 		this.imm = Integer.toString(imm);
 	}
 	
@@ -72,8 +81,11 @@ public class MemOperandForm extends OperandForm{
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		if(imm != null) {
-			sb.append(imm);
+		if(imm != null ) {
+			if(Util.isInteger(imm) && Integer.parseInt(imm) == 0)
+				;
+			else
+				sb.append(imm);
 		}
 		if(base != null) {
 			sb.append("(");

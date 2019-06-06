@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Stack;
 
 import edu.mit.compilers.IR.IrProgram;
+import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
@@ -40,6 +41,11 @@ public class AssemblyFromCFGVistor {
 		StringBuilder sb = new StringBuilder();
 		sb.append(".file "+ "\""+p.getFilename()+ "\""+"\n");
 		sb.append(".text\n");
+		if(p.globalVariableTable != null) {
+			for(Variable_decl v: p.getGlobalVariableTable().idList()) {
+				sb.append(v.getGloblAddr());
+			}
+		}
 		if(p.getRoData() != null) {
 			sb.append(p.getRoData().toString());
 		}

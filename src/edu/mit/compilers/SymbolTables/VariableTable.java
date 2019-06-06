@@ -6,6 +6,7 @@ import java.util.Iterator;
 import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
+import edu.mit.compilers.utils.Util;
 
 public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	
@@ -56,17 +57,36 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 		}
 		if(v.type().equals(IrType.IntArray)) {
 			ArrayDecl arr = (ArrayDecl)v;
-			currentSlotPosition += 8 * arr.arraySize.getIntValue().intValue();
+			currentSlotPosition += 8 * arr.arraySize.getIntValue().intValue()+ Util.ArrayHeaderSize;
 		}
 		if(v.type().equals(IrType.boolArray)) {
 			ArrayDecl arr = (ArrayDecl)v;
-			currentSlotPosition += 1 * arr.arraySize.getIntValue().intValue();
+			currentSlotPosition += 1 * arr.arraySize.getIntValue().intValue() + Util.ArrayHeaderSize;
 		}
 	}
 	
-	public int getMemLocation(String id) {
-		int location = this.variableSlot.get(id) - currentSlotPosition;
-		return location;
+	public String getMemLocation(String id) {
+		int location = 0;
+		if(variableSlot.containsKey(id) && this.parent != null) {
+			location = this.variableSlot.get(id) - currentSlotPosition;
+			return Integer.toString(location);
+		}
+		else {
+			if(this.parent != null)
+				return parent.getMemLocation(id);
+			else
+				return id;
+		}
+		
+	}
+	
+	public boolean isGloblVariable(String id) {
+		if(variableSlot.containsKey(id) && this.getParent() == null) 
+			//throw new IllegalArgumentException(id + " is global variable ");
+			return true;
+		else if(!variableSlot.containsKey(id) && this.getParent() != null)
+			return this.getParent().isGloblVariable(id);
+		return false;
 	}
 	
 	public int getMemSize() {
@@ -83,13 +103,17 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 		for(Variable_decl decl: this) {
 			v.put((Variable_decl) decl.copy());
 		}
-		v.currentSlotPosition = this.currentSlotPosition;
-		v.variableSlot = new HashMap<>();
-		for(String key: this.variableSlot.keySet()) {
-			v.variableSlot.put(key, this.variableSlot.get(key));
-		}
+//		v.currentSlotPosition = this.currentSlotPosition;
+//		v.variableSlot = new HashMap<>();
+//		for(String key: this.variableSlot.keySet()) {
+//			v.variableSlot.put(key, this.variableSlot.get(key));
+//		}
 		return v;
 	}
+	
+	
+	
+	
 	
 	
 }

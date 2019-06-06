@@ -1,7 +1,11 @@
 package edu.mit.compilers.IR.LowLevelIR;
 
+
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.IR.IrType;
+import edu.mit.compilers.IR.expr.BinaryExpression;
+import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.SymbolTables.MethodTable;
@@ -10,6 +14,7 @@ import edu.mit.compilers.trees.SemanticCheckerNode;
 
 public class IrQuad extends LowLevelIR{
 	public static String[] operand = {"mov", "add", "sub", "mul", "div", "mod"};
+	
 	public String symbol;
 	public IrOperand op1;
 	public IrOperand op2;
@@ -23,11 +28,45 @@ public class IrQuad extends LowLevelIR{
 		
 	}
 	
+	public IrQuad(VariableTable v, MethodTable m) {
+		this.v = v;
+		this.m = m;
+	}
+	
 	public IrQuad(String symbol, IrOperand op1, IrOperand op2, IrOperand dest) {
 		this.symbol = symbol;
 		this.op1 = op1;
 		this.op2 = op2;
 		this.dest = dest;
+	}
+	
+	public IrQuad(BinaryExpression expr, VariableTable v, MethodTable m) {
+		this(v, m);
+		if(!(expr.getlhs() instanceof IrOperand) || !(expr.getrhs() instanceof IrOperand))
+			throw new IllegalArgumentException("not binary expr we want");
+		this.symbol = expr.getSymbol();
+		this.op1 = (IrOperand) expr.getlhs();
+		this.op2 = (IrOperand) expr.getrhs();
+		this.dest = null;
+		semantics = new SemanticCheckerNode();
+		
+		setOperandType();
+			
+	}
+	
+	public IrQuad(String symbol, IrOperand op1, IrOperand op2, IrOperand dest, VariableTable v, MethodTable m) {
+		this(symbol, op1, op2, dest);
+		this.v = v;
+		this.m = m;
+		semantics = new SemanticCheckerNode();
+		setOperandType();
+	}
+	
+	public void setOperandType() {
+		if(semantics.getIrOperandType(op1, v, m).equals(IrType.IntType))
+			this.symbol += "q";
+		if(semantics.getIrOperandType(op1, v, m).equals(IrType.BoolType))
+			this.symbol += "b";
 	}
 	@Override
 	public String getName() {
