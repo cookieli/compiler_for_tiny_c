@@ -10,18 +10,14 @@ import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
 public class IrIfBlockQuad extends LowLevelIR {
 	
 	//public IrQuad cond;
-	public Stack<LowLevelIR> condStack;
-	
-	public Stack<String> symbolStack;
+	public LowLevelIR condQuad;// in IrQuadVistor, it means IrQuad, in IrQuadResolveNameToLocation it means IrQuadWIthLocation;
 	
 	public IrBlock trueBlock,
 	               falseBlock;
 	
 	public IrIfBlockQuad(IrQuad cond, IrBlock trueBlock, IrBlock falseBlock) {
 		//this.cond = cond;
-		condStack = new Stack<>();
-		symbolStack = new Stack<>();
-		condStack.add(cond);
+		condQuad = cond;
 		this.trueBlock = trueBlock;
 		this.falseBlock = falseBlock;
 	}
@@ -30,9 +26,6 @@ public class IrIfBlockQuad extends LowLevelIR {
 		this(cond, trueBlock, null);
 	}
 	
-	public void addCond(LowLevelIR cond) {
-		condStack.add(cond);
-	}
 	
 	
 	
@@ -42,9 +35,7 @@ public class IrIfBlockQuad extends LowLevelIR {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
 		sb.append("=======ifBlock==========\n");
-		for(LowLevelIR q: condStack) {
-			sb.append(q.getName());
-		}
+		sb.append(condQuad.getName());
 		sb.append("-------trueBlock---------\n");
 		sb.append(trueBlock.getName());
 		sb.append("-------trueBlock---------\n");
@@ -70,20 +61,14 @@ public class IrIfBlockQuad extends LowLevelIR {
 		vistor.visit(this);
 	}
 
-	public Stack<LowLevelIR> getCondStack() {
-		return condStack;
+	
+
+	public LowLevelIR getCondQuad() {
+		return condQuad;
 	}
 
-	public void setCondStack(Stack<LowLevelIR> condStack) {
-		this.condStack = condStack;
-	}
-
-	public Stack<String> getSymbolStack() {
-		return symbolStack;
-	}
-
-	public void setSymbolStack(Stack<String> symbolStack) {
-		this.symbolStack = symbolStack;
+	public void setCondQuad(LowLevelIR condQuad) {
+		this.condQuad = condQuad;
 	}
 
 	public IrBlock getTrueBlock() {

@@ -65,11 +65,8 @@ public class cfgNodeVistor implements IrNodeVistor{
 		return false;
 	}
 
-	@Override
-	public boolean visit(IrBlock block) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
+	
 
 	@Override
 	public boolean visit(IfBlock ifCode) {
@@ -123,8 +120,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	public boolean visit(IrQuadWithLocation quad) {
 		// TODO Auto-generated method stub
 		
-		CFGNode node = new CFGNode(quad);
-		currentCFG.addCFGNode(node);
+		currentCFG.addCFGPair(CFG.destruct(quad));
 		return false;
 	}
 
@@ -137,15 +133,24 @@ public class cfgNodeVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(IrQuadWithLocForFuncInvoke quad) {
 		// TODO Auto-generated method stub
-		CFGNode node = new CFGNode(quad);
-		currentCFG.addCFGNode(node);
+		currentCFG.addCFGPair(CFG.destruct(quad));;
 		return false;
 	}
 
 	@Override
 	public void visit(IrIfBlockQuad irIfBlockQuad) {
 		// TODO Auto-generated method stub
+		currentCFG.addCFGPair(CFG.destruct(irIfBlockQuad));
 		
+	}
+	
+	
+	
+	
+	@Override
+	public boolean visit(IrBlock block) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

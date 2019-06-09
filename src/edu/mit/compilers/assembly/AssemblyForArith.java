@@ -1,5 +1,7 @@
 package edu.mit.compilers.assembly;
 
+import java.util.regex.Matcher;
+
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.utils.ImmOperandForm;
@@ -9,13 +11,29 @@ import edu.mit.compilers.utils.Util;
 import edu.mit.compilers.utils.X86_64Register;
 
 public class AssemblyForArith {
-	public static final String[] arithOp = {"add", "sub"};
+	public static final String[] arithOp = {"add", "sub", "imul", "div", "mod"};
 	public static final String spilter = ",";
 	public static final String whiteSpace= " ";
 	public static final String rax = "%rax";
 	public static final String al = "%al";
+	public static final int   jmpStart = 1;
+	
+	
+	public static int jmpCursor = jmpStart;
+	public static String jmpLabel = ".L";
 	public IrQuadWithLocation quad;
 	public StringBuilder code;
+	
+	
+	public static String getNxtJmpLabel() {
+		String ret = jmpLabel + jmpCursor;
+		jmpCursor++;
+		return ret;
+	}
+	
+	public static String getCurrJmpLabel() {
+		return jmpLabel + (jmpCursor-1);
+	}
 	
 	public static String getAssemblyForArith(IrQuadWithLocation quad) {
 		StringBuilder code = new StringBuilder();
@@ -41,6 +59,50 @@ public class AssemblyForArith {
 		code.append(new AssemblyForm("movq", retReg, quad.getDest().toString()));
 		return code.toString();
 	}
+	
+	public static String getAssemblyForCmp(IrQuadWithLocation quad) {
+		StringBuilder code = new StringBuilder();
+		String symbol = quad.getSymbol();
+		String comOp = null;
+		String jmpOpr = null;
+		Matcher m = Util.ComPattern.matcher(symbol);
+		if(m.matches()) {
+			symbol = "cmp" + m.group(2);
+			comOp = m.group(1);
+		} else {
+			throw new IllegalArgumentException("not match for compare");
+		}
+		
+		if(quad.getOp1() instanceof MemOperandForm && quad.getOp2() instanceof MemOperandForm) {
+			code.append(cmpTwoOprAreMem(symbol, (MemOperandForm)quad.getOp1(), (MemOperandForm)quad.getOp2()));
+		}
+		
+		if(comOp.equals(">"))  jmpOpr = "jle" + whiteSpace + getNxtJmpLabel()+"\n";
+		code.append(jmpOpr);
+		
+		return code.toString();
+	}
+	
+	private static String cmpTwoOprAreMem(String symbol, MemOperandForm first, MemOperandForm second) {
+		StringBuilder sb = new StringBuilder();
+		String firstReg = X86_64Register.rax.getName_64bit();
+		String secondReg = X86_64Register.r10.getName_64bit();
+		String move = "movq";
+		if(symbol.endsWith("b")) {
+			move = "movb";
+			firstReg = X86_64Register.rax.getName_8bit();
+			secondReg = X86_64Register.r10.getName_8bit();
+		}
+		sb.append(new AssemblyForm(move, first.toString(), firstReg).toString());
+		sb.append(new AssemblyForm(move, second.toString(), secondReg).toString());
+		
+		sb.append(new AssemblyForm(symbol, secondReg, firstReg).toString());
+		
+		return sb.toString();
+	}
+	
+	
+	
 	
 	private static void resembleMemOperandForm(MemOperandForm op ,StringBuilder code) {
 		if(!Util.isInteger(op.getImm()) && op.getLoc() !=null) {
@@ -147,8 +209,14 @@ public class AssemblyForArith {
 	public static String getAssembly(IrQuadWithLocation quad) {
 		if(quad.getSymbol().contains("mov"))
 			return getAssemblyForMov(quad);
-		else
+		else {
+			Matcher m = Util.ComPattern.matcher(quad.getSymbol());
+			if(m.matches()) {
+				return getAssemblyForCmp(quad);
+			}
+			
 			return getAssemblyForArith(quad);
+		}
 	}
 	
 	public static String SetRaxZero() {

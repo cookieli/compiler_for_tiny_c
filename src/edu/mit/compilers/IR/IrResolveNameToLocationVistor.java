@@ -327,11 +327,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	@Override
 	public void visit(IrIfBlockQuad irIfBlockQuad) {
 		// TODO Auto-generated method stub
-		Stack<LowLevelIR> condStack = irIfBlockQuad.getCondStack();
-		irIfBlockQuad.setCondStack(new Stack<>());
-		for(LowLevelIR quad: condStack) {
-			irIfBlockQuad.addCond(resetQuad((IrQuad) quad, env.peekVariables(), env.peekMethod()));
-		}
+		irIfBlockQuad.setCondQuad(resetQuad((IrQuad) irIfBlockQuad.getCondQuad(), env.peekVariables(), env.peekMethod()));
 		irIfBlockQuad.getTrueBlock().accept(this);
 		if(irIfBlockQuad.getFalseBlock() != null)
 			irIfBlockQuad.getFalseBlock().accept(this);

@@ -11,12 +11,15 @@ import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 public class CFGNode extends IrNode{
 	public List<LowLevelIR> statements;
 	public List<CFGNode> pointTo;
+	//public List<CFGNode> parents;
 	public int inComingDegree;
 	public boolean isVisited = false;
-	
+	public boolean isAssemblyVisited = false;
+	public String label = null;
 	public CFGNode() {
 		statements = new ArrayList<>();
 		pointTo = new LinkedList<>();
+		
 		inComingDegree = 0;
 	}
 	
@@ -50,12 +53,35 @@ public class CFGNode extends IrNode{
 		return isVisited;
 	}
 	
+	public boolean isMergeNode() {
+		return inComingDegree > 1;
+	}
+	
+	public boolean isAssemblyVisited() {
+		return isAssemblyVisited;
+	}
+	
+	public void setAssemblyVisited() {
+		isAssemblyVisited = true;
+	}
+	
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
 	public List<CFGNode> getSuccessor(){
 		return pointTo;
 	}
 	
 	public void combineNode(CFGNode node) {
-		this.statements.addAll(node.statements);
+		if(this.statements == null)
+			this.statements = node.statements;
+		else
+			this.statements.addAll(node.statements);
 		this.pointTo = node.pointTo;
 		node.pointTo = null;
 		
@@ -67,9 +93,12 @@ public class CFGNode extends IrNode{
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
 		sb.append("=======cfgNode======\n");
-		for(LowLevelIR s: statements) {
-			sb.append(s.getName());
-		}
+		if(statements == null) {
+			sb.append("noOp\n");
+		} else
+			for(LowLevelIR s: statements) {
+				sb.append(s.getName());
+			}
 		sb.append("=======cfgNode======\n");
 		if(pointTo != null) {
 			for(CFGNode node: pointTo) {
@@ -78,6 +107,13 @@ public class CFGNode extends IrNode{
 		}
 		return sb.toString();
 	}
+	
+	public String getStruct() {
+		StringBuilder sb = new StringBuilder();
+		
+		return sb.toString();
+	}
+	
 
 	@Override
 	public IrNode copy() {
@@ -93,5 +129,9 @@ public class CFGNode extends IrNode{
 	
 	public void accept(AssemblyFromCFGVistor vistor) {
 		vistor.visit(this);
+	}
+	
+	public static void main(String[] args) {
+		//System.out.println(getOneRectangle("", "\n"));
 	}
 }
