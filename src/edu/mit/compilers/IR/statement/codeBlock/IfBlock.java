@@ -22,7 +22,8 @@ public class IfBlock extends IrStatement{
 	public IfBlock(IfBlock ifBlock) {
 		this.boolExpr = (IrExpression) ifBlock.getBoolExpr().copy();
 		this.trueBlock = (IrBlock) ifBlock.trueBlock.copy();
-		this.falseBlock = (IrBlock) ifBlock.falseBlock.copy();
+		if(ifBlock.falseBlock != null)
+			this.falseBlock = (IrBlock) ifBlock.falseBlock.copy();
 	}
 	@Override
 	public String getName() {
@@ -67,7 +68,8 @@ public class IfBlock extends IrStatement{
 	@Override
 	public void setLocalVarTableParent(VariableTable v) {
 		trueBlock.setLocalVarTableParent(v);
-		falseBlock.setLocalVarTableParent(v);
+		if(falseBlock != null)
+			falseBlock.setLocalVarTableParent(v);
 	}
 	
 

@@ -43,7 +43,7 @@ public class Util {
 	}
 	
 	public static void main(String[] args) {
-		String text = ">=q";
+		String text = ">=b";
 		Matcher match = ComPattern.matcher(text);
 		if(match.matches()) {
 			System.out.println(match.group(1));

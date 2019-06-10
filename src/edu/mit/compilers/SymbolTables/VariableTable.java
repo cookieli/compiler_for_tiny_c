@@ -12,6 +12,7 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	
 	public int currentSlotPosition = 0;
 	public HashMap<String, Integer> variableSlot;
+	public int parentAllocStackSize = 0;
 	public VariableTable() {
 		super();
 		variableSlot = new HashMap<>();
@@ -19,6 +20,21 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	public VariableTable(VariableTable parent) {
 		super(parent);
 		variableSlot = new HashMap<>();
+		if(this.parent != null) {
+			parentAllocStackSize = this.parent.getMemSize();
+			currentSlotPosition += this.parent.currentSlotPosition;
+		}
+		
+	}
+	
+	@Override
+	public void addParent(VariableTable parent) {
+		this.parent = parent;
+		if(this.parent != null) {
+			parentAllocStackSize = this.parent.getMemSize();
+			currentSlotPosition += this.parent.currentSlotPosition;
+		}
+		
 	}
 	
 	public boolean containsVariable(String var) {
@@ -91,7 +107,8 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	
 	public int getMemSize() {
 		
-		 int ret = currentSlotPosition; 
+		 int ret = currentSlotPosition - parentAllocStackSize; 
+		 if(ret < 0)   return 0;
 		 int remainder = currentSlotPosition % 16;
 		  if(remainder != 0) 
 		  { ret += 16 - remainder; }

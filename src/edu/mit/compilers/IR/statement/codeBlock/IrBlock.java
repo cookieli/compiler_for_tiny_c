@@ -23,6 +23,10 @@ public class IrBlock extends IrStatement {
 		localVars.addParent(v);
 	}
 	
+	public VariableTable getLocalVar() {
+		return localVars;
+	}
+	
 	public IrBlock(IrBlock b) {
 		localVars = b.localVars.copy();
 		statements = new ArrayList<>();

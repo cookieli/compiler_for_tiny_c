@@ -11,7 +11,7 @@ import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 public class CFGNode extends IrNode{
 	public List<LowLevelIR> statements;
 	public List<CFGNode> pointTo;
-	//public List<CFGNode> parents;
+	public List<CFGNode> parents;
 	public int inComingDegree;
 	public boolean isVisited = false;
 	public boolean isAssemblyVisited = false;
@@ -19,7 +19,7 @@ public class CFGNode extends IrNode{
 	public CFGNode() {
 		statements = new ArrayList<>();
 		pointTo = new LinkedList<>();
-		
+		parents = new LinkedList<>();
 		inComingDegree = 0;
 	}
 	
@@ -28,21 +28,47 @@ public class CFGNode extends IrNode{
 		addLowLevelIr(ir);
 	}
 	
+	public void deletePointTo() {
+		pointTo = new LinkedList<>();
+	}
+	
+	public void deleteParent() {
+		inComingDegree = 0;
+		parents = new LinkedList<>();
+	}
+	
 	public int getIncomingDegree() {
 		return inComingDegree;
 	}
 	
 	public void addSuccessor(CFGNode node) {
 		pointTo.add(node);
-		node.addPredecessor();
+		node.addParent(this);
 	}
 	
+	public List<CFGNode> getParents() {
+		return parents;
+	}
+
+	public void setParents(List<CFGNode> parents) {
+		this.parents = parents;
+	}
+
 	public void addLowLevelIr(LowLevelIR ir) {
 		statements.add(ir);
 	}
 	
 	private void addPredecessor() {
 		inComingDegree ++;
+	}
+	
+	private void addParent(CFGNode node) {
+		parents.add(node);
+		addPredecessor();
+	}
+	public void removeParent(CFGNode node) {
+		parents.remove(node);
+		inComingDegree--;
 	}
 	
 	public void setVisited() {
@@ -84,6 +110,8 @@ public class CFGNode extends IrNode{
 			this.statements.addAll(node.statements);
 		this.pointTo = node.pointTo;
 		node.pointTo = null;
+		node.parents = null;
+		node.inComingDegree = 0;
 		
 	}
 	

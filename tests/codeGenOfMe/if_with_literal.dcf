@@ -1,0 +1,11 @@
+import printf;
+
+void main(){
+     int a;
+     a = 4;
+     if(5 > a){
+        printf("hello world\n");
+     } else {
+       printf("the wrong world\n");
+     }
+}

@@ -28,6 +28,7 @@ public abstract class SymbolTable<K extends SymbolTable<K, V>, V extends Named> 
 	}
 	public void addParent(K parent) {
 		this.parent = parent;
+		
 	}
 	public K getParent() {return parent;}
 	

@@ -1,0 +1,17 @@
+import printf;
+
+void main(){
+     int a, b;
+     a = 4;
+     b = 3;
+     if(a < b){
+       int a,b,c;
+       a = 10;
+       b = 11;
+       c = 20;
+       printf("a, b ,c is %d, %d, %d\n", a, b, c);
+     } 
+     
+     printf("a, b is %d, %d\n", a, b);
+     
+}

@@ -37,72 +37,83 @@ public class CFG {
 		end.addSuccessor(node);
 		end = node;
 	}
-	
+
 	private void addCFGPair(CFGNode begin, CFGNode end) {
 		this.end.addSuccessor(begin);
 		this.end = end;
 	}
-	
+
 	public void addCFGPair(List<CFGNode> pair) {
 		addCFGPair(pair.get(0), pair.get(1));
 	}
-	
 
 	public void end() {
 		addCFGNode(new ExitNode());
 
 	}
-	
-	public static List<CFGNode> destruct(IrIfBlockQuad block){
-		List<CFGNode> truePair =destruct(block.getTrueBlock());
+
+	public static List<CFGNode> destruct(IrIfBlockQuad block) {
+		List<CFGNode> truePair = destruct(block.getTrueBlock());
 		List<CFGNode> falsePair = null;
-		if(block.getFalseBlock() != null)
+		if (block.getFalseBlock() != null)
 			falsePair = destruct(block.getFalseBlock());
 		CFGNode beginNode = new CFGNode(block.getCondQuad());
 		CFGNode noOp = new NoOpCFG();
 		truePair.get(1).addSuccessor(noOp);
 		beginNode.addSuccessor(truePair.get(0));
-		if(falsePair != null) {
+		if (falsePair != null) {
 			falsePair.get(1).addSuccessor(noOp);
 			beginNode.addSuccessor(falsePair.get(0));
-		}
-		else
+		} else
 			beginNode.addSuccessor(noOp);
 		List<CFGNode> lst = new ArrayList<>();
 		lst.add(beginNode);
 		lst.add(noOp);
 		return lst;
 	}
-	
-	private static List<CFGNode> destructOnelineQuad(LowLevelIR quad){
+
+	private static List<CFGNode> destructOnelineQuad(LowLevelIR quad) {
 		CFGNode newNode = new CFGNode(quad);
 		List<CFGNode> list = new ArrayList<>();
 		list.add(newNode);
 		list.add(newNode);
 		return list;
 	}
-	
-	
-	public static List<CFGNode> destruct(LowLevelIR ir){
-		if(ir instanceof IrQuadWithLocForFuncInvoke || ir instanceof IrQuadWithLocation)
+
+	public static List<CFGNode> destruct(LowLevelIR ir) {
+		if (ir instanceof IrQuadWithLocForFuncInvoke || ir instanceof IrQuadWithLocation)
 			return destructOnelineQuad(ir);
-		else if(ir instanceof IrIfBlockQuad)
+		else if (ir instanceof IrIfBlockQuad)
 			return destruct((IrIfBlockQuad) ir);
 		return null;
 	}
-	
-	public static List<CFGNode> destruct(IrBlock block){
+
+	public static List<CFGNode> destruct(IrBlock block) {
 		List<CFGNode> pair = null;
 		List<IrStatement> lowLevelIRs = block.getStatements();
+		CFGNode beginNode, endNode;
+
 		LowLevelIR firstQuad = (LowLevelIR) lowLevelIRs.get(0);
 		pair = destruct(firstQuad);
-		CFGNode beginNode = pair.get(0);
-		CFGNode endNode = pair.get(1);
-		CFGNode cursor = null;
-		for(int i = 1; i < lowLevelIRs.size(); i++) {
+		int memSize = block.getLocalVar().getMemSize();
+		if (memSize > 0) {
+			beginNode = new stackAllocNode(memSize);
+			beginNode.addSuccessor(pair.get(0));
+			endNode = pair.get(1);
+		} else {
+			beginNode = pair.get(0);
+			endNode = pair.get(1);
+		}
+		for (int i = 1; i < lowLevelIRs.size(); i++) {
 			pair = destruct((LowLevelIR) lowLevelIRs.get(i));
 			endNode.addSuccessor(pair.get(0));
 			endNode = pair.get(1);
+		}
+		if(memSize > 0) {
+			CFGNode temp = new stackFreeNode(memSize);
+			endNode.addSuccessor(temp);
+			endNode = temp;
+			
 		}
 		pair = new ArrayList<>();
 		pair.add(beginNode);
@@ -130,10 +141,25 @@ public class CFG {
 							queue.add(succ);
 						}
 					}
+
+					if (node instanceof NoOpCFG && succ.isMergeNode()) {
+						if (succ.getParents().get(0).equals(node))
+							succ.deleteParent();
+						if (succ.getParents().contains(node)) {
+							succ.removeParent(node);
+						}
+						// System.out.println("count: "+ node.getParents().size());
+						for (CFGNode n : node.getParents()) {
+							n.deletePointTo();
+							n.addSuccessor(succ);
+						}
+					}
 				} else {
 					for (CFGNode n : successors) {
-						if(!n.isVisited())
+						if (!n.isVisited()) {
+							n.setVisited();
 							queue.add(n);
+						}
 					}
 				}
 			}
@@ -144,25 +170,23 @@ public class CFG {
 	public String toString() {
 		return entry.getName();
 	}
-	
+
 	public String accept(AssemblyFromCFGVistor vistor) {
 		vistor.visit(this);
 		return vistor.getAssembly();
 	}
-	
+
 	public String getFuncTitile() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(".globl ");
 		sb.append(method);
 		sb.append("\n");
 		sb.append(".type ");
-		sb.append(method+", ");
+		sb.append(method + ", ");
 		sb.append("@function\n");
-		sb.append(method+":"+"\n");
+		sb.append(method + ":" + "\n");
 		return sb.toString();
-		
+
 	}
-	
-	
 
 }

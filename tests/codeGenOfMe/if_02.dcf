@@ -1,0 +1,14 @@
+import printf;
+
+void main(){
+  int a, b;
+  bool c;
+  a = 2; 
+  b = 3;
+  c = true;
+  if(c){
+     printf("a, b is %d, %d\n", a, b);
+  } else {
+     printf("hello world\n");
+  }
+}

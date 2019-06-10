@@ -75,12 +75,36 @@ public class AssemblyForArith {
 		
 		if(quad.getOp1() instanceof MemOperandForm && quad.getOp2() instanceof MemOperandForm) {
 			code.append(cmpTwoOprAreMem(symbol, (MemOperandForm)quad.getOp1(), (MemOperandForm)quad.getOp2()));
+		}else if(quad.getOp1() instanceof MemOperandForm && quad.getOp2() instanceof ImmOperandForm) {
+			code.append(cmpOneOprIsMem(symbol, (MemOperandForm)quad.getOp1(), (ImmOperandForm)quad.getOp2()));
+		} else if(quad.getOp1() instanceof ImmOperandForm && quad.getOp2() instanceof MemOperandForm) {
+			code.append(cmpOneOprIsMem(symbol, (MemOperandForm)quad.getOp2(), (ImmOperandForm)quad.getOp1()));
+			comOp = reverseCmp(comOp);
 		}
 		
-		if(comOp.equals(">"))  jmpOpr = "jle" + whiteSpace + getNxtJmpLabel()+"\n";
+		if(comOp.equals(">"))        jmpOpr = getJmpOpr("jle");
+		else if(comOp.equals("<"))   jmpOpr = getJmpOpr("jge");
+		else if(comOp.equals(">="))  jmpOpr = getJmpOpr("jl");
+		else if(comOp.equals("<="))  jmpOpr = getJmpOpr("jg");
+		else if(comOp.equals("!="))  jmpOpr = getJmpOpr("je");
+		else if(comOp.equals("=="))  jmpOpr=getJmpOpr("jne");
 		code.append(jmpOpr);
 		
 		return code.toString();
+	}
+	private static String reverseCmp(String comOp) {
+		String jmpOpr = null;
+		if(comOp.equals(">"))        jmpOpr = "<=";
+		else if(comOp.equals("<"))   jmpOpr = ">=";
+		else if(comOp.equals(">="))  jmpOpr = "<";
+		else if(comOp.equals("<="))  jmpOpr = ">";
+		else if(comOp.equals("!="))  jmpOpr = "==";
+		else if(comOp.equals("=="))  jmpOpr="!=";
+		return jmpOpr;
+	}
+	
+	private static String getJmpOpr(String jmp) {
+		return jmp + whiteSpace + getNxtJmpLabel() + "\n";
 	}
 	
 	private static String cmpTwoOprAreMem(String symbol, MemOperandForm first, MemOperandForm second) {
@@ -98,6 +122,20 @@ public class AssemblyForArith {
 		
 		sb.append(new AssemblyForm(symbol, secondReg, firstReg).toString());
 		
+		return sb.toString();
+	}
+	
+	private static String cmpOneOprIsMem(String symbol, MemOperandForm first, ImmOperandForm second) {
+		StringBuilder  sb = new StringBuilder();
+		String firstReg = X86_64Register.rax.getName_64bit();
+		String  move = "movq";
+		if(symbol.endsWith("b")) {
+			move = "movb";
+			firstReg = X86_64Register.rax.getName_8bit();
+		}
+		
+		sb.append(new AssemblyForm(move, first.toString(), firstReg).toString());
+		sb.append(new AssemblyForm(symbol, second.toString(), firstReg).toString());
 		return sb.toString();
 	}
 	

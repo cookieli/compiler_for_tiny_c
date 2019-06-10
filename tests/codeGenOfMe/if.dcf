@@ -1,11 +1,13 @@
 import printf;
 
 void main(){
-     int a,b,c, d;
+     int a,b,c, d, e, f;
      a = 4;
      b = 3;
      c = 6;
      d = 7;
+     e = 8;
+     f = 9;
      if(a > b){
         if(c > d){
            printf("a, c, d is %d, %d, %d\n", a, c, d);
@@ -13,8 +15,12 @@ void main(){
             printf("a, d, c is %d, %d, %d\n", a, d, c);
         }
      } else {
-       if(c > d){
-           printf("b, c, d is %d, %d, %d\n", b, c, d);
+       if(d > c){
+           if( e > f){
+               printf("a, b, c, d, e, f\n");
+           } else {
+                printf("a, b ,c, d ,f, e\n");
+           }
         } else {
             printf("b, d, c is %d, %d, %d\n", b, d, c);
         }

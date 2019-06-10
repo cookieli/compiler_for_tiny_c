@@ -2,6 +2,7 @@ package edu.mit.compilers.CFG;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Stack;
@@ -88,18 +89,34 @@ public class AssemblyFromCFGVistor {
 		Stack<CFGNode> branch = new Stack<>();
 		CFGNode node = graph.entry;
 		sb.append(graph.getFuncTitile());
+		int count = 1;
 		while (node != null) {
 			node.accept(this);
 			node.setAssemblyVisited();
 			if (node.getSuccessor() != null) {
 				if (node.getSuccessor().size() == 1) {
 					node = node.getSuccessor().get(0);
-					if (node.isMergeNode() && !node.isAssemblyVisited()) {
-						node.setLabel(AssemblyForArith.getCurrJmpLabel());
-						node.setAssemblyVisited();
-						node = branch.pop();
+					if (node.isMergeNode() && count < node.getIncomingDegree()) {
+						if (count == 1) {
+							if(node.getLabel() == null)
+								node.setLabel(AssemblyForArith.getCurrJmpLabel());
+							node.setAssemblyVisited();
+						}
+						try {
+							node = branch.pop();
+						} catch (EmptyStackException e) {
+							System.out.println(
+									"the count num is " + count + " node parent are " + node.getIncomingDegree());
+							System.exit(-1);
+
+						}
+
+						count++;
+					} else if (count == node.getIncomingDegree()) {
+						count = 1;
 					}
 				} else {
+					node.getSuccessor().get(1).setAssemblyVisited();;
 					node.getSuccessor().get(1).setLabel(AssemblyForArith.getCurrJmpLabel());
 					branch.push(node.getSuccessor().get(1));
 					node = node.getSuccessor().get(0);
