@@ -10,16 +10,26 @@ import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
 public class IrIfBlockQuad extends LowLevelIR {
 	
 	//public IrQuad cond;
-	public LowLevelIR condQuad;// in IrQuadVistor, it means IrQuad, in IrQuadResolveNameToLocation it means IrQuadWIthLocation;
+	public CondQuad condQuad;// in IrQuadVistor, it means IrQuad, in IrQuadResolveNameToLocation it means IrQuadWIthLocation;
 	
 	public IrBlock trueBlock,
 	               falseBlock;
 	
 	public IrIfBlockQuad(IrQuad cond, IrBlock trueBlock, IrBlock falseBlock) {
 		//this.cond = cond;
+		condQuad = new CondQuad(cond);
+		this.trueBlock = trueBlock;
+		this.falseBlock = falseBlock;
+	}
+	
+	public IrIfBlockQuad(CondQuad cond, IrBlock trueBlock, IrBlock falseBlock) {
 		condQuad = cond;
 		this.trueBlock = trueBlock;
 		this.falseBlock = falseBlock;
+	}
+	
+	public IrIfBlockQuad(CondQuad cond, IrBlock trueBlock) {
+		this(cond, trueBlock, null);
 	}
 	
 	public IrIfBlockQuad(IrQuad cond, IrBlock trueBlock) {
@@ -63,11 +73,11 @@ public class IrIfBlockQuad extends LowLevelIR {
 
 	
 
-	public LowLevelIR getCondQuad() {
+	public CondQuad getCondQuad() {
 		return condQuad;
 	}
 
-	public void setCondQuad(LowLevelIR condQuad) {
+	public void setCondQuad(CondQuad condQuad) {
 		this.condQuad = condQuad;
 	}
 

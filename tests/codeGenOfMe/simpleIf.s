@@ -2,9 +2,9 @@
 .text
 .section .rodata
 .LC0:
-.string "hello world"
+.string "hello world\n"
 .LC1:
-.string "fuck the world"
+.string "fuck the world\n"
 .text
 .globl main
 .type main, @function

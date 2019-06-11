@@ -7,6 +7,7 @@ import java.util.Stack;
 import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
+import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
@@ -323,11 +324,54 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		
 		return new IrQuadWithLocation(quad.getSymbol(), opForm1, opForm2, dstForm);
 	}
+	
+	public void resetCondQuad(CondQuad cond, VariableTable vtb, MethodTable mtb) {
+		Stack<LowLevelIR> condStack = cond.getCondStack();
+		if(condStack.size() == 1) {
+			IrQuad quad = (IrQuad) condStack.pop();
+			condStack.push(resetQuad(quad, vtb, mtb));
+		} else {
+			Stack<LowLevelIR> tempStack = new Stack<>();
+			while(!condStack.isEmpty()) {
+				tempStack.push(condStack.pop());
+			}
+			while(!tempStack.isEmpty()) {
+				condStack.push(giveLocationToLowIr(tempStack.pop(), vtb, mtb));
+			}
+		}
+	}
+	
+	private LowLevelIR giveLocationToLowIr(LowLevelIR ir, VariableTable vtb, MethodTable mtb) {
+		if(ir instanceof IrQuad) {
+			return resetQuad((IrQuad) ir, vtb, mtb);
+		} else if(ir instanceof CondQuad) {
+			Stack<LowLevelIR> condStack = ((CondQuad)ir).getCondStack();
+			if(condStack.size() == 1) {
+				IrQuad quad = (IrQuad) condStack.pop();
+				condStack.push(resetQuad(quad, vtb, mtb));
+			} else {
+				Stack<LowLevelIR> tempStack = new Stack<>();
+				while(!condStack.isEmpty()) {
+					tempStack.push(condStack.pop());
+				}
+				while(!tempStack.isEmpty()) {
+					condStack.push(giveLocationToLowIr(tempStack.pop(), vtb, mtb));
+				}
+			}
+			return ir;
+		} else {
+			return null;
+		}
+	}
+	
+	
 
 	@Override
 	public void visit(IrIfBlockQuad irIfBlockQuad) {
 		// TODO Auto-generated method stub
-		irIfBlockQuad.setCondQuad(resetQuad((IrQuad) irIfBlockQuad.getCondQuad(), env.peekVariables(), env.peekMethod()));
+		//irIfBlockQuad.setCondQuad(resetQuad((IrQuad) irIfBlockQuad.getCondQuad(), env.peekVariables(), env.peekMethod()));
+		CondQuad condQuad = irIfBlockQuad.getCondQuad();
+		resetCondQuad(condQuad, env.peekVariables(), env.peekMethod());
 		irIfBlockQuad.getTrueBlock().accept(this);
 		if(irIfBlockQuad.getFalseBlock() != null)
 			irIfBlockQuad.getFalseBlock().accept(this);

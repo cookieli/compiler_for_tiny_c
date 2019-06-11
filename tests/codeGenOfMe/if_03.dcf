@@ -1,0 +1,12 @@
+import printf;
+
+void main(){
+   int a,b;
+   a = 10;
+   b = 30;
+   if(a <= 10 && b > 40){
+      printf("hello world\n");
+   } else {
+      printf("yes the world\n");
+   }
+}

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
+import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
@@ -109,12 +110,10 @@ public class IrQuadVistor implements IrNodeVistor{
 		IrExpression expr = ifCode.getBoolExpr();
 		IrBlock trueBlock = ifCode.getTrueBlock();
 		IrBlock falseBlock = ifCode.getFalseBlock();
-		IrQuad quad;
-		if(expr instanceof BinaryExpression)   quad = new IrQuad((BinaryExpression) expr, env.peekVariables(), env.peekMethod());
-		else                                   quad = new IrQuad(">",  (IrLocation) expr, IrLiteral.getLiteral(0), null, env.peekVariables(), env.peekMethod());
+		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod());
 		trueBlock.accept(this);
 		if(falseBlock != null)  falseBlock.accept(this);
-		IrIfBlockQuad ifBlock = new IrIfBlockQuad(quad, trueBlock, falseBlock);
+		IrIfBlockQuad ifBlock = new IrIfBlockQuad(cond, trueBlock, falseBlock);
 		addIrStatement(ifBlock);
 		return false;
 	}

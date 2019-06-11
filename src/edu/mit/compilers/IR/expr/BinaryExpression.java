@@ -49,6 +49,10 @@ public class BinaryExpression extends IrExpression {
 		return left + " " + symbol + " "+ right;
 	}
 	
+	public boolean contactWithAndOr(){
+		return symbol.equals("&&") || symbol.equals("||");
+	}
+	
 	
 	@Override
 	public void accept(IrNodeVistor vistor) {

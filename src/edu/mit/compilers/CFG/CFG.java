@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Stack;
 
+import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
@@ -53,23 +55,57 @@ public class CFG {
 	}
 
 	public static List<CFGNode> destruct(IrIfBlockQuad block) {
+		CFGNode noOp = new NoOpCFG();
 		List<CFGNode> truePair = destruct(block.getTrueBlock());
 		List<CFGNode> falsePair = null;
-		if (block.getFalseBlock() != null)
+		if (block.getFalseBlock() != null) {
 			falsePair = destruct(block.getFalseBlock());
-		CFGNode beginNode = new CFGNode(block.getCondQuad());
-		CFGNode noOp = new NoOpCFG();
+		} 
+
+		return destruct(block.getCondQuad(), truePair, falsePair, noOp);
+	}
+
+	private static List<CFGNode> destruct(CondQuad quad, List<CFGNode> truePair, List<CFGNode> falsePair, CFGNode noOp) {
+		if (quad.getSymbol().isEmpty()) {
+			if (quad.getCondStack().isEmpty()) {
+				throw new IllegalArgumentException("the stack is empty");
+			}
+			return destruct((IrQuadWithLocation) quad.getCondStack().peek(), truePair, falsePair, noOp);
+		} else {
+			Stack<LowLevelIR> condStack = quad.getCondStack();
+			Stack<LowLevelIR> tempstack = new Stack<>();
+			for (int i = quad.getSymbol().size() - 1; i >= 0; i--) {
+				LowLevelIR op1 = condStack.pop();
+				tempstack.push(op1);
+				LowLevelIR op2 = condStack.pop();
+				tempstack.push(op2);
+
+			}
+		}
+		return null;
+	}
+
+	private static CFGNode shortcircuit(CondQuad quad, CFGNode trueStart, CFGNode falseStart) {
+		return null;
+	}
+
+	private static List<CFGNode> destruct(CFGNode beginNode, List<CFGNode> truePair, List<CFGNode> falsePair,
+			CFGNode noOp) {
 		truePair.get(1).addSuccessor(noOp);
 		beginNode.addSuccessor(truePair.get(0));
 		if (falsePair != null) {
 			falsePair.get(1).addSuccessor(noOp);
 			beginNode.addSuccessor(falsePair.get(0));
-		} else
-			beginNode.addSuccessor(noOp);
+		}
 		List<CFGNode> lst = new ArrayList<>();
 		lst.add(beginNode);
 		lst.add(noOp);
 		return lst;
+	}
+
+	private static List<CFGNode> destruct(IrQuadWithLocation loc, List<CFGNode> truePair, List<CFGNode> falsePair, CFGNode noOp) {
+		CFGNode beginNode = new CFGNode(loc);
+		return destruct(beginNode, truePair, falsePair, noOp);
 	}
 
 	private static List<CFGNode> destructOnelineQuad(LowLevelIR quad) {
@@ -109,11 +145,11 @@ public class CFG {
 			endNode.addSuccessor(pair.get(0));
 			endNode = pair.get(1);
 		}
-		if(memSize > 0) {
+		if (memSize > 0) {
 			CFGNode temp = new stackFreeNode(memSize);
 			endNode.addSuccessor(temp);
 			endNode = temp;
-			
+
 		}
 		pair = new ArrayList<>();
 		pair.add(beginNode);

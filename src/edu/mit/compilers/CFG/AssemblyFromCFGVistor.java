@@ -9,6 +9,7 @@ import java.util.Stack;
 
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
+import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
@@ -68,7 +69,7 @@ public class AssemblyFromCFGVistor {
 				else if (ir instanceof IrQuadWithLocForFuncInvoke) {
 					sb.append(AssemblyForArith.getAssemBlyForFuncInvoke((IrQuadWithLocForFuncInvoke) ir));
 					sb.append(AssemblyForArith.SetRaxZero());
-				} else
+				}  else
 					sb.append(ir.getName());
 
 			}
@@ -116,7 +117,7 @@ public class AssemblyFromCFGVistor {
 						count = 1;
 					}
 				} else {
-					node.getSuccessor().get(1).setAssemblyVisited();;
+					node.getSuccessor().get(1).setAssemblyVisited();
 					node.getSuccessor().get(1).setLabel(AssemblyForArith.getCurrJmpLabel());
 					branch.push(node.getSuccessor().get(1));
 					node = node.getSuccessor().get(0);
