@@ -45,6 +45,10 @@ public class UnaryExpression extends IrExpression{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	public boolean isBool() {
+		return symbol.equals("!");
+	}
 
 	@Override
 	public List<IrOperand> operandList() {

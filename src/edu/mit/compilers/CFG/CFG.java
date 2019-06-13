@@ -79,6 +79,11 @@ public class CFG {
 		if (quad.getSymbol().isEmpty()) {
 			return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
 		}
+		if(quad.getSymbol().size() == 1 && quad.getSymbol().get(0).equals("!")) {
+			if(quad.getCondStack().get(0) instanceof IrQuadWithLocation)
+				return shortcircuit((IrQuadWithLocation)quad.getCondStack().get(0), falseStart, trueStart);
+			return shortcircuit((CondQuad) quad.getCondStack().get(0), falseStart, trueStart);
+		}
 
 		List<String> symbol = quad.getSymbol();
 		List<LowLevelIR> condStack = quad.getCondStack();

@@ -129,7 +129,12 @@ public class AssemblyFromCFGVistor {
 				}
 				before.setAssemblyVisited();
 			} else {
-				node = null;
+				if(!branch.isEmpty() && node.isMergeNode()) {
+					node.setAssemblyVisited();
+					node = branch.pop();
+					count++;
+				}
+				else                    node = null;
 			}
 		}
 

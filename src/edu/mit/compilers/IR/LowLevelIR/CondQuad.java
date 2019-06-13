@@ -8,6 +8,7 @@ import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
@@ -56,7 +57,10 @@ public class CondQuad extends LowLevelIR {
 			condStack.add(generateCondLowIr(binary.getlhs(), vtb, mtb));
 			condStack.add(generateCondLowIr(binary.getrhs(), vtb, mtb));
 			// condStack.push(generateCondLowIr(binary, vtb, mtb));
-		} else {
+		} else if(expr instanceof UnaryExpression){
+			symbol.add(((UnaryExpression) expr).getSymbol());
+			condStack.add(generateCondLowIr(((UnaryExpression) expr).getIrExpression(), vtb, mtb));
+		}else {
 			condStack.add(generateCondLowIr(expr, vtb, mtb));
 		}
 	}
@@ -71,7 +75,9 @@ public class CondQuad extends LowLevelIR {
 			ir = generateCmpQuadForBool((IrOperand) expr, vtb, mtb);
 		else if (expr instanceof BinaryExpression)
 			ir = setCondQuad((BinaryExpression) expr, vtb, mtb);
-		else
+		else if(expr instanceof UnaryExpression) {
+			ir = null;
+		} else
 			ir = null;
 		return ir;
 	}
@@ -99,7 +105,9 @@ public class CondQuad extends LowLevelIR {
 		StringBuilder sb = new StringBuilder();
 		if (symbol.isEmpty()) {
 			sb.append(condStack.get(0).getName());
-		} else {
+		} else if(symbol.size() == 1 && symbol.get(0).equals("!")){
+			sb.append("!" + condStack.get(0).getName());
+		}else {
 			int size = symbol.size();
 			int stackCursor = 0;
 			for (int i = 0; i < size ; i++) {
