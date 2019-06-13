@@ -1,13 +1,33 @@
 import printf;
 
 void main(){
-   int a,b, c;
+   int a,b,c,d,e;
+   bool hh;
    a = 10;
    b = 30;
    c =-40;
-   if(a <= 10 && b < 40 && a >=c || a < b && c > 2){
+   d = 14;
+   e = 25;
+   hh = true;
+   if(a <= 10 && b < 40|| a < b){
       printf("hello world\n");
    } else {
       printf("yes the world\n");
    }
+   
+   if(a <= 10 && b >= 40){
+        printf("hello world2\n");
+   } else {
+     if(d >= 16 || e < 27 && d >= e){
+        printf("hello world %d, %d\n", d, e);
+     } else {
+       int i,j,k;
+       i = 5;
+       j = 7;
+       k = 10;
+       printf("la la la %d, %d, %d\n", i, j, k);
+     }
+   }
+   
+   
 }

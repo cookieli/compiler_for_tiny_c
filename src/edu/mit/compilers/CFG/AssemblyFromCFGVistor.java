@@ -90,12 +90,15 @@ public class AssemblyFromCFGVistor {
 		sb.append(graph.getFuncTitile());
 		int count = 1;
 		while (node != null) {
-			node.accept(this);
+			if(!node.isAssemblyVisited())                             node.accept(this);
+			else if( node.getLabel() != null)                         setJmpOpr(node.getLabel());
+			else
+				throw new IllegalArgumentException("visit some visited node");
 			if (node.getSuccessor() != null) {
 				before = node;
 				if (node.getSuccessor().size() == 1) {
 					node = node.getSuccessor().get(0);
-					if (node.isMergeNode() && (count < node.getIncomingDegree() || before.isAssemblyVisited())) {
+					if (node.isMergeNode() && count < node.getIncomingDegree()) {
 						if (node.getLabel() == null)
 							node.setLabel(AssemblyForArith.getNxtJmpLabel());
 						setJmpOpr(node.getLabel());
@@ -111,6 +114,8 @@ public class AssemblyFromCFGVistor {
 						}
 					} else if (count == node.getIncomingDegree() && !before.isAssemblyVisited()) {
 						count = 1;
+					} else if(before.isAssemblyVisited()) {
+						if(!branch.isEmpty())  node = branch.pop();
 					}
 
 				} else {
@@ -120,6 +125,7 @@ public class AssemblyFromCFGVistor {
 					}
 					setJmpLabel(node.getSuccessor().get(1).getLabel());
 					node = node.getSuccessor().get(0);
+					if(node.isMergeNode() && node.getLabel() == null) node.setLabel(AssemblyForArith.getNxtJmpLabel());
 				}
 				before.setAssemblyVisited();
 			} else {
