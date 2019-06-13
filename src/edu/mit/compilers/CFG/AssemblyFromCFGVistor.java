@@ -69,7 +69,7 @@ public class AssemblyFromCFGVistor {
 				else if (ir instanceof IrQuadWithLocForFuncInvoke) {
 					sb.append(AssemblyForArith.getAssemBlyForFuncInvoke((IrQuadWithLocForFuncInvoke) ir));
 					sb.append(AssemblyForArith.SetRaxZero());
-				}  else
+				} else
 					sb.append(ir.getName());
 
 			}
@@ -99,7 +99,7 @@ public class AssemblyFromCFGVistor {
 					node = node.getSuccessor().get(0);
 					if (node.isMergeNode() && count < node.getIncomingDegree()) {
 						if (count == 1) {
-							if(node.getLabel() == null)
+							if (node.getLabel() == null)
 								node.setLabel(AssemblyForArith.getCurrJmpLabel());
 							node.setAssemblyVisited();
 						}
@@ -117,9 +117,11 @@ public class AssemblyFromCFGVistor {
 						count = 1;
 					}
 				} else {
-					node.getSuccessor().get(1).setAssemblyVisited();
-					node.getSuccessor().get(1).setLabel(AssemblyForArith.getCurrJmpLabel());
-					branch.push(node.getSuccessor().get(1));
+					if (!node.getSuccessor().get(1).isAssemblyVisited()) {
+						node.getSuccessor().get(1).setAssemblyVisited();
+						node.getSuccessor().get(1).setLabel(AssemblyForArith.getCurrJmpLabel());
+						branch.push(node.getSuccessor().get(1));
+					}
 					node = node.getSuccessor().get(0);
 				}
 			} else {

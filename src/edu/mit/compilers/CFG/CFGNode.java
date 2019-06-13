@@ -46,6 +46,7 @@ public class CFGNode extends IrNode{
 		node.addParent(this);
 	}
 	
+	
 	public List<CFGNode> getParents() {
 		return parents;
 	}

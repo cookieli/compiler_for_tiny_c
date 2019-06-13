@@ -107,6 +107,10 @@ public class AssemblyForArith {
 		return jmp + whiteSpace + getNxtJmpLabel() + "\n";
 	}
 	
+	private static String getJmpOpr(String jmp, String label) {
+		return jmp + whiteSpace + label +"\n";
+	}
+	
 	private static String cmpTwoOprAreMem(String symbol, MemOperandForm first, MemOperandForm second) {
 		StringBuilder sb = new StringBuilder();
 		String firstReg = X86_64Register.rax.getName_64bit();

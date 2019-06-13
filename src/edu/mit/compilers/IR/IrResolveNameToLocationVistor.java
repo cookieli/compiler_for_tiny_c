@@ -326,17 +326,13 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	}
 	
 	public void resetCondQuad(CondQuad cond, VariableTable vtb, MethodTable mtb) {
-		Stack<LowLevelIR> condStack = cond.getCondStack();
+		List<LowLevelIR> condStack = cond.getCondStack();
 		if(condStack.size() == 1) {
-			IrQuad quad = (IrQuad) condStack.pop();
-			condStack.push(resetQuad(quad, vtb, mtb));
+			IrQuad quad = (IrQuad) condStack.remove(0);
+			condStack.add(resetQuad(quad, vtb, mtb));
 		} else {
-			Stack<LowLevelIR> tempStack = new Stack<>();
-			while(!condStack.isEmpty()) {
-				tempStack.push(condStack.pop());
-			}
-			while(!tempStack.isEmpty()) {
-				condStack.push(giveLocationToLowIr(tempStack.pop(), vtb, mtb));
+			for(int i = 0; i < condStack.size(); i++) {
+				condStack.set(i, giveLocationToLowIr(condStack.get(i), vtb, mtb));
 			}
 		}
 	}
@@ -345,17 +341,14 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		if(ir instanceof IrQuad) {
 			return resetQuad((IrQuad) ir, vtb, mtb);
 		} else if(ir instanceof CondQuad) {
-			Stack<LowLevelIR> condStack = ((CondQuad)ir).getCondStack();
+			List<LowLevelIR> condStack = ((CondQuad)ir).getCondStack();
 			if(condStack.size() == 1) {
-				IrQuad quad = (IrQuad) condStack.pop();
-				condStack.push(resetQuad(quad, vtb, mtb));
+				IrQuad quad = (IrQuad) condStack.remove(0);
+				condStack.add(resetQuad(quad, vtb, mtb));
 			} else {
-				Stack<LowLevelIR> tempStack = new Stack<>();
-				while(!condStack.isEmpty()) {
-					tempStack.push(condStack.pop());
-				}
-				while(!tempStack.isEmpty()) {
-					condStack.push(giveLocationToLowIr(tempStack.pop(), vtb, mtb));
+				for(int i = 0; i < condStack.size(); i++) {
+					LowLevelIR member = condStack.get(i);
+					condStack.set(i, giveLocationToLowIr(member, vtb, mtb));
 				}
 			}
 			return ir;

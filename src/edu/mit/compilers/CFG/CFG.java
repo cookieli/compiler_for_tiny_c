@@ -60,52 +60,62 @@ public class CFG {
 		List<CFGNode> falsePair = null;
 		if (block.getFalseBlock() != null) {
 			falsePair = destruct(block.getFalseBlock());
-		} 
-
-		return destruct(block.getCondQuad(), truePair, falsePair, noOp);
-	}
-
-	private static List<CFGNode> destruct(CondQuad quad, List<CFGNode> truePair, List<CFGNode> falsePair, CFGNode noOp) {
-		if (quad.getSymbol().isEmpty()) {
-			if (quad.getCondStack().isEmpty()) {
-				throw new IllegalArgumentException("the stack is empty");
-			}
-			return destruct((IrQuadWithLocation) quad.getCondStack().peek(), truePair, falsePair, noOp);
-		} else {
-			Stack<LowLevelIR> condStack = quad.getCondStack();
-			Stack<LowLevelIR> tempstack = new Stack<>();
-			for (int i = quad.getSymbol().size() - 1; i >= 0; i--) {
-				LowLevelIR op1 = condStack.pop();
-				tempstack.push(op1);
-				LowLevelIR op2 = condStack.pop();
-				tempstack.push(op2);
-
-			}
 		}
-		return null;
+		CFGNode trueBegin = truePair.get(0);
+		truePair.get(1).addSuccessor(noOp);
+		CFGNode falseBegin = noOp;
+		if (falsePair != null) {
+			falseBegin = falsePair.get(0);
+			falsePair.get(1).addSuccessor(noOp);
+		}
+		CFGNode beginNode = shortcircuit(block.getCondQuad(), trueBegin, falseBegin);
+		List<CFGNode> pair = new ArrayList<>();
+		pair.add(beginNode);
+		pair.add(noOp);
+		return pair;
 	}
 
 	private static CFGNode shortcircuit(CondQuad quad, CFGNode trueStart, CFGNode falseStart) {
-		return null;
-	}
-
-	private static List<CFGNode> destruct(CFGNode beginNode, List<CFGNode> truePair, List<CFGNode> falsePair,
-			CFGNode noOp) {
-		truePair.get(1).addSuccessor(noOp);
-		beginNode.addSuccessor(truePair.get(0));
-		if (falsePair != null) {
-			falsePair.get(1).addSuccessor(noOp);
-			beginNode.addSuccessor(falsePair.get(0));
+		if (quad.getSymbol().isEmpty()) {
+			return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
 		}
-		List<CFGNode> lst = new ArrayList<>();
-		lst.add(beginNode);
-		lst.add(noOp);
-		return lst;
+
+		List<String> symbol = quad.getSymbol();
+		List<LowLevelIR> condStack = quad.getCondStack();
+		int stackCursor = condStack.size() -1;
+		CFGNode beginNode = null;
+		LowLevelIR op1 = condStack.get(stackCursor--);
+		if (op1 instanceof IrQuadWithLocation) {
+			beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
+		} else {
+			beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
+		}
+		for (int i = symbol.size() - 1; i >= 0; i--) {
+			String sym = symbol.get(i);
+			if (symbol.equals("&&"))
+				falseStart = beginNode;
+			else
+				trueStart = beginNode;
+			op1 = condStack.get(stackCursor--);
+			if (op1 instanceof IrQuadWithLocation) {
+				beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
+			} else {
+				beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
+			}
+
+		}
+		return beginNode;
 	}
 
-	private static List<CFGNode> destruct(IrQuadWithLocation loc, List<CFGNode> truePair, List<CFGNode> falsePair, CFGNode noOp) {
+	private static CFGNode shortcircuit(CFGNode beginNode, CFGNode trueStart, CFGNode falseStart) {
+		beginNode.addSuccessor(trueStart);
+		beginNode.addSuccessor(falseStart);
+		return beginNode;
+	}
+
+	private static CFGNode shortcircuit(IrQuadWithLocation loc, CFGNode trueStart, CFGNode falseStart) {
 		CFGNode beginNode = new CFGNode(loc);
-		return destruct(beginNode, truePair, falsePair, noOp);
+		return shortcircuit(beginNode, trueStart, falseStart);
 	}
 
 	private static List<CFGNode> destructOnelineQuad(LowLevelIR quad) {
