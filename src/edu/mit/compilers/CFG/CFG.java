@@ -92,10 +92,11 @@ public class CFG {
 		}
 		for (int i = symbol.size() - 1; i >= 0; i--) {
 			String sym = symbol.get(i);
-			if (symbol.equals("&&"))
-				falseStart = beginNode;
-			else
+			if (sym.equals("&&")) {
 				trueStart = beginNode;
+			}else {
+				falseStart = beginNode;
+			}
 			op1 = condStack.get(stackCursor--);
 			if (op1 instanceof IrQuadWithLocation) {
 				beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);

@@ -73,65 +73,62 @@ public class AssemblyFromCFGVistor {
 					sb.append(ir.getName());
 
 			}
-
-		if (n.getSuccessor() != null && n.getSuccessor().size() == 1) {
-			CFGNode succ = n.getSuccessor().get(0);
-			if (succ.isMergeNode() && !succ.isAssemblyVisited()) {
-				sb.append(getJmpOpr(AssemblyForArith.getNxtJmpLabel()));
-			}
-		}
 	}
 
 	private String getJmpOpr(String label) {
 		return "jmp" + " " + label + "\n";
 	}
 
+	private void setJmpOpr(String label) {
+		sb.append(getJmpOpr(label));
+	}
+
 	public void visit(CFG graph) {
 		Stack<CFGNode> branch = new Stack<>();
 		CFGNode node = graph.entry;
+		CFGNode before = null;
 		sb.append(graph.getFuncTitile());
 		int count = 1;
 		while (node != null) {
 			node.accept(this);
-			node.setAssemblyVisited();
 			if (node.getSuccessor() != null) {
+				before = node;
 				if (node.getSuccessor().size() == 1) {
 					node = node.getSuccessor().get(0);
-					if (node.isMergeNode() && count < node.getIncomingDegree()) {
-						if (count == 1) {
-							if (node.getLabel() == null)
-								node.setLabel(AssemblyForArith.getCurrJmpLabel());
-							node.setAssemblyVisited();
-						}
+					if (node.isMergeNode() && (count < node.getIncomingDegree() || before.isAssemblyVisited())) {
+						if (node.getLabel() == null)
+							node.setLabel(AssemblyForArith.getNxtJmpLabel());
+						setJmpOpr(node.getLabel());
 						try {
 							node = branch.pop();
 						} catch (EmptyStackException e) {
 							System.out.println(
 									"the count num is " + count + " node parent are " + node.getIncomingDegree());
 							System.exit(-1);
-
 						}
-
-						count++;
-					} else if (count == node.getIncomingDegree()) {
+						if (!before.isAssemblyVisited()) {
+							count++;
+						}
+					} else if (count == node.getIncomingDegree() && !before.isAssemblyVisited()) {
 						count = 1;
 					}
+
 				} else {
-					if (!node.getSuccessor().get(1).isAssemblyVisited()) {
-						node.getSuccessor().get(1).setAssemblyVisited();
+					if (node.getSuccessor().get(1).getLabel() == null) {
 						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
 						branch.push(node.getSuccessor().get(1));
 					}
 					setJmpLabel(node.getSuccessor().get(1).getLabel());
 					node = node.getSuccessor().get(0);
 				}
+				before.setAssemblyVisited();
 			} else {
 				node = null;
 			}
 		}
 
 	}
-	
+
 	private void setJmpLabel(String label) {
 		sb.append(AssemblyForArith.setJmpLabel(label));
 	}
