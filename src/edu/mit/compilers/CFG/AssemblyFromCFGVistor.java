@@ -119,9 +119,10 @@ public class AssemblyFromCFGVistor {
 				} else {
 					if (!node.getSuccessor().get(1).isAssemblyVisited()) {
 						node.getSuccessor().get(1).setAssemblyVisited();
-						node.getSuccessor().get(1).setLabel(AssemblyForArith.getCurrJmpLabel());
+						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
 						branch.push(node.getSuccessor().get(1));
 					}
+					setJmpLabel(node.getSuccessor().get(1).getLabel());
 					node = node.getSuccessor().get(0);
 				}
 			} else {
@@ -129,6 +130,10 @@ public class AssemblyFromCFGVistor {
 			}
 		}
 
+	}
+	
+	private void setJmpLabel(String label) {
+		sb.append(AssemblyForArith.setJmpLabel(label));
 	}
 
 	public String getAssembly() {

@@ -82,16 +82,29 @@ public class AssemblyForArith {
 			comOp = reverseCmp(comOp);
 		}
 		
+		jmpOpr = setJmpPrepare(comOp);
+		code.append(jmpOpr);
+		
+		return code.toString();
+	}
+	
+	
+	private static String setJmpPrepare(String comOp) {
+		String jmpOpr = null;
 		if(comOp.equals(">"))        jmpOpr = getJmpOpr("jle");
 		else if(comOp.equals("<"))   jmpOpr = getJmpOpr("jge");
 		else if(comOp.equals(">="))  jmpOpr = getJmpOpr("jl");
 		else if(comOp.equals("<="))  jmpOpr = getJmpOpr("jg");
 		else if(comOp.equals("!="))  jmpOpr = getJmpOpr("je");
 		else if(comOp.equals("=="))  jmpOpr=getJmpOpr("jne");
-		code.append(jmpOpr);
-		
-		return code.toString();
+		return jmpOpr;
 	}
+	
+	public static String setJmpLabel(String label) {
+		return label + "\n";
+	}
+	
+	
 	private static String reverseCmp(String comOp) {
 		String jmpOpr = null;
 		if(comOp.equals(">"))        jmpOpr = "<=";
@@ -104,11 +117,7 @@ public class AssemblyForArith {
 	}
 	
 	private static String getJmpOpr(String jmp) {
-		return jmp + whiteSpace + getNxtJmpLabel() + "\n";
-	}
-	
-	private static String getJmpOpr(String jmp, String label) {
-		return jmp + whiteSpace + label +"\n";
+		return jmp + whiteSpace;
 	}
 	
 	private static String cmpTwoOprAreMem(String symbol, MemOperandForm first, MemOperandForm second) {
