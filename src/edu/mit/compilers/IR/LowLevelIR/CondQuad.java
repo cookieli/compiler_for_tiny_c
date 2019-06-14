@@ -21,7 +21,7 @@ public class CondQuad extends LowLevelIR {
 
 	public CondQuad() {
 		condStack = new ArrayList<>();
-		symbol    = new ArrayList<>();
+		symbol = new ArrayList<>();
 	}
 
 	public CondQuad(IrQuad quad) {
@@ -57,10 +57,10 @@ public class CondQuad extends LowLevelIR {
 			condStack.add(generateCondLowIr(binary.getlhs(), vtb, mtb));
 			condStack.add(generateCondLowIr(binary.getrhs(), vtb, mtb));
 			// condStack.push(generateCondLowIr(binary, vtb, mtb));
-		} else if(expr instanceof UnaryExpression){
+		} else if (expr instanceof UnaryExpression) {
 			symbol.add(((UnaryExpression) expr).getSymbol());
 			condStack.add(generateCondLowIr(((UnaryExpression) expr).getIrExpression(), vtb, mtb));
-		}else {
+		} else {
 			condStack.add(generateCondLowIr(expr, vtb, mtb));
 		}
 	}
@@ -75,11 +75,18 @@ public class CondQuad extends LowLevelIR {
 			ir = generateCmpQuadForBool((IrOperand) expr, vtb, mtb);
 		else if (expr instanceof BinaryExpression)
 			ir = setCondQuad((BinaryExpression) expr, vtb, mtb);
-		else if(expr instanceof UnaryExpression) {
-			ir = null;
+		else if (expr instanceof UnaryExpression) {
+			ir = setCondQuad((UnaryExpression) expr, vtb, mtb);
 		} else
 			ir = null;
 		return ir;
+	}
+
+	private CondQuad setCondQuad(UnaryExpression unary, VariableTable vtb, MethodTable mtb) {
+		CondQuad quad = new CondQuad();
+		quad.symbol.add(unary.getSymbol());
+		quad.condStack.add(generateCondLowIr(unary.getIrExpression(), vtb, mtb));
+		return quad;
 	}
 
 	public LowLevelIR setCondQuad(BinaryExpression binaryExpr, VariableTable vtb, MethodTable mtb) {
@@ -105,21 +112,26 @@ public class CondQuad extends LowLevelIR {
 		StringBuilder sb = new StringBuilder();
 		if (symbol.isEmpty()) {
 			sb.append(condStack.get(0).getName());
-		} else if(symbol.size() == 1 && symbol.get(0).equals("!")){
+		} else if (symbol.size() == 1 && symbol.get(0).equals("!")) {
 			sb.append("!" + condStack.get(0).getName());
-		}else {
+		} else {
 			int size = symbol.size();
 			int stackCursor = 0;
-			for (int i = 0; i < size ; i++) {
+			for (int i = 0; i < size; i++) {
 				String sym = symbol.get(i);
-				LowLevelIR op1 = condStack.get(stackCursor++);
-				LowLevelIR op2 = condStack.get(stackCursor++);
-				sb.append(op1.getName());
-				sb.append(sym + "\n");
-				sb.append(op2.getName());
+				if (!sym.equals("!")) {
+					LowLevelIR op1 = condStack.get(stackCursor++);
+					LowLevelIR op2 = condStack.get(stackCursor++);
+					sb.append(op1.getName());
+					sb.append(sym + "\n");
+					sb.append(op2.getName());
+				} else {
+					LowLevelIR op1 = condStack.get(stackCursor++);
+					sb.append(sym + "\n");
+					sb.append(op1.getName());
+				}
 			}
-			
-			
+
 		}
 		return sb.toString();
 	}

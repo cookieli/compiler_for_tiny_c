@@ -92,8 +92,6 @@ public class AssemblyFromCFGVistor {
 		while (node != null) {
 			if(!node.isAssemblyVisited())                             node.accept(this);
 			else if( node.getLabel() != null)                         setJmpOpr(node.getLabel());
-			else
-				throw new IllegalArgumentException("visit some visited node");
 			if (node.getSuccessor() != null) {
 				before = node;
 				if (node.getSuccessor().size() == 1) {
@@ -123,7 +121,7 @@ public class AssemblyFromCFGVistor {
 						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
 						branch.push(node.getSuccessor().get(1));
 					}
-					setJmpLabel(node.getSuccessor().get(1).getLabel());
+					if(!before.isAssemblyVisited())  setJmpLabel(node.getSuccessor().get(1).getLabel());
 					node = node.getSuccessor().get(0);
 					if(node.isMergeNode() && node.getLabel() == null) node.setLabel(AssemblyForArith.getNxtJmpLabel());
 				}

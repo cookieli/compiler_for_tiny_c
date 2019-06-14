@@ -1,0 +1,17 @@
+import printf;
+
+void main(){
+   int a, b, c;
+   bool d,e;
+   a = 3;
+   b = 5;
+   c = 6;
+   d = false;
+   e = true;
+   if(!d && !e || !d){
+       printf("hello world\n");
+   } else {
+      printf("yes the world\n");
+   }
+   
+}

@@ -358,6 +358,8 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	}
 	
 	
+	
+	
 
 	@Override
 	public void visit(IrIfBlockQuad irIfBlockQuad) {
@@ -371,6 +373,8 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		addIrStatement(irIfBlockQuad);
 		
 	}
+	
+	
 	@Override
 	public boolean visit(IrBlock block) {
 		// TODO Auto-generated method stub
