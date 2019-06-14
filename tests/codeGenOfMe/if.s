@@ -48,6 +48,7 @@ leaq .LC1(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
+jmp .L3
 .L1:
 movq -24(%rbp),%rax
 movq -32(%rbp),%r10
@@ -61,11 +62,13 @@ leaq .LC2(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
+jmp .L3
 .L5:
 leaq .LC3(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
+jmp .L3
 .L4:
 movq -32(%rbp),%rcx
 movq -24(%rbp),%rdx

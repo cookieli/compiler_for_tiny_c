@@ -92,6 +92,13 @@ public class AssemblyFromCFGVistor {
 		while (node != null) {
 			if(!node.isAssemblyVisited())                             node.accept(this);
 			else if( node.getLabel() != null)                         setJmpOpr(node.getLabel());
+			else {
+				if(!branch.isEmpty()) {
+					node = branch.pop();
+					continue;
+				}
+				return;
+			}
 			if (node.getSuccessor() != null) {
 				before = node;
 				if (node.getSuccessor().size() == 1) {

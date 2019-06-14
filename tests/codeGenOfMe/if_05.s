@@ -42,5 +42,4 @@ movb -1(%rbp),%al
 cmpb $0,%al
 jle .L3
 jmp .L2
-jmp .L4
 
