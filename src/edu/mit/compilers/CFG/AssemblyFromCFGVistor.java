@@ -90,14 +90,17 @@ public class AssemblyFromCFGVistor {
 		sb.append(graph.getFuncTitile());
 		int count = 1;
 		while (node != null) {
-			if(!node.isAssemblyVisited())                             node.accept(this);
-			else if( node.getLabel() != null)                         setJmpOpr(node.getLabel());
-			else {
+			if(!node.isAssemblyVisited())         
+				node.accept(this);
+			else if( node.getLabel() != null) {       
+				setJmpOpr(node.getLabel());
 				if(!branch.isEmpty()) {
 					node = branch.pop();
 					continue;
 				}
 				return;
+			}else {
+				throw new IllegalArgumentException("the node is visited and doesn't have label");
 			}
 			if (node.getSuccessor() != null) {
 				before = node;
