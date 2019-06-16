@@ -1,0 +1,9 @@
+import printf;
+
+void main(){
+    if(3 == 4){
+       printf("it is ok\n");
+    } else {
+       printf("it is wrong\n");
+    }
+}

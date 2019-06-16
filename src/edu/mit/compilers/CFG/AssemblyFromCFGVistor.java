@@ -94,11 +94,13 @@ public class AssemblyFromCFGVistor {
 				node.accept(this);
 			else if( node.getLabel() != null) {       
 				setJmpOpr(node.getLabel());
-				if(!branch.isEmpty()) {
+				
+				if(branch.isEmpty())  
+					return;
+				else {
 					node = branch.pop();
 					continue;
 				}
-				return;
 			}else {
 				throw new IllegalArgumentException("the node is visited and doesn't have label");
 			}
@@ -113,8 +115,7 @@ public class AssemblyFromCFGVistor {
 						try {
 							node = branch.pop();
 						} catch (EmptyStackException e) {
-							System.out.println(
-									"the count num is " + count + " node parent are " + node.getIncomingDegree());
+							System.out.println("the count num is " + count + " node parent are " + node.getIncomingDegree());
 							System.exit(-1);
 						}
 						if (!before.isAssemblyVisited()) {
@@ -122,10 +123,7 @@ public class AssemblyFromCFGVistor {
 						}
 					} else if (count == node.getIncomingDegree() && !before.isAssemblyVisited()) {
 						count = 1;
-					} else if(before.isAssemblyVisited()) {
-						if(!branch.isEmpty())  node = branch.pop();
-					}
-
+					} 
 				} else {
 					if (node.getSuccessor().get(1).getLabel() == null) {
 						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
@@ -140,9 +138,10 @@ public class AssemblyFromCFGVistor {
 				if(!branch.isEmpty() && node.isMergeNode()) {
 					node.setAssemblyVisited();
 					node = branch.pop();
-					count++;
+					if(!node.isAssemblyVisited())
+						count++;
 				}
-				else                    node = null;
+				else     node = null;
 			}
 		}
 

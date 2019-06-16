@@ -183,30 +183,28 @@ public class IrWithTemp implements IrNodeVistor {
 			addIrStatement(assign);
 			return;
 		}
-		if(binaryLhs instanceof IrLocation && ((IrLocation) binaryLhs).locationIsArray()) {
-			binaryLhs = assignLocationToArray((IrLocation) binaryLhs, v, m);
-		}
-		if(binaryRhs instanceof IrLocation && ((IrLocation) binaryRhs).locationIsArray())
-			binaryRhs = assignLocationToArray((IrLocation) binaryRhs, v, m);
-		if(binaryLhs instanceof UnaryExpression) {
-			binaryLhs = setTempForUnaryExpr((UnaryExpression) binaryLhs);
-		}
-		if(binaryRhs instanceof UnaryExpression) {
-			binaryRhs = setTempForUnaryExpr((UnaryExpression) binaryRhs);
-		}
 		
-		if(binaryLhs instanceof BinaryExpression) {
-			binaryLhs = assignLocationToBinary((BinaryExpression) binaryLhs, v, m);
-		}
-		
-		if(binaryRhs instanceof BinaryExpression) {
-			binaryRhs = assignLocationToBinary((BinaryExpression) binaryRhs, v, m);
-		}
+		binaryLhs = assignLocationToIrExpression(binaryLhs, v, m);
+		binaryRhs = assignLocationToIrExpression(binaryRhs, v, m);
 		BinaryExpression expr = new BinaryExpression(binaryLhs, binaryRhs, binary.getSymbol());
 		IrAssignment newAssign = new IrAssignment(lhs, expr, "=");
 		addIrStatement(newAssign);
 		
 	}
+	
+	private IrExpression assignLocationToIrExpression(IrExpression expr, VariableTable vtb, MethodTable mtb) {
+		if(expr instanceof IrLocation && ((IrLocation) expr).locationIsArray())
+			return assignLocationToArray((IrLocation) expr, vtb, mtb);
+		if(expr instanceof UnaryExpression) {
+			expr = setTempForUnaryExpr((UnaryExpression) expr);
+		}
+		if(expr instanceof BinaryExpression) {
+			expr = assignLocationToBinary((BinaryExpression) expr, vtb, mtb);
+		}
+		return expr;
+	}
+	
+	
 	
 	private IrLocation assignLocationToBinary(BinaryExpression expr, VariableTable v, MethodTable m) {
 		IrLocation temp = getExprCorrespondTemp(expr, v ,m);
@@ -340,13 +338,49 @@ public class IrWithTemp implements IrNodeVistor {
 		ifCode.getTrueBlock().accept(this);
 		if(ifCode.getFalseBlock() != null)
 			ifCode.getFalseBlock().accept(this);
+		ifCode.setBoolExpr(handleBoolExpr(ifCode.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
 		addIrStatement(ifCode);
 		return false;
+	}
+	
+	
+	private IrExpression handleBoolExpr(IrExpression expr, VariableTable vtb, MethodTable mtb) {
+		if(expr instanceof IrLiteral || expr instanceof IrLocation)
+			return assignLocationToIrExpression(expr, vtb, mtb);
+		if(expr instanceof BinaryExpression) {
+			BinaryExpression binary = (BinaryExpression) expr;
+			if(binary.isCmpExpr())  return handleCmpExpr(binary, vtb, mtb);
+			if(binary.isBoolExpr()) {
+				binary.setLhs(handleBoolExpr(binary.getlhs(), vtb, mtb));
+				binary.setRhs(handleBoolExpr(binary.getrhs(), vtb, mtb));
+				return binary;
+			}
+		}
+		if(expr instanceof UnaryExpression) {
+			UnaryExpression unary = (UnaryExpression) expr;
+			unary.setExpr(handleBoolExpr(unary.getIrExpression(), vtb, mtb));
+			return unary;
+		}
+		return null;
+	}
+	
+	private IrExpression handleCmpExpr(BinaryExpression expr, VariableTable vtb, MethodTable mtb) {
+		IrExpression binaryLhs;
+		IrExpression binaryRhs;
+		
+		binaryLhs = assignLocationToIrExpression(expr.getlhs(), vtb, mtb);
+		binaryRhs = assignLocationToIrExpression(expr.getrhs(), vtb, mtb);
+		expr.setLhs(binaryLhs);
+		expr.setRhs(binaryRhs);
+		return expr;
 	}
 
 	@Override
 	public boolean visit(IrWhileBlock whileBlock) {
 		// TODO Auto-generated method stub
+		whileBlock.getCodeBlock().accept(this);
+		whileBlock.setBoolExpr(handleBoolExpr(whileBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
+		addIrStatement(whileBlock);
 		return false;
 	}
 

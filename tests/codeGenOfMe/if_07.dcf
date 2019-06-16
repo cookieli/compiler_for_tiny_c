@@ -1,0 +1,17 @@
+import printf;
+
+void main(){
+   int c, d, g;
+   bool i, k;
+   c = 8;
+   d = 8;
+   g = 100;
+   i = true;
+   k = false;
+   
+   if(!k || i){
+       printf("hello world\n");
+   } else {
+      printf("wrong, wrong, wrong\n");
+   }
+}

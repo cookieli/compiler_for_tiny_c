@@ -14,6 +14,7 @@ public class Util {
 	public static final String stackBaseReg = "%rbp";
 	public static final String rax = "%rax";
 	public static final String[] comOp = {"<", ">", ">=", "<=", "!=", "=="};
+	public static final String[] boolBinaryOp = {"&&", "||"};
 	public static final int ArrayHeaderSize = 8;
 	public static final Pattern ComPattern = Pattern.compile("(\\>=|\\<=|\\>|\\<|\\!=|\\==)(q|b)");
 	

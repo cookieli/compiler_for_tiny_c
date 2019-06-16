@@ -1,17 +1,27 @@
 package edu.mit.compilers.IR.expr;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
+import edu.mit.compilers.utils.Util;
 
 public class BinaryExpression extends IrExpression {
 	
 	
 	public IrExpression lhs;
+	public void setLhs(IrExpression lhs) {
+		this.lhs = lhs;
+	}
+
+	public void setRhs(IrExpression rhs) {
+		this.rhs = rhs;
+	}
+
 	public IrExpression rhs;
 	public String symbol;
 	
@@ -27,6 +37,14 @@ public class BinaryExpression extends IrExpression {
 		this.lhs = (IrExpression) binary.getlhs().copy();
 		this.rhs = (IrExpression) binary.getrhs().copy();
 		this.symbol = new StringBuilder(binary.getSymbol()).toString();
+	}
+	
+	public boolean isCmpExpr() {
+		return Arrays.asList(Util.comOp).contains(symbol);
+	}
+	
+	public boolean isBoolExpr() {
+		return Arrays.asList(Util.boolBinaryOp).contains(symbol);
 	}
 	
 	public String getSymbol() {

@@ -46,6 +46,10 @@ public class IfBlock extends IrStatement{
 		return boolExpr;
 	}
 	
+	public void setBoolExpr(IrExpression boolExpr) {
+		this.boolExpr = boolExpr;
+	}
+	
 	public IrBlock getTrueBlock() {
 		return trueBlock;
 	}

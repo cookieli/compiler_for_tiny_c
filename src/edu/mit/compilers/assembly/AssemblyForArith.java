@@ -80,6 +80,8 @@ public class AssemblyForArith {
 		} else if(quad.getOp1() instanceof ImmOperandForm && quad.getOp2() instanceof MemOperandForm) {
 			code.append(cmpOneOprIsMem(symbol, (MemOperandForm)quad.getOp2(), (ImmOperandForm)quad.getOp1()));
 			comOp = reverseCmp(comOp);
+		} else if(quad.getOp1() instanceof ImmOperandForm && quad.getOp2() instanceof ImmOperandForm) {
+			code.append(cmpTwoOprAreImm(symbol, (ImmOperandForm)quad.getOp1(), (ImmOperandForm)quad.getOp2()));
 		}
 		
 		jmpOpr = setJmpPrepare(comOp);
@@ -135,6 +137,23 @@ public class AssemblyForArith {
 		
 		sb.append(new AssemblyForm(symbol, secondReg, firstReg).toString());
 		
+		return sb.toString();
+	}
+	
+	private static String cmpTwoOprAreImm(String symbol, ImmOperandForm first, ImmOperandForm second) {
+		StringBuilder sb = new StringBuilder();
+		String firstReg = X86_64Register.rax.getName_64bit();
+		String secondReg = X86_64Register.r10.getName_64bit();
+		String move = "movq";
+		if(symbol.endsWith("b")) {
+			move = "movb";
+			firstReg = X86_64Register.rax.getName_8bit();
+			secondReg = X86_64Register.r10.getName_8bit();
+		}
+		sb.append(new AssemblyForm(move, first.toString(), firstReg).toString());
+		sb.append(new AssemblyForm(move, second.toString(), secondReg).toString());
+		
+		sb.append(new AssemblyForm(symbol, secondReg, firstReg).toString());
 		return sb.toString();
 	}
 	

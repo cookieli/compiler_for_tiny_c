@@ -1,0 +1,22 @@
+import printf;
+
+void main(){
+  bool a, b, c, d;
+  int e;
+  e = 7;
+  a = true;
+  b = false;
+  c = true;
+  d = false;
+  if(a && (!b || d && c)){
+      printf("hello world\n");
+  } else {
+     printf("the world is wrong\n");
+  }
+  
+  if(3 + 4 == e){
+     printf("it is ok\n");
+  } else {
+     printf("it is wrong\n");
+  }
+}

@@ -33,6 +33,10 @@ public class UnaryExpression extends IrExpression{
 	public IrExpression getIrExpression() {
 		return expr;
 	}
+	
+	public void setExpr(IrExpression expr) {
+		this.expr = expr;
+	}
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub

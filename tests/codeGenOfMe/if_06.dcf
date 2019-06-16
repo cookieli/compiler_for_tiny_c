@@ -1,0 +1,25 @@
+import printf;
+
+void main(){
+    int a, b, c,d,e, f, g, h;
+    bool i, j, k;
+    a = 2;
+    b = 3;
+    c = 8;
+    d = 8;
+    e = 7;
+    f = 90;
+    g = 100;
+    h = 400;
+    i = true;
+    j = false;
+    k = false;
+    
+    if(a + b * 3 - d/2 > f / 30 + h / 400 * (a - c + 9) &&  (!k || c + d > g && i)){
+       printf("hello world\n");
+    } else {
+       printf("wrong, wrong, wrong\n");
+    }
+    
+    
+}
