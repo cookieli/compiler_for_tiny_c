@@ -1,0 +1,31 @@
+import printf;
+
+void main(){
+   int a, b,c,d;
+   bool e;
+   a = 1;
+   b = 3;
+   c = 2;
+   d = 7;
+   e = true;
+   while(d > c && a < b || e){
+      if(a < b){
+         printf("a < b");
+      } else{
+         printf("a >= b");
+      }
+      
+      if(e){
+        printf("e is true\n");
+        e = false;
+      } else {
+        printf("e is false\n");
+        e = true;
+      }
+      
+      a++;
+      c++;
+      
+   }
+   
+}

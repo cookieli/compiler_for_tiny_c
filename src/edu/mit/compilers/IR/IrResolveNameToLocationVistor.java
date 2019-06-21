@@ -14,6 +14,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
@@ -390,6 +391,17 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		env.popVariables();
 		currentBlock = tempBlock;
 		return false;
+	}
+
+	@Override
+	public void visit(IrWhileBlockQuad whileQuad) {
+		// TODO Auto-generated method stub
+		CondQuad condQuad = whileQuad.getCond();
+		resetCondQuad(condQuad, env.peekVariables(), env.peekMethod());
+		if(whileQuad.getBlock() != null)
+			whileQuad.getBlock().accept(this);
+		addIrStatement(whileQuad);
+		
 	}
 
 }

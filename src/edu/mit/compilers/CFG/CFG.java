@@ -10,6 +10,7 @@ import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
@@ -74,7 +75,28 @@ public class CFG {
 		pair.add(noOp);
 		return pair;
 	}
-
+	
+	public static List<CFGNode> destruct(IrWhileBlockQuad block){
+		CFGNode falseNode = new NoOpCFG();
+		List<CFGNode> truePair = null;
+		if(block.getBlock() != null) {
+			truePair = destruct(block.getBlock());
+		} else {
+			CFGNode noOp = new NoOpCFG();
+			truePair = new ArrayList<>();
+			truePair.add(noOp);
+			truePair.add(noOp);
+		}
+		CFGNode beginNode = shortcircuit(block.getCond(), truePair.get(0), falseNode);
+		beginNode.setWhileNode(true);
+		truePair.get(1).addSuccessor(beginNode);
+		List<CFGNode> pair = new ArrayList<>();
+		pair.add(beginNode);
+		pair.add(falseNode);
+		return pair;
+	}
+	
+	
 	private static CFGNode shortcircuit(CondQuad quad, CFGNode trueStart, CFGNode falseStart) {
 		if (quad.getSymbol().isEmpty()) {
 			return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
@@ -137,6 +159,8 @@ public class CFG {
 			return destructOnelineQuad(ir);
 		else if (ir instanceof IrIfBlockQuad)
 			return destruct((IrIfBlockQuad) ir);
+		else if(ir instanceof IrWhileBlockQuad)
+			return destruct((IrWhileBlockQuad)ir);
 		return null;
 	}
 
@@ -194,7 +218,7 @@ public class CFG {
 						}
 					}
 
-					if (node instanceof NoOpCFG && succ.isMergeNode()) {
+					if (node.statements == null && succ.isMergeNode()) {
 						if (succ.getParents().get(0).equals(node))
 							succ.deleteParent();
 						if (succ.getParents().contains(node)) {
@@ -240,5 +264,7 @@ public class CFG {
 		return sb.toString();
 
 	}
+	
+	
 
 }

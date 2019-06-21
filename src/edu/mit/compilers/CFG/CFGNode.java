@@ -8,45 +8,59 @@ import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 
-public class CFGNode extends IrNode{
+public class CFGNode extends IrNode {
 	public List<LowLevelIR> statements;
 	public List<CFGNode> pointTo;
 	public List<CFGNode> parents;
 	public int inComingDegree;
 	public boolean isVisited = false;
 	public boolean isAssemblyVisited = false;
+
+	private int nameVisited = 0;
+	
+	private boolean isWhileNode = false;
+	
+	public int visitCount = 1;
+	
+	public void setWhileNode(boolean isWhile) {
+		this.isWhileNode = isWhile;
+	}
+	
+	public boolean isWhileNode() {
+		return isWhileNode;
+	}
 	public String label = null;
+
 	public CFGNode() {
 		statements = new ArrayList<>();
 		pointTo = new LinkedList<>();
 		parents = new LinkedList<>();
 		inComingDegree = 0;
 	}
-	
+
 	public CFGNode(LowLevelIR ir) {
 		this();
 		addLowLevelIr(ir);
 	}
-	
+
 	public void deletePointTo() {
 		pointTo = new LinkedList<>();
 	}
-	
+
 	public void deleteParent() {
 		inComingDegree = 0;
 		parents = new LinkedList<>();
 	}
-	
+
 	public int getIncomingDegree() {
 		return inComingDegree;
 	}
-	
+
 	public void addSuccessor(CFGNode node) {
 		pointTo.add(node);
 		node.addParent(this);
 	}
-	
-	
+
 	public List<CFGNode> getParents() {
 		return parents;
 	}
@@ -58,40 +72,41 @@ public class CFGNode extends IrNode{
 	public void addLowLevelIr(LowLevelIR ir) {
 		statements.add(ir);
 	}
-	
+
 	private void addPredecessor() {
-		inComingDegree ++;
+		inComingDegree++;
 	}
-	
+
 	private void addParent(CFGNode node) {
 		parents.add(node);
 		addPredecessor();
 	}
+
 	public void removeParent(CFGNode node) {
 		parents.remove(node);
 		inComingDegree--;
 	}
-	
+
 	public void setVisited() {
 		isVisited = true;
 	}
-	
+
 	public boolean isVisited() {
 		return isVisited;
 	}
-	
+
 	public boolean isMergeNode() {
 		return inComingDegree > 1;
 	}
-	
+
 	public boolean isAssemblyVisited() {
 		return isAssemblyVisited;
 	}
-	
+
 	public void setAssemblyVisited() {
 		isAssemblyVisited = true;
 	}
-	
+
 	public String getLabel() {
 		return label;
 	}
@@ -100,12 +115,12 @@ public class CFGNode extends IrNode{
 		this.label = label;
 	}
 
-	public List<CFGNode> getSuccessor(){
+	public List<CFGNode> getSuccessor() {
 		return pointTo;
 	}
-	
+
 	public void combineNode(CFGNode node) {
-		if(this.statements == null)
+		if (this.statements == null)
 			this.statements = node.statements;
 		else
 			this.statements.addAll(node.statements);
@@ -113,36 +128,52 @@ public class CFGNode extends IrNode{
 		node.pointTo = null;
 		node.parents = null;
 		node.inComingDegree = 0;
-		
+
 	}
-	
 
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
-		sb.append("=======cfgNode======\n");
-		if(statements == null) {
+		try {
+			if (this.nameVisited == 1) {
+				this.nameVisited = 0;
+				return this.getStats();
+			} else
+				this.nameVisited += 1;
+			
+			sb.append("=======cfgNode======\n");
+			sb.append(this.getStats());
+			sb.append("=======cfgNode======\n");
+			if (pointTo != null) {
+
+				for (CFGNode node : pointTo) {
+					sb.append(node.getName());
+				}
+			}
+			return sb.toString();
+		} catch (StackOverflowError e) {
+			return sb.toString();
+		}
+	}
+
+	public String getStats() {
+		StringBuilder sb = new StringBuilder();
+		// sb.append("=======cfgNode======\n");
+		if (statements == null) {
 			sb.append("noOp\n");
 		} else
-			for(LowLevelIR s: statements) {
+			for (LowLevelIR s : statements) {
 				sb.append(s.getName());
 			}
-		sb.append("=======cfgNode======\n");
-		if(pointTo != null) {
-			for(CFGNode node: pointTo) {
-				sb.append(node.getName());
-			}
-		}
 		return sb.toString();
 	}
-	
+
 	public String getStruct() {
 		StringBuilder sb = new StringBuilder();
-		
+
 		return sb.toString();
 	}
-	
 
 	@Override
 	public IrNode copy() {
@@ -153,14 +184,14 @@ public class CFGNode extends IrNode{
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	public void accept(AssemblyFromCFGVistor vistor) {
 		vistor.visit(this);
 	}
-	
+
 	public static void main(String[] args) {
-		//System.out.println(getOneRectangle("", "\n"));
+		// System.out.println(getOneRectangle("", "\n"));
 	}
 }

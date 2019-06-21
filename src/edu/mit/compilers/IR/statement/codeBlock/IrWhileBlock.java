@@ -57,7 +57,7 @@ public class IrWhileBlock extends IrStatement{
 	@Override
 	public IrNode copy() {
 		// TODO Auto-generated method stub
-		return null;
+		return new IrWhileBlock(this);
 	}
 	
 	@Override

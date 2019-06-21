@@ -12,6 +12,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
@@ -120,6 +121,13 @@ public class IrQuadVistor implements IrNodeVistor{
 
 	@Override
 	public boolean visit(IrWhileBlock whileBlock) {
+		IrExpression expr = whileBlock.getBoolExpr();
+		IrBlock block = whileBlock.getCodeBlock();
+		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod());
+		block.accept(this);
+		//whileBlock.setBoolExpr(cond);
+		IrWhileBlockQuad whileQuad = new IrWhileBlockQuad(cond, block);
+		addIrStatement(whileQuad);
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -175,6 +183,11 @@ public class IrQuadVistor implements IrNodeVistor{
 	}
 	@Override
 	public void visit(IrIfBlockQuad irIfBlockQuad) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void visit(IrWhileBlockQuad whileQuad) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -62,7 +62,7 @@ public class AssemblyFromCFGVistor {
 		if (n.getLabel() != null) {
 			sb.append(n.getLabel() + ":\n");
 		}
-		if (n.statements != null)
+		if (n.statements != null) {
 			for (LowLevelIR ir : n.statements) {
 				if (ir instanceof IrQuadWithLocation)
 					sb.append(AssemblyForArith.getAssembly(((IrQuadWithLocation) ir)));
@@ -73,6 +73,9 @@ public class AssemblyFromCFGVistor {
 					sb.append(ir.getName());
 
 			}
+		}else {
+			sb.append("nop\n");
+		}
 	}
 
 	private String getJmpOpr(String label) {
@@ -88,60 +91,74 @@ public class AssemblyFromCFGVistor {
 		CFGNode node = graph.entry;
 		CFGNode before = null;
 		sb.append(graph.getFuncTitile());
-		int count = 1;
+		//int count = 1;
 		while (node != null) {
-			if(!node.isAssemblyVisited())         
+			if (!node.isAssemblyVisited())
 				node.accept(this);
-			else if( node.getLabel() != null) {       
+			else if (node.getLabel() != null) {
 				setJmpOpr(node.getLabel());
-				
-				if(branch.isEmpty())  
+
+				if (branch.isEmpty())
 					return;
 				else {
 					node = branch.pop();
 					continue;
+					//throw new IllegalArgumentException("branch "+ node.getStats());
 				}
-			}else {
-				throw new IllegalArgumentException("the node is visited and doesn't have label");
+			} else {
+				throw new IllegalArgumentException("the node is visited and doesn't have label " + node.isMergeNode()
+						+ " " + node.getIncomingDegree() + " \n" + node.getStats());
 			}
 			if (node.getSuccessor() != null) {
 				before = node;
 				if (node.getSuccessor().size() == 1) {
 					node = node.getSuccessor().get(0);
-					if (node.isMergeNode() && count < node.getIncomingDegree()) {
+					if (node.isMergeNode() && node.visitCount < node.getIncomingDegree()) {
 						if (node.getLabel() == null)
 							node.setLabel(AssemblyForArith.getNxtJmpLabel());
-						setJmpOpr(node.getLabel());
-						try {
-							node = branch.pop();
-						} catch (EmptyStackException e) {
-							System.out.println("the count num is " + count + " node parent are " + node.getIncomingDegree());
-							System.exit(-1);
-						}
+
 						if (!before.isAssemblyVisited()) {
-							count++;
+							node.visitCount++;
 						}
-					} else if (count == node.getIncomingDegree() && !before.isAssemblyVisited()) {
-						count = 1;
-					} 
+
+						if (!node.isWhileNode()) {
+							if (!branch.isEmpty()) {
+								setJmpOpr(node.getLabel());
+								node = branch.pop();
+							}
+						}
+						
+
+					} else if (node.visitCount == node.getIncomingDegree() && node.isMergeNode()) {
+						if(node.isWhileNode()) {
+							//node = branch.pop();
+							//throw new IllegalArgumentException(node.getStats());
+							if(!branch.isEmpty())   {
+								setJmpOpr(node.getLabel());
+								node = branch.pop();
+							}
+						}
+					}
 				} else {
 					if (node.getSuccessor().get(1).getLabel() == null) {
 						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
 						branch.push(node.getSuccessor().get(1));
 					}
-					if(!before.isAssemblyVisited())  setJmpLabel(node.getSuccessor().get(1).getLabel());
+					if (!before.isAssemblyVisited())
+						setJmpLabel(node.getSuccessor().get(1).getLabel());
 					node = node.getSuccessor().get(0);
-					if(node.isMergeNode() && node.getLabel() == null) node.setLabel(AssemblyForArith.getNxtJmpLabel());
+					if (node.isMergeNode() && node.getLabel() == null)
+						node.setLabel(AssemblyForArith.getNxtJmpLabel());
 				}
 				before.setAssemblyVisited();
 			} else {
-				if(!branch.isEmpty() && node.isMergeNode()) {
+				if (!branch.isEmpty()) {
 					node.setAssemblyVisited();
 					node = branch.pop();
-					if(!node.isAssemblyVisited())
-						count++;
-				}
-				else     node = null;
+					if (!node.isAssemblyVisited() && node.isMergeNode())
+						node.visitCount++;
+				} else
+					node = null;
 			}
 		}
 

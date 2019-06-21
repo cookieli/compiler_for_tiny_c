@@ -7,6 +7,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.statement.FuncInvokeStatement;
 import edu.mit.compilers.IR.statement.IrAssignment;
 import edu.mit.compilers.IR.statement.LoopStatement;
@@ -50,6 +51,10 @@ public interface IrNodeVistor {
 	public boolean visit(IrQuadWithLocForFuncInvoke quad);
 
 	public void visit(IrIfBlockQuad irIfBlockQuad);
+	
+	public void visit(IrWhileBlockQuad whileQuad);
+	
+	
 	
 	
 }

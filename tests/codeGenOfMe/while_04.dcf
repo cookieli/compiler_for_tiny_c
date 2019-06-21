@@ -1,0 +1,18 @@
+import printf;
+
+void main(){
+     int a;
+     int b;
+     a = 1;
+     b = 3;
+     while(a < b){
+        int c, d;
+        c = 3;
+        d = 0;
+        while(c > d){
+          printf("hello world\n");
+          c--;
+        }
+        a++;
+     }
+}

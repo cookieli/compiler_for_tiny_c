@@ -77,6 +77,13 @@ jle .L1
 movb -89(%rbp),%al
 cmpb $0,%al
 jle .L2
+.L3:
+leaq .LC0(%rip),%rdi
+movq $0,%rax
+call printf@PLT
+movq $0,%rax
+jmp .L4
+.L2:
 movq -8(%rbp),%rax
 movq -107(%rbp),%r10
 cmpq %r10,%rax
@@ -84,19 +91,13 @@ jle .L1
 movb -91(%rbp),%al
 cmpb $0,%al
 jle .L1
-.L2:
-leaq .LC0(%rip),%rdi
-movq $0,%rax
-call printf@PLT
-movq $0,%rax
 jmp .L3
-jmp .L2
 .L1:
 leaq .LC1(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
-.L3:
+.L4:
 leave
 ret
 
