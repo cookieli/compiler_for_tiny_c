@@ -13,6 +13,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
+import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
@@ -33,6 +34,8 @@ public class IrQuadVistor implements IrNodeVistor{
 	public MethodDecl currentMethod;
 	
 	public IrBlock currentBlock = null;
+	
+	public List<IrStatement> currentList= null;
 	
 	public IrQuadVistor() {
 		env = new EnvStack();
@@ -59,6 +62,10 @@ public class IrQuadVistor implements IrNodeVistor{
 	}
 	
 	private void addIrStatement(IrStatement s) {
+		if(currentList != null) {
+			currentList.add(s);
+			return;
+		}
 		if(currentBlock ==null)
 			currentMethod.addIrStatement(s);
 		else
@@ -121,20 +128,42 @@ public class IrQuadVistor implements IrNodeVistor{
 
 	@Override
 	public boolean visit(IrWhileBlock whileBlock) {
+		
 		IrExpression expr = whileBlock.getBoolExpr();
 		IrBlock block = whileBlock.getCodeBlock();
 		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod());
 		block.accept(this);
 		//whileBlock.setBoolExpr(cond);
 		IrWhileBlockQuad whileQuad = new IrWhileBlockQuad(cond, block);
+		currentList = whileQuad.getPreQuad();
+		for(IrStatement s: whileBlock.getPreTempStat()) {
+			s.accept(this);
+		}
+		currentList = null;
 		addIrStatement(whileQuad);
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
+	
 	@Override
 	public boolean visit(IrForBlock forBlock) {
 		// TODO Auto-generated method stub
+		IrExpression expr = forBlock.getBoolExpr();
+		IrBlock block = forBlock.getBlock();
+		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod());
+		block.accept(this);
+		IrWhileBlockQuad forQuad = new IrWhileBlockQuad(cond, block);
+		currentList = forQuad.getPreQuad();
+		for(IrStatement s: forBlock.getPreTempStat()) {
+			s.accept(this);
+		}
+		currentList = forQuad.getAfterBlockQuad();
+		for(IrStatement s: forBlock.getAfterBlockStat()) {
+			s.accept(this);
+		}
+		currentList = null;
+		addIrStatement(forQuad);
 		return false;
 	}
 

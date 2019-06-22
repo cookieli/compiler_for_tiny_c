@@ -72,6 +72,9 @@ public class CFGNode extends IrNode {
 	public void addLowLevelIr(LowLevelIR ir) {
 		statements.add(ir);
 	}
+	public void addLowLevelIrFromHead(LowLevelIR ir) {
+		statements.add(0, ir);
+	}
 
 	private void addPredecessor() {
 		inComingDegree++;

@@ -1,5 +1,8 @@
 package edu.mit.compilers.IR.statement.codeBlock;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.IrExpression;
@@ -7,9 +10,18 @@ import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class IrWhileBlock extends IrStatement{
-	public IrExpression boolExpr;
 	
+	public List<IrStatement> preTempStat;
+	public IrExpression boolExpr;
 	public IrBlock codeBlock;
+	
+	
+	public List<IrStatement> getPreTempStat(){
+		if(preTempStat == null)
+			preTempStat = new ArrayList<>();
+		return preTempStat;
+	}
+	
 	
 	public IrWhileBlock(IrExpression expr, IrBlock block) {
 		boolExpr = expr;
@@ -41,6 +53,12 @@ public class IrWhileBlock extends IrStatement{
 	public String getName() {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
+		if(preTempStat != null) {
+			for(IrStatement s: preTempStat) {
+				sb.append(s.getName());
+				sb.append("\n");
+			}
+		}
 		sb.append("while "+ boolExpr.getName());
 		sb.append("\n");
 		sb.append(codeBlock.getName());

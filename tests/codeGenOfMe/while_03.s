@@ -35,32 +35,40 @@ movq -33(%rbp),%rax
 movq -25(%rbp),%r10
 cmpq %r10,%rax
 jge .L4
+subq $48, %rsp
 leaq .LC0(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
+addq $48, %rsp
 jmp .L5
 .L4:
+subq $48, %rsp
 leaq .LC1(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
+addq $48, %rsp
 .L5:
 movb -1(%rbp),%al
 cmpb $0,%al
 jle .L6
+subq $48, %rsp
 leaq .LC2(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
 movb $0,-1(%rbp)
+addq $48, %rsp
 jmp .L7
 .L6:
+subq $48, %rsp
 leaq .LC3(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
 movb $1,-1(%rbp)
+addq $48, %rsp
 .L7:
 movq -33(%rbp),%rax
 movq $1,%r10

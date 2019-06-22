@@ -48,6 +48,7 @@ public class IrWithTemp implements IrNodeVistor {
 	public int currentSubScript = 0;
 	public MethodDecl currentMethod = null;
 	public IrBlock currentBlock = null;
+	public List<IrStatement> currentList = null;
 	public SemanticCheckerNode semantics;
 
 	public EnvStack envs;
@@ -124,10 +125,19 @@ public class IrWithTemp implements IrNodeVistor {
 	}
 	
 	public void addIrStatement(IrStatement s) {
+		if(currentList != null) {
+			currentList.add(s);
+			return;
+		}
 		if(currentBlock == null)
 			currentMethod.addIrStatement(s);
 		else
 			currentBlock.addIrStatement(s);
+	}
+	
+	
+	public void addIrStatement(IrStatement s, List<IrStatement> lst) {
+		lst.add(s);
 	}
 
 	public void HandleNoCompoundSymbolAssign(IrAssignment assign, VariableTable v, MethodTable m) {
@@ -298,6 +308,7 @@ public class IrWithTemp implements IrNodeVistor {
 		IrAssignment newAssign;
 		if(lhs.locationIsArray()) {
 			IrLocation lhsTemp = getExprCorrespondTemp(lhs, vtb, mtb);
+			addIrStatement(new IrAssignment(lhsTemp, lhs, "="));
 			BinaryExpression binary = new BinaryExpression(lhsTemp, rhs, symbol);
 		    newAssign = new IrAssignment(lhsTemp, binary, "=");
 			newAssign.accept(this);
@@ -322,6 +333,7 @@ public class IrWithTemp implements IrNodeVistor {
 		// TODO Auto-generated method stub
 		IrBlock tempBlock = currentBlock;
 		currentBlock = block;
+		//currentBlock.setLocalVarTableParent(envs.peekVariables());
 		envs.pushVariables(block.localVars);
 		List<IrStatement> statements = block.statements;
 		block.statements = new ArrayList<>();
@@ -336,10 +348,13 @@ public class IrWithTemp implements IrNodeVistor {
 	@Override
 	public boolean visit(IfBlock ifCode) {
 		// TODO Auto-generated method stub
-		ifCode.getTrueBlock().accept(this);
-		if(ifCode.getFalseBlock() != null)
-			ifCode.getFalseBlock().accept(this);
 		ifCode.setBoolExpr(handleBoolExpr(ifCode.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
+		ifCode.getTrueBlock().accept(this);
+		if(ifCode.getFalseBlock() != null) {
+			
+			ifCode.getFalseBlock().accept(this);
+		}
+		
 		addIrStatement(ifCode);
 		return false;
 	}
@@ -380,7 +395,9 @@ public class IrWithTemp implements IrNodeVistor {
 	public boolean visit(IrWhileBlock whileBlock) {
 		// TODO Auto-generated method stub
 		whileBlock.getCodeBlock().accept(this);
+		currentList = whileBlock.getPreTempStat();
 		whileBlock.setBoolExpr(handleBoolExpr(whileBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
+		currentList = null;
 		addIrStatement(whileBlock);
 		return false;
 	}
@@ -388,6 +405,15 @@ public class IrWithTemp implements IrNodeVistor {
 	@Override
 	public boolean visit(IrForBlock forBlock) {
 		// TODO Auto-generated method stub
+		forBlock.getInitialAssign().accept(this);
+		forBlock.getBlock().accept(this);
+		currentList = forBlock.getPreTempStat();
+		forBlock.setBoolExpression(handleBoolExpr(forBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
+		currentList = null;
+		currentList = forBlock.getAfterBlockStat();
+		forBlock.getStepFunction().accept(this);
+		currentList = null;
+		addIrStatement(forBlock);
 		return false;
 	}
 

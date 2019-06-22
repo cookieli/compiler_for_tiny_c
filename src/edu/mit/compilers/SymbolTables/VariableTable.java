@@ -11,8 +11,9 @@ import edu.mit.compilers.utils.Util;
 public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	
 	public int currentSlotPosition = 0;
+	public int wholeStackFrame     = 0;
 	public HashMap<String, Integer> variableSlot;
-	public int parentAllocStackSize = 0;
+	
 	public VariableTable() {
 		super();
 		variableSlot = new HashMap<>();
@@ -20,23 +21,15 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	public VariableTable(VariableTable parent) {
 		super(parent);
 		variableSlot = new HashMap<>();
-		if(this.parent != null) {
-			parentAllocStackSize = this.parent.getMemSize();
-			currentSlotPosition += this.parent.currentSlotPosition;
-		}
+		computeWholeStackFrame();
 		
 	}
 	
 	@Override
 	public void addParent(VariableTable parent) {
 		this.parent = parent;
-		if(this.parent != null) {
-			parentAllocStackSize = this.parent.getMemSize();
-			currentSlotPosition += this.parent.currentSlotPosition;
-		}
-		
+		computeWholeStackFrame();
 	}
-	
 	public boolean containsVariable(String var) {
 		if(table.containsKey(var))   return true;
 		else if(getParent() != null) return getParent().containsVariable(var);
@@ -79,12 +72,22 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 			ArrayDecl arr = (ArrayDecl)v;
 			currentSlotPosition += 1 * arr.arraySize.getIntValue().intValue() + Util.ArrayHeaderSize;
 		}
+		
+		computeWholeStackFrame();
+	}
+	
+	private void computeWholeStackFrame() {
+		if(this.parent != null)
+			wholeStackFrame = this.parent.wholeStackFrame + currentSlotPosition;
+		else
+			wholeStackFrame = currentSlotPosition;
 	}
 	
 	public String getMemLocation(String id) {
+		computeWholeStackFrame();
 		int location = 0;
 		if(variableSlot.containsKey(id) && this.parent != null) {
-			location = this.variableSlot.get(id) - currentSlotPosition;
+			location = this.variableSlot.get(id) - wholeStackFrame;
 			return Integer.toString(location);
 		}
 		else {
@@ -106,12 +109,16 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	}
 	
 	public int getMemSize() {
-		
-		 int ret = currentSlotPosition - parentAllocStackSize; 
-		 if(ret < 0)   return 0;
-		 int remainder = currentSlotPosition % 16;
-		  if(remainder != 0) 
-		  { ret += 16 - remainder; }
+		computeWholeStackFrame();
+		 int ret;
+		 if(this.parent != null)
+			 ret= wholeStackFrame - this.parent.getMemSize(); 
+		 else
+			 ret = wholeStackFrame;
+		 if(ret <= 0)   return 0;
+		 int remainder = ret % 16;
+		 if(remainder != 0)
+			 ret += 16 - remainder;
 		  return ret;
 	}
 	

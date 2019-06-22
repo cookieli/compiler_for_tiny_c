@@ -46,6 +46,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	public EnvStack env;
 	public MethodDecl currentMethod = null;
 	public IrBlock currentBlock = null;
+	public List<IrStatement> currentList = null;
 	public IrProgram program;
 	public SemanticCheckerNode semantics;
 
@@ -67,6 +68,10 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	}
 	
 	public void addIrStatement(IrStatement s) {
+		if(currentList != null) {
+			currentList.add(s);
+			return;
+		}
 		if(currentBlock == null)
 			currentMethod.addIrStatement(s);
 		else
@@ -398,8 +403,22 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		// TODO Auto-generated method stub
 		CondQuad condQuad = whileQuad.getCond();
 		resetCondQuad(condQuad, env.peekVariables(), env.peekMethod());
+		currentList = new ArrayList<IrStatement>();
+		for(IrStatement s: whileQuad.getPreQuad()) {
+			s.accept(this);
+		}
+		whileQuad.setPreQuad(currentList);
+		currentList = null;
 		if(whileQuad.getBlock() != null)
 			whileQuad.getBlock().accept(this);
+		if(whileQuad.getAfterBlockQuad() != null) {
+			IrBlock tempBlock = currentBlock;
+			currentBlock = whileQuad.getBlock();
+			for(IrStatement s: whileQuad.getAfterBlockQuad()) {
+				s.accept(this);
+			}
+			currentBlock = tempBlock;
+		}
 		addIrStatement(whileQuad);
 		
 	}

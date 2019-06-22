@@ -1,0 +1,17 @@
+import printf;
+
+void main(){
+  int a[7], i;
+  for(i = 0; i< len(a); i++){
+      int b;
+      a[i] = i+2;
+      b = a[i];
+      printf("%d ", b);
+  }
+   printf("\n");
+   //((a[2] -2) +a[0])*a[1]%a[4]
+  for(a[0] = 3; a[((a[2] -2) +a[0])*a[1]%a[4]] < 8; a[((a[2] -2) +a[0])*a[1]%a[4]]++){
+       printf("%d ", a[3]);
+  }
+     printf("\n");
+}

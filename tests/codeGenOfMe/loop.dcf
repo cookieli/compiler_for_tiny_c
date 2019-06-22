@@ -1,0 +1,16 @@
+import printf;
+void main(){
+    int i;
+    for(i = 0; i < 5; i++){
+       int i;
+       i = 8;
+       while(i > 4){
+         printf("hello \n");
+         i--;
+       }
+       
+       for(i = 4; i < 8; i++){
+          printf("hi\n");
+       }
+    }
+}
