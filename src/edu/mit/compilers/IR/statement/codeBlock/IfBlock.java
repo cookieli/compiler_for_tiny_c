@@ -14,6 +14,19 @@ public class IfBlock extends IrStatement{
 	
 	public IrBlock falseBlock;
 	
+	public IfBlock(IrExpression boolExpr, VariableTable parent) {
+		this.boolExpr = boolExpr;
+		this.trueBlock = new IrBlock(parent);
+		this.falseBlock = new IrBlock(parent);
+	}
+	
+	public void addTrueStatement(IrStatement assign) {
+		this.trueBlock.addIrStatement(assign);
+	}
+	public void addFalseStatement(IrStatement assign) {
+		this.falseBlock.addIrStatement(assign);
+	}
+	
 	public IfBlock(IrExpression boolExpr, IrBlock trueBlock, IrBlock falseBlock) {
 		this.boolExpr = boolExpr;
 		this.trueBlock = trueBlock;

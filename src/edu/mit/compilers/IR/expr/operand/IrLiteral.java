@@ -27,8 +27,13 @@ public class IrLiteral extends IrOperand{
 		super(node.getToken().getLine(), node.getToken().getColumn(), filename);
 		//System.out.println(node.getName());
 		value = node.getName();
+		value = this.getValue();
 		type = new IrType(node);
 			
+	}
+	
+	public IrLiteral() {
+		
 	}
 	
 	public IrLiteral(int v) {
@@ -42,7 +47,7 @@ public class IrLiteral extends IrOperand{
 	
 	public IrLiteral(IrLiteral l) {
 		super(l.getLineNumber(), l.getColumnNumber(), l.getFilename());
-		value = l.getValue();
+		value = l.value;
 		setPositive(l.isPositive);
 		type = new IrType(l.type.getType());
 	}
@@ -98,6 +103,20 @@ public class IrLiteral extends IrOperand{
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public static IrLiteral getTrueLiteral() {
+		IrLiteral l = new IrLiteral();
+		l.type = IrType.BoolType;
+		l.value = "1";
+		return l;
+	}
+	
+	public static IrLiteral getFalseLiteral() {
+		IrLiteral l = new IrLiteral();
+		l.type = IrType.BoolType;
+		l.value = "0";
+		return l;
 	}
 	@Override
 	public List<IrOperand> operandList() {

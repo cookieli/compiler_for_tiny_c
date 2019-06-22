@@ -157,7 +157,12 @@ public class IrWithTemp implements IrNodeVistor {
 		}
 		
 		if (rhs instanceof UnaryExpression) {
-			rhs = setTempForUnaryExpr((UnaryExpression) rhs);
+			UnaryExpression unary = (UnaryExpression) rhs;
+			if(unary.isBool()) {
+				changeAssignRhsIsBoolToIfBlock(assign, v).accept(this);
+				return;
+			}
+			rhs = setTempForUnaryExpr(unary);
 			assign = new IrAssignment(lhs, rhs, "=");
 		}
 
@@ -175,6 +180,13 @@ public class IrWithTemp implements IrNodeVistor {
 		}
 
 	}
+	
+	private IfBlock changeAssignRhsIsBoolToIfBlock(IrAssignment assign, VariableTable vtb) {
+		IfBlock block = new IfBlock(assign.getRhs(), vtb);
+		block.addTrueStatement(new IrAssignment(assign.getLhs(), IrLiteral.getTrueLiteral(), "="));
+		block.addFalseStatement(new IrAssignment(assign.getLhs(), IrLiteral.getFalseLiteral(), "="));
+		return block;
+	}
 
 	public IrExpression setTempForUnaryExpr(UnaryExpression expr) {
 		if (expr.getSymbol().equals("-"))
@@ -186,6 +198,11 @@ public class IrWithTemp implements IrNodeVistor {
 	private void HandleNoCompoundSymbolAssignRhsIsBinaryExpression(IrAssignment assign, VariableTable v, MethodTable m) {
 		IrLocation lhs = assign.getLhs();
 		BinaryExpression binary = (BinaryExpression) assign.getRhs();
+		if(binary.isBoolExpr() || binary.isCmpExpr()) {
+			changeAssignRhsIsBoolToIfBlock(assign, v).accept(this);
+			return;
+			
+		}
 		IrExpression binaryLhs = binary.getlhs();
 		IrExpression binaryRhs = binary.getrhs();
 		boolean binaryLhsNotNeedTemp = OperandNotNeedTemp(binaryLhs);
