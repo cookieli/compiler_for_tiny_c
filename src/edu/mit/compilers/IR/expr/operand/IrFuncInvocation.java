@@ -13,6 +13,22 @@ public class IrFuncInvocation extends IrOperand {
 	public List<IrExpression> funcArgs;
 	public boolean isPLT = false;
 	
+	public static IrFuncInvocation getPrintFunction(String msg) {
+		IrFuncInvocation func = new IrFuncInvocation();
+		func.addFuncName("printf");
+		func.setPLT(true);
+		func.addFuncArg(IrLiteral.getStringLiteral(msg));
+		return func;
+	}
+	
+	public static IrFuncInvocation getExitFunction(int num) {
+		IrFuncInvocation func = new IrFuncInvocation();
+		func.addFuncName("exit");
+		func.setPLT(true);
+		func.addFuncArg(IrLiteral.getLiteral(num));
+		return func;
+	}
+	
 	public boolean isPLT() {
 		return isPLT;
 	}

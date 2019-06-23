@@ -1,8 +1,8 @@
 import printf;
 
 void main(){
-  int a;
-  for(a = 0; a < 10; a++){
+  int a[2];
+  for(a[1] = 0; a[1] < 10; a[1]++){
       int a;
       a = 100;
       printf("%d ", a);

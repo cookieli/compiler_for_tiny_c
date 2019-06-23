@@ -1,0 +1,17 @@
+import printf;
+
+void main(){
+    int a;
+    a = 5;
+    if(a > 0){
+    }else{
+    }
+    
+    if(a < 0){
+    } else{
+      printf("a > 0\n");
+    }
+    
+    printf("hello %d\n", a);
+    
+}

@@ -10,6 +10,7 @@ import antlr.TokenStreamException;
 import edu.mit.compilers.CFG.AssemblyFromCFGVistor;
 import edu.mit.compilers.CFG.CFG;
 import edu.mit.compilers.CFG.cfgNodeVistor;
+import edu.mit.compilers.IR.BoundCheckVistor;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IrQuadVistor;
 import edu.mit.compilers.IR.IrResolveNameToLocationVistor;
@@ -56,6 +57,10 @@ class Main {
 				IrProgram newP = IrWithTemp.newProgram(p);
 				System.out.println(newP);
 				System.out.println("------temp-------");
+//				System.out.println("-----boundCheck-----");
+//				newP =BoundCheckVistor.newProgram(newP);
+//				System.out.println(newP);
+//				System.out.println("-----boundCheck-----");
 				IrProgram assemP = IrQuadVistor.newProgram(newP);
 				System.out.println(assemP);
 				assemP = IrResolveNameToLocationVistor.newProgram(assemP);

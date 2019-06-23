@@ -142,6 +142,7 @@ public class IrWithTemp implements IrNodeVistor {
 
 	public void HandleNoCompoundSymbolAssign(IrAssignment assign, VariableTable v, MethodTable m) {
 		IrLocation lhs = assign.getLhs();
+		handleLocation(lhs, v, m);
 		IrExpression rhs = assign.getRhs();
 		if (rhs instanceof IrLiteral) {
 			addIrStatement(assign);
@@ -168,7 +169,7 @@ public class IrWithTemp implements IrNodeVistor {
 
 		if (rhs instanceof BinaryExpression) {
 			if(lhs.locationIsArray()) {
-				handleLocation(lhs, v, m);
+				//handleLocation(lhs, v, m);
 				IrLocation lhsTemp = getExprCorrespondTemp(lhs,v, m);
 				IrAssignment newAssign = new IrAssignment(lhsTemp, rhs, "=");
 				HandleNoCompoundSymbolAssignRhsIsBinaryExpression(newAssign, v, m);
@@ -201,8 +202,8 @@ public class IrWithTemp implements IrNodeVistor {
 		if(binary.isBoolExpr() || binary.isCmpExpr()) {
 			changeAssignRhsIsBoolToIfBlock(assign, v).accept(this);
 			return;
-			
 		}
+		
 		IrExpression binaryLhs = binary.getlhs();
 		IrExpression binaryRhs = binary.getrhs();
 		boolean binaryLhsNotNeedTemp = OperandNotNeedTemp(binaryLhs);
@@ -250,7 +251,7 @@ public class IrWithTemp implements IrNodeVistor {
 	}
 
 	private boolean OperandNotNeedTemp(IrExpression expr) {
-		return expr instanceof IrLiteral || (expr instanceof IrLocation && ((IrLocation) expr).locationIsArray()) || expr instanceof IrLenExpr;
+		return expr instanceof IrLiteral || (expr instanceof IrLocation && !((IrLocation) expr).locationIsArray()) || expr instanceof IrLenExpr;
 	}
 
 	private void HandleNoCompoundSymbolAssignRhsIsIrLocation(IrLocation lhs, IrLocation rhs, IrAssignment assign,

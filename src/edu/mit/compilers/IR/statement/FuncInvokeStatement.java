@@ -12,6 +12,14 @@ public class FuncInvokeStatement extends IrStatement{
 		this.func = func;
 	}
 	
+	public static FuncInvokeStatement getPrintStatement(String literal) {
+		return new FuncInvokeStatement(IrFuncInvocation.getPrintFunction(literal));
+	}
+	
+	public static FuncInvokeStatement getExitStatement(int num) {
+		return new FuncInvokeStatement(IrFuncInvocation.getExitFunction(num));
+	}
+	
 	public FuncInvokeStatement(FuncInvokeStatement func) {
 		this.func = (IrFuncInvocation) func.getFunc().copy();
 	}

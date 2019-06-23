@@ -23,6 +23,10 @@ public class IrBlock extends IrStatement {
 		localVars.addParent(v);
 	}
 	
+	public boolean haveNoStatements() {
+		return statements.isEmpty();
+	}
+	
 	public VariableTable getLocalVar() {
 		return localVars;
 	}

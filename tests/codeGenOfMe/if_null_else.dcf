@@ -1,0 +1,12 @@
+import printf;
+
+void main(){
+   int a;
+   a = 9;
+   if(a > 100){
+     printf("hello world\n");
+   } else {
+   }
+   
+   printf("not ok\n");
+}

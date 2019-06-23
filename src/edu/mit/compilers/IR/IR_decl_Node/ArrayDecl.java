@@ -41,6 +41,9 @@ public class ArrayDecl extends Variable_decl{
 	public int getArraySize() {
 		return arraySize.getIntValue().intValue();
 	}
+	public IrLiteral getSizeLiteral() {
+		return arraySize;
+	}
 	
 	@Override
 	public String getGloblAddr() {

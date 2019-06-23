@@ -47,6 +47,8 @@ public class CFG {
 	}
 
 	public void addCFGPair(List<CFGNode> pair) {
+		if(pair == null)
+			return;
 		addCFGPair(pair.get(0), pair.get(1));
 	}
 
@@ -54,21 +56,25 @@ public class CFG {
 		addCFGNode(new ExitNode());
 
 	}
+	
+	
+	private static  CFGNode getFlowBeginNode(List<CFGNode> flow, CFGNode succ) {
+		if(flow == null)
+			return succ;
+		else {
+			flow.get(flow.size() - 1).addSuccessor(succ);
+			return flow.get(0);
+		}
+	}
 
 	public static List<CFGNode> destruct(IrIfBlockQuad block) {
 		CFGNode noOp = new NoOpCFG();
-		List<CFGNode> truePair = destruct(block.getTrueBlock());
-		List<CFGNode> falsePair = null;
-		if (block.getFalseBlock() != null) {
-			falsePair = destruct(block.getFalseBlock());
-		}
-		CFGNode trueBegin = truePair.get(0);
-		truePair.get(1).addSuccessor(noOp);
-		CFGNode falseBegin = noOp;
-		if (falsePair != null) {
-			falseBegin = falsePair.get(0);
-			falsePair.get(1).addSuccessor(noOp);
-		}
+		
+		List<CFGNode> truePair = destruct(block.getTrueBlock());//destruct(block.getTrueBlock());
+		List<CFGNode> falsePair =  destruct(block.getFalseBlock());
+		CFGNode trueBegin = getFlowBeginNode(truePair, noOp);
+		CFGNode falseBegin = getFlowBeginNode(falsePair, noOp);
+		if(trueBegin == falseBegin)  return null;
 		CFGNode beginNode = shortcircuit(block.getCondQuad(), trueBegin, falseBegin, null);
 		List<CFGNode> pair = new ArrayList<>();
 		pair.add(beginNode);
@@ -87,6 +93,9 @@ public class CFG {
 			truePair.add(noOp);
 			truePair.add(noOp);
 		}
+		
+		
+		
 		CFGNode beginNode = shortcircuit(block.getCond(), truePair.get(0), falseNode, block.getPreQuad());
 		beginNode.setWhileNode(true);
 		truePair.get(1).addSuccessor(beginNode);
@@ -176,6 +185,9 @@ public class CFG {
 
 	public static List<CFGNode> destruct(IrBlock block) {
 		List<CFGNode> pair = null;
+		if(block == null || block.haveNoStatements()) {
+			return null;
+		}
 		List<IrStatement> lowLevelIRs = block.getStatements();
 		CFGNode beginNode, endNode;
 

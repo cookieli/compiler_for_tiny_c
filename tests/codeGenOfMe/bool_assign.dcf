@@ -1,12 +1,17 @@
 import printf;
 
 void main(){
-    bool a, b,c, d;
+    bool a, b,c, d, g;
+    int e, f;
+    e = 3;
+    f = 6;
     a = true;
     b = !a;
     d  = a ||b;
     c = a && b;
+    g = e > f;
     printf("%d \n", b);
     printf("%d\n", d);
     printf("%d\n", c);
+    printf("%d\n", g);
 }

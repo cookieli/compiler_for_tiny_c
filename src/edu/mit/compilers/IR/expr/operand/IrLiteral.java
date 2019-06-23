@@ -118,6 +118,13 @@ public class IrLiteral extends IrOperand{
 		l.value = "0";
 		return l;
 	}
+	
+	public static IrLiteral getStringLiteral(String value) {
+		IrLiteral l = new IrLiteral();
+		l.type = IrType.stringType;
+		l.value = value;
+		return l;
+	}
 	@Override
 	public List<IrOperand> operandList() {
 		// TODO Auto-generated method stub

@@ -1,0 +1,14 @@
+import printf;
+
+void main(){
+   int a[9], b, c ,d, e, f, i;
+   b = 100;
+   c = 20;
+   d = 3;
+   e = 80;
+   f = 2;
+  // for(i = 0; i < len(a); i++){
+      // a[i] = i;
+ //  }
+   a[a[b+c*d/(d - f) + b %e]] = 20;
+}

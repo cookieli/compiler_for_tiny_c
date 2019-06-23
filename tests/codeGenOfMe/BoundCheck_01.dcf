@@ -1,0 +1,7 @@
+import printf;
+
+void main(){
+    int a[9], b;
+    b = 9;
+    a[b] = 90;
+}
