@@ -57,10 +57,10 @@ class Main {
 				IrProgram newP = IrWithTemp.newProgram(p);
 				System.out.println(newP);
 				System.out.println("------temp-------");
-//				System.out.println("-----boundCheck-----");
-//				newP =BoundCheckVistor.newProgram(newP);
-//				System.out.println(newP);
-//				System.out.println("-----boundCheck-----");
+				System.out.println("-----boundCheck-----");
+				newP =BoundCheckVistor.newProgram(newP);
+				System.out.println(newP);
+				System.out.println("-----boundCheck-----");
 				IrProgram assemP = IrQuadVistor.newProgram(newP);
 				System.out.println(assemP);
 				assemP = IrResolveNameToLocationVistor.newProgram(assemP);

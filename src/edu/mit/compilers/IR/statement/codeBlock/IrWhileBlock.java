@@ -22,6 +22,10 @@ public class IrWhileBlock extends IrStatement{
 		return preTempStat;
 	}
 	
+	public void setPreTempStat(List<IrStatement> lst) {
+		this.preTempStat = lst;
+	}
+	
 	
 	public IrWhileBlock(IrExpression expr, IrBlock block) {
 		boolExpr = expr;

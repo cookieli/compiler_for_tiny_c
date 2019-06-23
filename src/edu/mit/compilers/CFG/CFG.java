@@ -47,7 +47,7 @@ public class CFG {
 	}
 
 	public void addCFGPair(List<CFGNode> pair) {
-		if(pair == null)
+		if (pair == null)
 			return;
 		addCFGPair(pair.get(0), pair.get(1));
 	}
@@ -56,10 +56,9 @@ public class CFG {
 		addCFGNode(new ExitNode());
 
 	}
-	
-	
-	private static  CFGNode getFlowBeginNode(List<CFGNode> flow, CFGNode succ) {
-		if(flow == null)
+
+	private static CFGNode getFlowBeginNode(List<CFGNode> flow, CFGNode succ) {
+		if (flow == null)
 			return succ;
 		else {
 			flow.get(flow.size() - 1).addSuccessor(succ);
@@ -69,17 +68,43 @@ public class CFG {
 
 	public static List<CFGNode> destruct(IrIfBlockQuad block) {
 		CFGNode noOp = new NoOpCFG();
-		
-		List<CFGNode> truePair = destruct(block.getTrueBlock());//destruct(block.getTrueBlock());
-		List<CFGNode> falsePair =  destruct(block.getFalseBlock());
+
+		List<CFGNode> truePair = destruct(block.getTrueBlock());// destruct(block.getTrueBlock());
+		List<CFGNode> falsePair = destruct(block.getFalseBlock());
 		CFGNode trueBegin = getFlowBeginNode(truePair, noOp);
 		CFGNode falseBegin = getFlowBeginNode(falsePair, noOp);
-		if(trueBegin == falseBegin)  return null;
-		CFGNode beginNode = shortcircuit(block.getCondQuad(), trueBegin, falseBegin, null);
+		if (trueBegin == falseBegin)
+			return null;
+		CFGNode beginNode = shortcircuit(block.getCondQuad(), trueBegin, falseBegin);
 		List<CFGNode> pair = new ArrayList<>();
 		pair.add(beginNode);
 		pair.add(noOp);
 		return pair;
+	}
+
+	private static List<CFGNode> destructLst(List<IrStatement> quadLst) {
+		if (quadLst == null)
+			return null;
+		CFGNode reallyBeginNode = null;
+		CFGNode beginLstEndNode = null;
+
+		if (!quadLst.isEmpty()) {
+			List<CFGNode> pair = destruct((LowLevelIR) quadLst.get(0));
+			reallyBeginNode = pair.get(0);
+			beginLstEndNode = pair.get(1);
+			for (int i = 1; i < quadLst.size(); i++) {
+				pair = destruct((LowLevelIR) quadLst.get(i));
+				beginLstEndNode.addSuccessor(pair.get(0));
+				beginLstEndNode = pair.get(1);
+			}
+		} else {
+			return null;
+		}
+		List<CFGNode> pair = new ArrayList<>();
+		pair.add(reallyBeginNode);
+		pair.add(beginLstEndNode);
+		return pair;
+
 	}
 
 	public static List<CFGNode> destruct(IrWhileBlockQuad block) {
@@ -93,26 +118,33 @@ public class CFG {
 			truePair.add(noOp);
 			truePair.add(noOp);
 		}
-		
-		
-		
-		CFGNode beginNode = shortcircuit(block.getCond(), truePair.get(0), falseNode, block.getPreQuad());
+		List<CFGNode> prePair = destructLst(block.getPreQuad());
+		CFGNode beginNode = shortcircuit(block.getCond(), truePair.get(0), falseNode);
 		beginNode.setWhileNode(true);
-		truePair.get(1).addSuccessor(beginNode);
 		List<CFGNode> pair = new ArrayList<>();
-		pair.add(beginNode);
-		pair.add(falseNode);
+		if (prePair != null) {
+			prePair.get(0).setWhileNode(true);
+			prePair.get(1).addSuccessor(beginNode);
+			truePair.get(1).addSuccessor(prePair.get(0));
+			pair.add(prePair.get(0));
+			pair.add(falseNode);
+		} else {
+			truePair.get(1).addSuccessor(beginNode);
+			pair.add(beginNode);
+			pair.add(falseNode);
+		}
+
 		return pair;
 	}
 
-	private static CFGNode shortcircuit(CondQuad quad, CFGNode trueStart, CFGNode falseStart, List<IrStatement> lst) {
+	private static CFGNode shortcircuit(CondQuad quad, CFGNode trueStart, CFGNode falseStart) {
 		if (quad.getSymbol().isEmpty()) {
-			return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart, lst);
+			return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
 		}
 		if (quad.getSymbol().size() == 1 && quad.getSymbol().get(0).equals("!")) {
 			if (quad.getCondStack().get(0) instanceof IrQuadWithLocation)
-				return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), falseStart, trueStart, lst);
-			return shortcircuit((CondQuad) quad.getCondStack().get(0), falseStart, trueStart, lst);
+				return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), falseStart, trueStart);
+			return shortcircuit((CondQuad) quad.getCondStack().get(0), falseStart, trueStart);
 		}
 
 		List<String> symbol = quad.getSymbol();
@@ -121,9 +153,9 @@ public class CFG {
 		CFGNode beginNode = null;
 		LowLevelIR op1 = condStack.get(stackCursor--);
 		if (op1 instanceof IrQuadWithLocation) {
-			beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart, null);
+			beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
 		} else {
-			beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart, null);
+			beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
 		}
 		for (int i = symbol.size() - 1; i >= 0; i--) {
 			String sym = symbol.get(i);
@@ -134,16 +166,12 @@ public class CFG {
 			}
 			op1 = condStack.get(stackCursor--);
 			if (op1 instanceof IrQuadWithLocation) {
-				beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart, null);
+				beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
 			} else {
-				beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart, null);
+				beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
 			}
 
 		}
-		if (lst != null)
-			for (int i = lst.size() - 1; i >= 0; i--) {
-				beginNode.addLowLevelIrFromHead((LowLevelIR) lst.get(i));
-			}
 		return beginNode;
 	}
 
@@ -153,14 +181,9 @@ public class CFG {
 		return beginNode;
 	}
 
-	private static CFGNode shortcircuit(IrQuadWithLocation loc, CFGNode trueStart, CFGNode falseStart,
-			List<IrStatement> lst) {
+	private static CFGNode shortcircuit(IrQuadWithLocation loc, CFGNode trueStart, CFGNode falseStart) {
 
 		CFGNode beginNode = new CFGNode();
-		if (lst != null)
-			for (IrStatement s : lst) {
-				beginNode.addLowLevelIr((LowLevelIR) s);
-			}
 		beginNode.addLowLevelIr(loc);
 		return shortcircuit(beginNode, trueStart, falseStart);
 	}
@@ -185,7 +208,7 @@ public class CFG {
 
 	public static List<CFGNode> destruct(IrBlock block) {
 		List<CFGNode> pair = null;
-		if(block == null || block.haveNoStatements()) {
+		if (block == null || block.haveNoStatements()) {
 			return null;
 		}
 		List<IrStatement> lowLevelIRs = block.getStatements();
@@ -204,6 +227,9 @@ public class CFG {
 		}
 		for (int i = 1; i < lowLevelIRs.size(); i++) {
 			pair = destruct((LowLevelIR) lowLevelIRs.get(i));
+			if(pair == null) {
+				throw new IllegalArgumentException(lowLevelIRs.get(i).getName());
+			}
 			endNode.addSuccessor(pair.get(0));
 			endNode = pair.get(1);
 		}

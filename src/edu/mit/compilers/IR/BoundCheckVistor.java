@@ -1,5 +1,7 @@
 package edu.mit.compilers.IR;
 
+import java.util.ArrayList;
+
 import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
@@ -7,8 +9,10 @@ import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.statement.FuncInvokeStatement;
 import edu.mit.compilers.IR.statement.IrAssignment;
+import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
 import edu.mit.compilers.IR.statement.codeBlock.IrForBlock;
+import edu.mit.compilers.IR.statement.codeBlock.IrWhileBlock;
 import edu.mit.compilers.SymbolTables.MethodTable;
 import edu.mit.compilers.SymbolTables.VariableTable;
 import edu.mit.compilers.trees.ErrorReport;
@@ -40,6 +44,7 @@ public class BoundCheckVistor extends IrWithTemp{
 		IrLocation lhs = assign.getLhs();
 		IrExpression rhs = assign.getRhs();
 		if(lhs.locationIsArray()) {
+			//throw new IllegalArgumentException(" " + lhs.getId());
 			boundCheckArrLocation(lhs, envs.peekVariables(), envs.peekMethod());
 		}
 		if(rhs instanceof IrLocation && ((IrLocation) rhs).locationIsArray()) {
@@ -52,9 +57,35 @@ public class BoundCheckVistor extends IrWithTemp{
 	
 	@Override
 	public boolean visit(IrForBlock forBlock) {
-		
+		forBlock.getBlock().accept(this);
+		currentList = new ArrayList<>();
+		for(IrStatement s: forBlock.getPreTempStat()) {
+			s.accept(this);
+		}
+		forBlock.setPreTempStat(currentList);
+		currentList = new ArrayList<>();
+		for(IrStatement s: forBlock.getAfterBlockStat()) {
+			s.accept(this);
+		}
+		forBlock.setAfterBlockStat(currentList);
+		currentList = null;
+		addIrStatement(forBlock);
 		return false;
 	}
+	
+	
+	public boolean visit(IrWhileBlock whileBLock){
+		whileBLock.getCodeBlock().accept(this);
+		currentList = new ArrayList<>();
+		for(IrStatement s: whileBLock.getPreTempStat()) {
+			s.accept(this);
+		}
+		whileBLock.setPreTempStat(currentList);
+		currentList = null;
+		addIrStatement(whileBLock);
+		return false;
+	}
+	
 	
 	public void boundCheckArrLocation(IrLocation loc, VariableTable v, MethodTable m) {
 		ifCodeForBoundCheck(loc, v, m).accept(this);

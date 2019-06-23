@@ -134,6 +134,7 @@ public class MethodDecl extends Variable_decl{
 		return getParameterType(paraList.get(i));
 		
 	}
+	
 	public int getParameterSize() {
 		return paraList.size();
 	}

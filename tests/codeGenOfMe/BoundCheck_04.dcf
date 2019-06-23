@@ -1,0 +1,16 @@
+import printf;
+
+void main(){
+   int a[12], i;
+   i = 0;
+   while(i < len(a)){
+       a[i] = i;
+       i++;
+   }
+   i = 0;
+   while(a[i+2] < 100){
+     i++;
+   }
+   
+   
+}

@@ -131,7 +131,7 @@ public class CFGNode extends IrNode {
 		node.pointTo = null;
 		node.parents = null;
 		node.inComingDegree = 0;
-
+		this.isWhileNode = this.isWhileNode || node.isWhileNode();
 	}
 
 	@Override

@@ -111,9 +111,10 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 	public int getMemSize() {
 		computeWholeStackFrame();
 		 int ret;
-		 if(this.parent != null)
-			 ret= wholeStackFrame - this.parent.getMemSize(); 
-		 else
+		 if(this.parent != null) {
+			 ret = wholeStackFrame - this.parent.wholeStackFrame;
+			 //throw new IllegalArgumentException("alloc size is " + ret);
+		 }else
 			 ret = wholeStackFrame;
 		 if(ret <= 0)   return 0;
 		 int remainder = ret % 16;
@@ -127,11 +128,6 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl>{
 		for(Variable_decl decl: this) {
 			v.put((Variable_decl) decl.copy());
 		}
-//		v.currentSlotPosition = this.currentSlotPosition;
-//		v.variableSlot = new HashMap<>();
-//		for(String key: this.variableSlot.keySet()) {
-//			v.variableSlot.put(key, this.variableSlot.get(key));
-//		}
 		return v;
 	}
 	

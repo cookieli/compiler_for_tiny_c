@@ -15,19 +15,19 @@ void main(){
       printf("yes the world\n");
    }
    
- //  if(a <= 10 && b >= 40){
- //       printf("hello world2\n");
- //  } else {
- //    if(d >= 16 || e < 27 && d >= e){
- //       printf("hello world %d, %d\n", d, e);
- //    } else {
- //      int i,j,k;
- //      i = 5;
- //      j = 7;
- //      k = 10;
- //      printf("la la la %d, %d, %d\n", i, j, k);
- //    }
- //  }
+   if(a <= 10 && b >= 40){
+        printf("hello world2\n");
+   } else {
+     if(d >= 16 || e < 27 && d >= e){
+       printf("hello world %d, %d\n", d, e);
+     } else {
+      int i,j,k;
+      i = 5;
+      j = 7;
+      k = 10;
+      printf("la la la %d, %d, %d\n", i, j, k);
+     }
+   }
    
    
 }

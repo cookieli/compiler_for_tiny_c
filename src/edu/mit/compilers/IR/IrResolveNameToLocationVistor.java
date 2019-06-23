@@ -384,6 +384,8 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	@Override
 	public boolean visit(IrBlock block) {
 		// TODO Auto-generated method stub
+		List<IrStatement> tempList = currentList;
+		currentList = null;
 		IrBlock tempBlock = currentBlock;
 		currentBlock = block;
 		List<IrStatement> stats = currentBlock.statements;
@@ -395,6 +397,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		
 		env.popVariables();
 		currentBlock = tempBlock;
+		currentList = tempList;
 		return false;
 	}
 

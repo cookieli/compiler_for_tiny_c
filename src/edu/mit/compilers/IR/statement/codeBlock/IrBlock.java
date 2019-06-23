@@ -18,6 +18,7 @@ public class IrBlock extends IrStatement {
 		statements = new ArrayList<>();
 		localVars = new VariableTable();
 	}
+	
 	public IrBlock(VariableTable v) {
 		this();
 		localVars.addParent(v);

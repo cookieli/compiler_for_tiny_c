@@ -349,6 +349,8 @@ public class IrWithTemp implements IrNodeVistor {
 	@Override
 	public boolean visit(IrBlock block) {
 		// TODO Auto-generated method stub
+		List<IrStatement> tempList = currentList;
+		currentList = null;
 		IrBlock tempBlock = currentBlock;
 		currentBlock = block;
 		//currentBlock.setLocalVarTableParent(envs.peekVariables());
@@ -360,12 +362,14 @@ public class IrWithTemp implements IrNodeVistor {
 		}
 		envs.popVariables();
 		currentBlock = tempBlock;
+		currentList = tempList;
 		return false;
 	}
 
 	@Override
 	public boolean visit(IfBlock ifCode) {
 		// TODO Auto-generated method stub
+	
 		ifCode.setBoolExpr(handleBoolExpr(ifCode.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
 		ifCode.getTrueBlock().accept(this);
 		if(ifCode.getFalseBlock() != null) {

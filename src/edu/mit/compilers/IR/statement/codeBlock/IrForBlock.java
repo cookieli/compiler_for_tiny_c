@@ -26,10 +26,18 @@ public class IrForBlock extends IrStatement{
 		return preTempStat;
 	}
 	
+	public void setPreTempStat(List<IrStatement> lst) {
+		this.preTempStat = lst;
+	}
+	
 	public List<IrStatement> getAfterBlockStat(){
 		if(afterBlockStat == null)
 			afterBlockStat = new ArrayList<>();
 		return afterBlockStat;
+	}
+	
+	public void setAfterBlockStat(List<IrStatement> lst) {
+		this.afterBlockStat = lst;
 	}
 	
 	public void setBoolExpression(IrExpression boolExpr) {
@@ -59,14 +67,17 @@ public class IrForBlock extends IrStatement{
 		else {
 			sb.append("********for********\n");
 			if(preTempStat != null) {
+				sb.append("---preTempStat-----\n");
 				for(IrStatement s: preTempStat) {
 					sb.append(s.getName());
 					sb.append("\n");
 				}
+				sb.append("---preTempStat----\n");
 			}
 			sb.append(boolExpr.getName() + "\n");
 			
 			if(afterBlockStat != null) {
+				sb.append("----afterBlockStat----");
 				for(IrStatement s: afterBlockStat) {
 					sb.append(s.getName());
 					sb.append("\n");
