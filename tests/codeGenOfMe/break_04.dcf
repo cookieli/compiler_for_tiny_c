@@ -1,0 +1,22 @@
+import printf;
+
+void main(){
+    int i, m;
+    i = 6;
+    while(i > 0){
+       if(i == 3){
+          printf("outer loop break\n");
+          break;
+       }
+       for(m = 0; m < 4; m++){
+            if(m == 2){
+              printf("inner loop break\n");
+              break;
+            }
+            printf("inner loop\n");
+       }
+       
+       printf("outer loop\n");
+       i--;
+    }
+}

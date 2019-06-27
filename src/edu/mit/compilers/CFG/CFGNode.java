@@ -19,6 +19,35 @@ public class CFGNode extends IrNode {
 	private int nameVisited = 0;
 	
 	private boolean isWhileNode = false;
+	private boolean isLoopEnd   = false;
+	
+	//private CFGNode afterNode = null;
+	
+	public void setLoopEnd(boolean boo) {
+		this.isLoopEnd = boo;
+	}
+	
+	public boolean istLoopEnd() {
+		return isLoopEnd;
+	}
+	
+	
+	public boolean isTransitionNodeForEliminate() {
+		boolean ret = false;
+		if(this.statements == null && (parents != null && !parents.isEmpty())) {
+			ret = true;
+			for(CFGNode parent: parents) {
+				System.out.println(parent.getName());
+				if(parent.pointTo == null ) {
+					throw new IllegalArgumentException( parent.getStats() + " " + this.getSuccessor().get(0).getStats());
+				}
+				if(!(parent.pointTo.size() == 1 && parent.pointTo.get(0).equals(this))) {
+					ret = false;
+				}
+			}
+		}
+		return ret;
+	}
 	
 	public int visitCount = 1;
 	
@@ -45,6 +74,7 @@ public class CFGNode extends IrNode {
 
 	public void deletePointTo() {
 		pointTo = new LinkedList<>();
+		//throw new IllegalArgumentException("point to == null");
 	}
 
 	public void deleteParent() {
@@ -57,6 +87,8 @@ public class CFGNode extends IrNode {
 	}
 
 	public void addSuccessor(CFGNode node) {
+		if(pointTo == null)
+			pointTo = new LinkedList<>();
 		pointTo.add(node);
 		node.addParent(this);
 	}
@@ -81,6 +113,8 @@ public class CFGNode extends IrNode {
 	}
 
 	private void addParent(CFGNode node) {
+		if(parents == null)
+			parents = new LinkedList<>();
 		parents.add(node);
 		addPredecessor();
 	}
@@ -128,10 +162,16 @@ public class CFGNode extends IrNode {
 		else
 			this.statements.addAll(node.statements);
 		this.pointTo = node.pointTo;
+		if(node.pointTo != null)
+		for(CFGNode n: node.pointTo) {
+			int index = n.parents.indexOf(node);
+			n.parents.set(index, this);
+		}
 		node.pointTo = null;
 		node.parents = null;
 		node.inComingDegree = 0;
 		this.isWhileNode = this.isWhileNode || node.isWhileNode();
+		this.isLoopEnd = this.isLoopEnd || node.isLoopEnd;
 	}
 
 	@Override
@@ -196,5 +236,7 @@ public class CFGNode extends IrNode {
 
 	public static void main(String[] args) {
 		// System.out.println(getOneRectangle("", "\n"));
+		String a = null;
+		System.out.println(a);
 	}
 }

@@ -457,6 +457,7 @@ public class IrWithTemp implements IrNodeVistor {
 	@Override
 	public boolean visit(LoopStatement l) {
 		// TODO Auto-generated method stub
+		addIrStatement(l);
 		return false;
 	}
 

@@ -1,0 +1,34 @@
+import printf;
+
+void main(){
+    int i;
+    for(i = 0; i < 8; i++){
+        int m;
+        m = 8;
+        if(i == 3){
+           printf("out break for i\n");
+           break;
+        } 
+        while(m > 0){
+        if(m == 4){
+          printf("innner break for m\n");
+          break;
+       }
+         printf("inner loop\n");
+         m--;
+       }
+     
+        printf("outer loop\n");
+    }
+    
+}
+
+ //    while(m > 0){
+     //     if(m == 4){
+    //          printf("innner break for m\n");
+     //         break;
+     //     }
+     //     printf("inner loop\n");
+     //     m--;
+     //   }
+     

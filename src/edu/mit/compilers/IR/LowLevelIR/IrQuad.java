@@ -24,6 +24,8 @@ public class IrQuad extends LowLevelIR{
 	public SemanticCheckerNode semantics;
 	public VariableTable v;
 	public MethodTable m;
+	
+	
 	public IrQuad() {
 		
 	}

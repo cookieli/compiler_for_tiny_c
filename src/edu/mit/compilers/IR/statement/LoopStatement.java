@@ -8,6 +8,10 @@ public class LoopStatement extends IrStatement{
 	
 	public boolean isContinue = false;
 	
+	public boolean isContinue() {
+		return isContinue;
+	}
+	
 	public LoopStatement(ParseTreeNode n, String fileName) {
 		super(n.getToken().getLine(), n.getToken().getColumn(), fileName);
 		if(n.getName().equals("continue"))

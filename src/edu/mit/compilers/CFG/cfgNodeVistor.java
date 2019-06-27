@@ -10,6 +10,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
@@ -145,7 +146,10 @@ public class cfgNodeVistor implements IrNodeVistor{
 		
 	}
 	
-	
+	public boolean visit(IrQuadForLoopStatement quad) {
+		currentCFG.addCFGPair(CFG.destruct(quad));
+		return false;
+	}
 	
 	
 	@Override

@@ -12,6 +12,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
@@ -164,6 +165,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	@Override
 	public boolean visit(LoopStatement l) {
 		// TODO Auto-generated method stub
+		
 		return false;
 	}
 
@@ -302,6 +304,12 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		return false;
 	}
 	
+	
+	public boolean visit(IrQuadForLoopStatement quad) {
+		addIrStatement(quad);
+		return false;
+	}
+	
 	public MemOperandForm setStringLiteralForFunc(IrLiteral l) {
 		program.addReadOnlyData(l.getValue());
 		MemOperandForm mem = new MemOperandForm(program.getRoData().getLastLabel(), X86_64Register.rip.name_64bit);
@@ -421,6 +429,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 				s.accept(this);
 			}
 			currentBlock = tempBlock;
+			
 		}
 		addIrStatement(whileQuad);
 		

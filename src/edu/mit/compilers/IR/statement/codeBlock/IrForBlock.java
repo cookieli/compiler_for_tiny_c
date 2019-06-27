@@ -77,7 +77,7 @@ public class IrForBlock extends IrStatement{
 			sb.append(boolExpr.getName() + "\n");
 			
 			if(afterBlockStat != null) {
-				sb.append("----afterBlockStat----");
+				sb.append("----afterBlockStat----\n");
 				for(IrStatement s: afterBlockStat) {
 					sb.append(s.getName());
 					sb.append("\n");

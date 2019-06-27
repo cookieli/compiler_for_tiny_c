@@ -1,0 +1,13 @@
+import printf;
+
+void main(){
+   int i;
+   i = 6;
+   if(i == 2){
+      printf("hello world\n");
+   } 
+   //printf("wrong\n");
+   while(i > 0){
+     i--;
+   }
+}

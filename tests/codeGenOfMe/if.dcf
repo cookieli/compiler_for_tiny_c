@@ -11,9 +11,7 @@ void main(){
      if(a > b){
         if(c > d){
            printf("a, c, d is %d, %d, %d\n", a, c, d);
-        } else {
-            printf("a, d, c is %d, %d, %d\n", a, d, c);
-        }
+        } 
      } else {
        if(d > c){
            if( e > f){

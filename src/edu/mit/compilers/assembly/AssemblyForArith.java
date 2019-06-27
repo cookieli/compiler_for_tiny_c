@@ -103,6 +103,7 @@ public class AssemblyForArith {
 	}
 	
 	public static String setJmpLabel(String label) {
+	//	System.out.println("the label is " + label + "\n");
 		return label + "\n";
 	}
 	

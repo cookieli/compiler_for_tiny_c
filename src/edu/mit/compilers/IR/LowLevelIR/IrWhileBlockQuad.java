@@ -28,6 +28,10 @@ public class IrWhileBlockQuad extends LowLevelIR {
 		return afterBlockQuad;
 	}
 	
+	public void setAfterBlockQuad(List<IrStatement> lst) {
+		afterBlockQuad = lst;
+	}
+	
 	public void setPreQuad(List<IrStatement> lst) {
 		this.preQuad = lst;
 	}

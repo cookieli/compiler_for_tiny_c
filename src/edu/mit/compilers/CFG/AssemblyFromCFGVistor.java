@@ -10,6 +10,7 @@ import java.util.Stack;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.LowLevelIR.CondQuad;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
@@ -18,7 +19,10 @@ import edu.mit.compilers.assembly.AssemblyForArith;
 public class AssemblyFromCFGVistor {
 	StringBuilder sb;
 	public static final String tab = "\t";
-
+	public String currenWhileLabel = null;
+	
+	public cfgNodeStack branch;
+	public Stack<String>  loopStack = null;
 	public AssemblyFromCFGVistor() {
 		sb = new StringBuilder();
 	}
@@ -60,6 +64,7 @@ public class AssemblyFromCFGVistor {
 
 	public void visit(CFGNode n) {
 		if (n.getLabel() != null) {
+			//sb.append(" label");
 			sb.append(n.getLabel() + ":\n");
 		}
 		if (n.statements != null) {
@@ -69,7 +74,14 @@ public class AssemblyFromCFGVistor {
 				else if (ir instanceof IrQuadWithLocForFuncInvoke) {
 					sb.append(AssemblyForArith.getAssemBlyForFuncInvoke((IrQuadWithLocForFuncInvoke) ir));
 					sb.append(AssemblyForArith.SetRaxZero());
-				} else
+				} else if(ir instanceof IrQuadForLoopStatement){
+					IrQuadForLoopStatement loop = (IrQuadForLoopStatement) ir;
+					sb.append("nop\n");
+					if(loop.isBreak())
+						setJmpOpr(branch.getMostClosestLoopEndNode().getLabel());
+					else
+						setJmpOpr(loopStack.peek());
+				}else 
 					sb.append(ir.getName());
 
 			}
@@ -87,12 +99,20 @@ public class AssemblyFromCFGVistor {
 	}
 
 	public void visit(CFG graph) {
-		Stack<CFGNode> branch = new Stack<>();
+		
+		
+		branch = new cfgNodeStack();
 		CFGNode node = graph.entry;
 		CFGNode before = null;
 		sb.append(graph.getFuncTitile());
 		//int count = 1;
 		while (node != null) {
+			if(node.isWhileNode()) {
+				if(loopStack == null)   loopStack = new Stack<>();
+				if(node.getLabel() == null)
+					node.setLabel(AssemblyForArith.getNxtJmpLabel());
+				loopStack.push(node.getLabel());
+			}
 			if (!node.isAssemblyVisited())
 				node.accept(this);
 			else if (node.getLabel() != null) {
@@ -137,6 +157,9 @@ public class AssemblyFromCFGVistor {
 								setJmpOpr(node.getLabel());
 								node = branch.pop();
 							}
+							if(!loopStack.isEmpty()) {
+								loopStack.pop();
+							}
 						}
 					}
 				} else {
@@ -165,6 +188,7 @@ public class AssemblyFromCFGVistor {
 	}
 
 	private void setJmpLabel(String label) {
+		
 		sb.append(AssemblyForArith.setJmpLabel(label));
 	}
 

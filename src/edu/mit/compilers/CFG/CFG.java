@@ -8,6 +8,7 @@ import java.util.Stack;
 
 import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
@@ -73,8 +74,10 @@ public class CFG {
 		List<CFGNode> falsePair = destruct(block.getFalseBlock());
 		CFGNode trueBegin = getFlowBeginNode(truePair, noOp);
 		CFGNode falseBegin = getFlowBeginNode(falsePair, noOp);
-		if (trueBegin == falseBegin)
+		if (trueBegin == falseBegin) {
+			// throw new IllegalArgumentException(block.getName());
 			return null;
+		}
 		CFGNode beginNode = shortcircuit(block.getCondQuad(), trueBegin, falseBegin);
 		List<CFGNode> pair = new ArrayList<>();
 		pair.add(beginNode);
@@ -133,7 +136,7 @@ public class CFG {
 			pair.add(beginNode);
 			pair.add(falseNode);
 		}
-
+		pair.get(1).setLoopEnd(true);
 		return pair;
 	}
 
@@ -197,7 +200,8 @@ public class CFG {
 	}
 
 	public static List<CFGNode> destruct(LowLevelIR ir) {
-		if (ir instanceof IrQuadWithLocForFuncInvoke || ir instanceof IrQuadWithLocation)
+		if (ir instanceof IrQuadWithLocForFuncInvoke || ir instanceof IrQuadWithLocation
+				|| ir instanceof IrQuadForLoopStatement)
 			return destructOnelineQuad(ir);
 		else if (ir instanceof IrIfBlockQuad)
 			return destruct((IrIfBlockQuad) ir);
@@ -214,8 +218,16 @@ public class CFG {
 		List<IrStatement> lowLevelIRs = block.getStatements();
 		CFGNode beginNode, endNode;
 
-		LowLevelIR firstQuad = (LowLevelIR) lowLevelIRs.get(0);
-		pair = destruct(firstQuad);
+		int cursor = 0;
+		while (pair == null && cursor < lowLevelIRs.size()) {
+			LowLevelIR firstQuad = (LowLevelIR) lowLevelIRs.get(cursor++);
+			pair = destruct(firstQuad);
+		}
+
+		if (pair == null)
+			// throw new IllegalArgumentException(block.getName());
+			return null;
+
 		int memSize = block.getLocalVar().getMemSize();
 		if (memSize > 0) {
 			beginNode = new stackAllocNode(memSize);
@@ -227,8 +239,9 @@ public class CFG {
 		}
 		for (int i = 1; i < lowLevelIRs.size(); i++) {
 			pair = destruct((LowLevelIR) lowLevelIRs.get(i));
-			if(pair == null) {
-				throw new IllegalArgumentException(lowLevelIRs.get(i).getName());
+			if (pair == null) {
+				// throw new IllegalArgumentException(lowLevelIRs.get(i).getName());
+				continue;
 			}
 			endNode.addSuccessor(pair.get(0));
 			endNode = pair.get(1);
@@ -261,12 +274,13 @@ public class CFG {
 						if (succ.getIncomingDegree() == 1) {
 							node.combineNode(succ);
 							queue.add(node);
+							continue;
 						} else {
 							queue.add(succ);
 						}
 					}
 
-					if (node.statements == null && succ.isMergeNode()) {
+					if (node.isTransitionNodeForEliminate() && succ.isMergeNode() && !succ.isWhileNode()) {
 						if (succ.getParents().get(0).equals(node))
 							succ.deleteParent();
 						if (succ.getParents().contains(node)) {
@@ -278,6 +292,7 @@ public class CFG {
 							n.addSuccessor(succ);
 						}
 					}
+
 				} else {
 					for (CFGNode n : successors) {
 						if (!n.isVisited()) {

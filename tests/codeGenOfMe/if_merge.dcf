@@ -1,0 +1,20 @@
+import printf;
+
+void main(){
+   int a, b, c,d;
+   a = 0;
+   b = 1;
+   c = 2;
+   d = 3;
+   if( a <= b){
+      if(c > d){
+         printf("hello world\n");
+      }
+   }else{
+      if(c < d){
+         printf("lu lu lu\n");
+      }
+   }
+   
+   printf("trust\n");
+}

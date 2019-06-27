@@ -10,6 +10,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
@@ -186,6 +187,8 @@ public class IrQuadVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(LoopStatement l) {
 		// TODO Auto-generated method stub
+		//if(!l.isContinue())
+		addIrStatement(new IrQuadForLoopStatement(l.getName()));
 		return false;
 	}
 	@Override
