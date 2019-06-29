@@ -5,26 +5,21 @@ void main(){
    int b;
    a = 2;
    b = 1;
-   while(a <= 4 || b > -4){
+   while(b > -3 || a < 5){
      if(b > 0){
       if(a <= 4){
         printf("yes\n");
-      } else {
-        printf("no\n");
+      } else{
+         printf("no\n");
       }
      } else {
-      if(a <= 4){
+       if(a <= 4){
          printf(" yes a %d\n", a);
-       } else {
-         printf("yes b %d\n", b);
-         if(b > -2){
-           printf("b > - 2\n");
-         }
        }
        printf("no %d\n", a);
        printf("no %d\n", b);
      }
      a = a+1;
      b = b -1;
-   }
+     }
 }

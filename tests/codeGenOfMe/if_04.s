@@ -1,9 +1,8 @@
-.file "tests/codeGenOfMe/globl_and_local.dcf"
+.file "tests/codeGenOfMe/if_04.dcf"
 .text
-.comm	a,8, 8
 .section .rodata
 .LC0:
-.string "%d\n"
+.string "hello world\n"
 .text
 .globl main
 .type main, @function
@@ -11,12 +10,17 @@ main:
 pushq %rbp
 movq %rsp, %rbp
 subq $16, %rsp
-movq $5,-8(%rbp)
-movq -8(%rbp),%rsi
+movb $0,-1(%rbp)
+movb -1(%rbp),%al
+cmpb $0,%al
+jle .L1
+.L2:
+leave
+ret
+.L1:
 leaq .LC0(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
-leave
-ret
+jmp .L2
 

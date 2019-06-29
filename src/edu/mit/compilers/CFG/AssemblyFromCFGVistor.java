@@ -165,8 +165,9 @@ public class AssemblyFromCFGVistor {
 				} else {
 					if (node.getSuccessor().get(1).getLabel() == null) {
 						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
-						branch.push(node.getSuccessor().get(1));
+						
 					}
+					branch.push(node.getSuccessor().get(1));
 					if (!before.isAssemblyVisited())
 						setJmpLabel(node.getSuccessor().get(1).getLabel());
 					node = node.getSuccessor().get(0);

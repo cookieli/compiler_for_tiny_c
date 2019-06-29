@@ -6,6 +6,8 @@
 .LC1:
 .string "hello world\n"
 .LC2:
+.string "%d\n"
+.LC3:
 .string "in loop %d\n"
 .text
 .globl main
@@ -41,7 +43,11 @@ addq %r10,%rax
 movq %rax,-8(%rbp)
 jmp .L1
 .L2:
-nop
+movq -8(%rbp),%rsi
+leaq .LC2(%rip),%rdi
+movq $0,%rax
+call printf@PLT
+movq $0,%rax
 .L4:
 movq -8(%rbp),%rax
 cmpq $0,%rax
@@ -54,7 +60,7 @@ jmp .L5
 jmp .L6
 .L6:
 movq -8(%rbp),%rsi
-leaq .LC2(%rip),%rdi
+leaq .LC3(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax

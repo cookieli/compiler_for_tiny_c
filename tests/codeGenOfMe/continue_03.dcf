@@ -1,0 +1,27 @@
+import printf;
+
+void main(){
+  int i;
+  i = 10;
+  while( i > 0){
+  int a;
+  for(a = 0; a < 10000; a++){
+       if(a < 9995){
+            continue;
+       }
+       if(a == 9999){
+          break;
+       }
+       printf("a: %d\n", a);
+    }
+    i--;
+    if(i > 5){
+        continue;
+    }
+    printf("%d\n", i);
+    if(i == 2){
+         printf("break outtter\n");
+         break;
+    }
+  }
+}

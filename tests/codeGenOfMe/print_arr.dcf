@@ -1,0 +1,14 @@
+import printf;
+
+void main(){
+    int a[10], i, b, c, d;
+    for(i = 0; i < 10; i++){
+      a[i] = i;
+      printf("%d\n", a[i]);
+    }
+    b = 10;
+    c = 8;
+    d = 2;
+    
+    printf("%d\n", a[b-c+d*1- a[5]]);
+}

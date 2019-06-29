@@ -103,7 +103,9 @@ public class BoundCheckVistor extends IrWithTemp{
 		}
 		
 		BinaryExpression binary = new BinaryExpression(sizeExpr, arrayLen, ">=");
-		IfBlock ifCode = new IfBlock(binary, v);
+		BinaryExpression binary2 = new BinaryExpression(sizeExpr, IrLiteral.getLiteral(0), "<");
+		BinaryExpression binary_last = new BinaryExpression(binary, binary2, "||");
+		IfBlock ifCode = new IfBlock(binary_last, v);
 		ifCode.addTrueStatement(FuncInvokeStatement.getPrintStatement(ErrMsgForBoundCheck(loc)));
 		ifCode.addTrueStatement(FuncInvokeStatement.getExitStatement(-1));
 		return ifCode;

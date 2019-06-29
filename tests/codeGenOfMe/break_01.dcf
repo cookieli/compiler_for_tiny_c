@@ -10,6 +10,7 @@ void main(){
     }
       printf("hello world\n");
     }
+    printf("%d\n", i);
     while(i > 0){
       if(i == 2){
         break;

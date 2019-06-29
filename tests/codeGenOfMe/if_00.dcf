@@ -1,0 +1,15 @@
+import printf;
+
+void main(){
+   int a;
+   a = 5;
+   if(a > 4){
+      printf("a\n");
+      printf("b\n");
+   } else {
+      printf("c\n");
+      printf("d\n");
+   }
+   
+   printf("end\n");
+}

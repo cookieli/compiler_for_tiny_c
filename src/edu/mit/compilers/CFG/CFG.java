@@ -23,6 +23,8 @@ public class CFG {
 	public CFGNode entry;
 	public CFGNode end;
 
+	public static IrWhileBlockQuad currentLoop = null;
+
 	public CFG() {
 	}
 
@@ -111,11 +113,14 @@ public class CFG {
 	}
 
 	public static List<CFGNode> destruct(IrWhileBlockQuad block) {
+		IrWhileBlockQuad tempLoop = currentLoop;
+		currentLoop = block;
 		CFGNode falseNode = new NoOpCFG();
 		List<CFGNode> truePair = null;
 		if (block.getBlock() != null) {
 			truePair = destruct(block.getBlock());
-		} else {
+		}
+		if (truePair == null) {
 			CFGNode noOp = new NoOpCFG();
 			truePair = new ArrayList<>();
 			truePair.add(noOp);
@@ -137,6 +142,7 @@ public class CFG {
 			pair.add(falseNode);
 		}
 		pair.get(1).setLoopEnd(true);
+		currentLoop = tempLoop;
 		return pair;
 	}
 
@@ -191,12 +197,52 @@ public class CFG {
 		return shortcircuit(beginNode, trueStart, falseStart);
 	}
 
+	private static List<CFGNode> destructContinue(LowLevelIR quad) {
+		CFGNode newNode = new CFGNode();
+		CFGNode beginNode = null;
+		CFGNode endNode = null;
+		List<CFGNode> lst = new ArrayList<>();
+		List<CFGNode> pair;
+		if (currentLoop != null && currentLoop.getAfterBlockQuad() != null) {
+			for (IrStatement ir : currentLoop.getAfterBlockQuad()) {
+				pair = destruct((LowLevelIR) ir);
+				if (pair != null) {
+					if (beginNode == null) {
+						beginNode = pair.get(0);
+						endNode = pair.get(1);
+					} else {
+						endNode.addSuccessor(pair.get(0));
+						endNode = pair.get(1);
+					}
+				}
+			}
+		}
+		newNode.addLowLevelIr(quad);
+		if (endNode != null) {
+			endNode.addSuccessor(newNode);
+			lst.add(beginNode);
+			lst.add(newNode);
+		} else {
+			lst.add(newNode);
+			lst.add(newNode);
+		}
+		return lst;
+	}
+
 	private static List<CFGNode> destructOnelineQuad(LowLevelIR quad) {
+		
+		if(quad instanceof IrQuadForLoopStatement && !((IrQuadForLoopStatement) quad).isBreak())
+			return destructContinue(quad);
 		CFGNode newNode = new CFGNode(quad);
-		List<CFGNode> list = new ArrayList<>();
-		list.add(newNode);
-		list.add(newNode);
-		return list;
+		List<CFGNode> pair = new ArrayList<>();
+		pair.add(newNode);
+		pair.add(newNode);
+		return pair;
+	}
+
+	private static boolean oneLineQuad(LowLevelIR ir) {
+		return ir instanceof IrQuadWithLocation || ir instanceof IrQuadWithLocForFuncInvoke
+				|| ir instanceof IrQuadForLoopStatement;
 	}
 
 	public static List<CFGNode> destruct(LowLevelIR ir) {
@@ -281,8 +327,8 @@ public class CFG {
 					}
 
 					if (node.isTransitionNodeForEliminate() && succ.isMergeNode() && !succ.isWhileNode()) {
-						if (succ.getParents().get(0).equals(node))
-							succ.deleteParent();
+						// if (succ.getParents().get(0).equals(node))
+						// succ.deleteParent();
 						if (succ.getParents().contains(node)) {
 							succ.removeParent(node);
 						}

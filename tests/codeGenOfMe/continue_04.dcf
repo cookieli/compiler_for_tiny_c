@@ -1,0 +1,22 @@
+import printf;
+void main(){
+  int a[8],b,c,i;
+  b = 2;
+  c = 1;
+  
+  for(i = 0; i < len(a); i++){
+      a[i] = i;
+  }
+  
+  for(a[b+c] = 10; a[b+c] < 100; a[b+c] += c*5){
+        int temp;
+       if(a[b+c] < 80){
+          continue;
+       }
+       if(a[b+c] >= 95){
+           break;
+       }
+       temp = a[b+c];
+       printf("%d\n", temp);
+  }
+}

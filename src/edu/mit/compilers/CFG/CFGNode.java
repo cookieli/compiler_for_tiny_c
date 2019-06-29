@@ -15,13 +15,22 @@ public class CFGNode extends IrNode {
 	public int inComingDegree;
 	public boolean isVisited = false;
 	public boolean isAssemblyVisited = false;
-
+	
+	private boolean forAfterBlock = false;
 	private int nameVisited = 0;
 	
 	private boolean isWhileNode = false;
 	private boolean isLoopEnd   = false;
 	
 	//private CFGNode afterNode = null;
+	
+	public void setForAfterBlock(boolean boo) {
+		this.forAfterBlock = boo;
+	}
+	
+	public boolean isForAfterBlock() {
+		return forAfterBlock;
+	}
 	
 	public void setLoopEnd(boolean boo) {
 		this.isLoopEnd = boo;
@@ -165,6 +174,12 @@ public class CFGNode extends IrNode {
 		if(node.pointTo != null)
 		for(CFGNode n: node.pointTo) {
 			int index = n.parents.indexOf(node);
+			if(index == -1) {
+				for(CFGNode c: n.parents) {
+					System.out.println(c.getStats());
+				}
+				throw new IllegalArgumentException("pointTo " + n.getStats() + "node "+node.getStats());
+			}
 			n.parents.set(index, this);
 		}
 		node.pointTo = null;

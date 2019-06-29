@@ -1,12 +1,12 @@
-.file "tests/codeGenOfMe/if_merge.dcf"
+.file "tests/codeGenOfMe/if_10.dcf"
 .text
 .section .rodata
 .LC0:
-.string "hello world\n"
+.string "fff\n"
 .LC1:
-.string "lu lu lu\n"
+.string "bbb\n"
 .LC2:
-.string "trust\n"
+.string "ccc\n"
 .text
 .globl main
 .type main, @function
@@ -14,43 +14,35 @@ main:
 pushq %rbp
 movq %rsp, %rbp
 subq $32, %rsp
-movq $0,-32(%rbp)
-movq $1,-24(%rbp)
-movq $2,-16(%rbp)
-movq $3,-8(%rbp)
+movq $3,-32(%rbp)
+movq $2,-24(%rbp)
+movq $4,-16(%rbp)
+movq $6,-8(%rbp)
 movq -32(%rbp),%rax
 movq -24(%rbp),%r10
 cmpq %r10,%rax
-jg .L1
+jle .L1
 movq -16(%rbp),%rax
 movq -8(%rbp),%r10
 cmpq %r10,%rax
-jle .L2
+jge .L2
 leaq .LC0(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
-jmp .L2
-.L2:
-nop
 jmp .L3
-.L1:
-movq -16(%rbp),%rax
-movq -8(%rbp),%r10
-cmpq %r10,%rax
-jge .L4
+.L2:
 leaq .LC1(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
-jmp .L4
-.L4:
-nop
 .L3:
 leaq .LC2(%rip),%rdi
 movq $0,%rax
 call printf@PLT
 movq $0,%rax
+jmp .L1
+.L1:
 leave
 ret
 

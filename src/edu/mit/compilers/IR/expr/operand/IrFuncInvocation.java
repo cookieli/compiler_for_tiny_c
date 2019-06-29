@@ -93,6 +93,10 @@ public class IrFuncInvocation extends IrOperand {
 	public List<IrExpression> getFuncArgs(){
 		return funcArgs;
 	}
+	
+	public void setFuncArgs(List<IrExpression> lst) {
+		funcArgs = lst;
+	}
 
 	@Override
 	public void accept(IrNodeVistor vistor) {

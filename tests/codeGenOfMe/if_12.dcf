@@ -1,0 +1,26 @@
+import printf;
+
+void main(){
+    int a, b, c, e, f, g;
+    bool l, m,n;
+    a = 5;
+    b = 10;
+    c =2;
+    if(a > 3 || b < 8 && c == 2){
+        printf("hello world\n");
+    }
+    e = 6;
+    f = 7;
+    g = 8;
+    
+    if(e < f && e < g){
+      printf("ok\n");
+    } 
+    l = true;
+    m = !l;
+    n = false;
+    if(l || m || n){
+       printf("wrong\n");
+    }
+    
+}

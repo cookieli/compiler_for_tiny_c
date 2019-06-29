@@ -342,8 +342,12 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	public void resetCondQuad(CondQuad cond, VariableTable vtb, MethodTable mtb) {
 		List<LowLevelIR> condStack = cond.getCondStack();
 		if(condStack.size() == 1) {
-			IrQuad quad = (IrQuad) condStack.remove(0);
-			condStack.add(resetQuad(quad, vtb, mtb));
+			//throw new IllegalArgumentException("" + condStack.remove(0).getName());
+			LowLevelIR quad =  condStack.remove(0);
+			if(quad instanceof IrQuad)
+				condStack.add(resetQuad((IrQuad)quad, vtb, mtb));
+			else if(quad instanceof IrQuadWithLocation)
+				throw new ClassCastException(quad.getName());
 		} else {
 			for(int i = 0; i < condStack.size(); i++) {
 				condStack.set(i, giveLocationToLowIr(condStack.get(i), vtb, mtb));
@@ -422,14 +426,22 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		currentList = null;
 		if(whileQuad.getBlock() != null)
 			whileQuad.getBlock().accept(this);
+		
 		if(whileQuad.getAfterBlockQuad() != null) {
-			IrBlock tempBlock = currentBlock;
-			currentBlock = whileQuad.getBlock();
+//			IrBlock tempBlock = currentBlock;
+//			currentBlock = whileQuad.getBlock();
+//			//currentList = new ArrayList<>();
+//			for(IrStatement s: whileQuad.getAfterBlockQuad()) {
+//				s.accept(this);
+//			}
+//			currentBlock = tempBlock;
+			currentList = new ArrayList<>();
 			for(IrStatement s: whileQuad.getAfterBlockQuad()) {
 				s.accept(this);
 			}
-			currentBlock = tempBlock;
-			
+			whileQuad.setAfterBlockQuad(currentList);
+			whileQuad.getBlock().addIrStatement(currentList);
+			currentList = null;
 		}
 		addIrStatement(whileQuad);
 		

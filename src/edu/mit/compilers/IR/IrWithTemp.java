@@ -443,6 +443,13 @@ public class IrWithTemp implements IrNodeVistor {
 	public boolean visit(FuncInvokeStatement func) {
 		if(importIr.contains(func.getFuncName()))
 			func.setPLT(true);
+		if(func.getFunc().getFuncArgs() != null) {
+			List<IrExpression> lst = new ArrayList<>();
+			for(IrExpression e: func.getFunc().getFuncArgs()) {
+				lst.add(assignLocationToIrExpression(e, envs.peekVariables(), envs.peekMethod()));
+			}
+			func.getFunc().setFuncArgs(lst);
+		}
 		addIrStatement(func);
 		// TODO Auto-generated method stub
 		return false;

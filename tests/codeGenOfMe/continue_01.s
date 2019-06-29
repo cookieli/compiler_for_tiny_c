@@ -15,6 +15,10 @@ movq $0,-8(%rbp)
 movq -8(%rbp),%rax
 cmpq $3,%rax
 jge .L2
+movq -8(%rbp),%rax
+movq $1,%r10
+addq %r10,%rax
+movq %rax,-8(%rbp)
 nop
 jmp .L1
 leaq .LC0(%rip),%rdi

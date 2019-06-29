@@ -25,7 +25,7 @@ movq $9,-8(%rbp)
 movq -48(%rbp),%rax
 movq -40(%rbp),%r10
 cmpq %r10,%rax
-jle .L1
+jge .L1
 movq -32(%rbp),%rax
 movq -24(%rbp),%r10
 cmpq %r10,%rax

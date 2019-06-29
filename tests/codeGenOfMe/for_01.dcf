@@ -3,7 +3,9 @@ import printf;
 void main(){
    int i;
    for(i = 0; i < 10; i++){
-       printf("a ");
+       int a;
+       a = 10;
+       printf("a %d\n", a);
    }
    printf("\n");
 }

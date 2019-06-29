@@ -27,7 +27,7 @@ import edu.mit.compilers.IR.statement.codeBlock.IrWhileBlock;
 public class cfgNodeVistor implements IrNodeVistor{
 	public LinkedHashMap<String, CFG> cfgs;
 	public CFG currentCFG;
-	
+	public IrWhileBlockQuad currentLoop = null;
 	public cfgNodeVistor() {
 		cfgs = new LinkedHashMap<>();
 	}
@@ -161,6 +161,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	@Override
 	public void visit(IrWhileBlockQuad whileQuad) {
 		// TODO Auto-generated method stub
+		currentLoop = whileQuad;
 		currentCFG.addCFGPair(CFG.destruct(whileQuad));
 	}
 
