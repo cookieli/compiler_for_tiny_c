@@ -5,13 +5,17 @@ import rand;
 void main(){
      
       int b,c,d;
-    //  int i;
-     // for(i = 0; i < len(a); i++){
-     //     a[i] = 0;
-     // }
+      int i;
+      for(i = 0; i < len(a); i++){
+          a[i] = 0;
+      }
       b = 5;
       c = 2;
       d = 6;
-      a[b] = rand();
-      printf("%d\n", a[b]);
+      a[(d-b)*c] = rand();
+      printf("%d\n", a[(d-b)*c]);
+      
+      for(i = 0; i < len(a); i++){
+         printf("%d\n", a[i]);
+      }
 }

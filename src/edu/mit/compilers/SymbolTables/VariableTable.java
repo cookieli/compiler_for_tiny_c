@@ -107,10 +107,10 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 	}
 
 	public boolean isGloblVariable(String id) {
-		if (variableSlot.containsKey(id) && this.getParent() == null)
+		if (table.containsKey(id) && this.getParent() == null)
 			// throw new IllegalArgumentException(id + " is global variable ");
 			return true;
-		else if (!variableSlot.containsKey(id) && this.getParent() != null)
+		else if (!table.containsKey(id) && this.getParent() != null)
 			return this.getParent().isGloblVariable(id);
 		return false;
 	}
