@@ -13,8 +13,8 @@ import edu.mit.compilers.trees.SemanticCheckerNode;
 
 public class IrQuadForAssign extends IrQuad{
 	
-	
-	public IrQuadForAssign(IrAssignment assign) {
+	public boolean is_64bit = false;
+	private IrQuadForAssign(IrAssignment assign) {
 		
 		IrExpression binary = assign.getRhs();
 		if(!(binary instanceof BinaryExpression)) {
@@ -41,10 +41,14 @@ public class IrQuadForAssign extends IrQuad{
 		this.v = v;
 		this.m = m;
 		semantics = new SemanticCheckerNode();
-		if(semantics.getIrOperandType(assign.getLhs(), v, m).equals(IrType.IntType))
+		if(semantics.getIrOperandType(assign.getLhs(), v, m).equals(IrType.IntType)) {
+			is_64bit = true;
 			this.symbol += "q";
-		if(semantics.getIrOperandType(assign.getLhs(), v, m).equals(IrType.BoolType))
+		}
+		if(semantics.getIrOperandType(assign.getLhs(), v, m).equals(IrType.BoolType)) {
+			is_64bit = false;
 			this.symbol += "b";
+		}
 	}
 	
 	

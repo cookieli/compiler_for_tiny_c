@@ -40,6 +40,7 @@ import edu.mit.compilers.trees.SemanticCheckerNode;
 import edu.mit.compilers.utils.ImmOperandForm;
 import edu.mit.compilers.utils.MemOperandForm;
 import edu.mit.compilers.utils.OperandForm;
+import edu.mit.compilers.utils.RegOperandForm;
 import edu.mit.compilers.utils.Util;
 import edu.mit.compilers.utils.X86_64Register;
 
@@ -247,7 +248,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 			if(vtb.isGloblVariable(lenExpr.getOperand().getId()))
 				base = X86_64Register.rip.getName_64bit();
 			return new MemOperandForm(imm, base, null, step);
-		}
+		} 
 		return null;
 	}
 	
@@ -267,19 +268,34 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		OperandForm op1 = null;
 		OperandForm op2 = null;
 		OperandForm dest = null;
-		if (quad.getOp1() != null) {
-			op1 = getOperandForm(quad.getOp1(), vtb, mtb);
-		}
 		if (quad.getOp2() != null)
 			op2 = getOperandForm(quad.getOp2(), vtb, mtb);
+		if (quad.getOp1() != null) {
+			if(quad.getOp1() instanceof IrFuncInvocation) {
+				setOperandFormForFunc((IrFuncInvocation) quad.getOp1(), op2, quad.is_64bit, vtb, mtb);
+				return false;
+			}
+			else
+				op1 = getOperandForm(quad.getOp1(), vtb, mtb);
+		}
+		
 		if (quad.getDest() != null)
 			dest = getOperandForm(quad.getDest(), vtb, mtb);
 		
-
+		
 		addIrStatement(new IrQuadWithLocation(symbol, op1, op2, dest));
 		return false;
 
 	}
+	
+	private void setOperandFormForFunc(IrFuncInvocation func, OperandForm ret, boolean is64bit, VariableTable v, MethodTable m) {
+		func.setHasRetValue(true);
+		func.setMemOperandForm(ret);
+		func.setIs64bit(is64bit);
+		IrQuadForFuncInvoke funcQuad = new IrQuadForFuncInvoke(func, v, m);
+		funcQuad.accept(this);
+	}
+	
 	@Override
 	public boolean visit(IrQuadWithLocation quad) {
 		// TODO Auto-generated method stub
@@ -291,6 +307,9 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		// TODO Auto-generated method stub
 		IrFuncInvocation func = (IrFuncInvocation) quad.getFunc();
 		IrQuadWithLocForFuncInvoke funcQuad = new IrQuadWithLocForFuncInvoke(func.getId());
+		funcQuad.setHasRetValue(func.getHasRetValue());
+		funcQuad.setIs64bit(func.isIs64bit());
+		funcQuad.setRetLoc(func.getRetLoc());
 		if(func.isPLT())
 			funcQuad.setFuncName(func.getId() + "@PLT");
 		for(IrExpression e: func.funcArgs) {

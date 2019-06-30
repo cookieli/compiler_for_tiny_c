@@ -21,6 +21,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.UnaryExpression;
+import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
@@ -156,6 +157,9 @@ public class IrWithTemp implements IrNodeVistor {
 			HandleNoCompoundSymbolAssignRhsIsIrLocation(lhs, (IrLocation) rhs, assign, v, m);
 			return;
 		}
+		if(rhs instanceof IrFuncInvocation) {
+			HandleNoCompoundSymbolAssignRhsIsFuncInvoke(lhs, (IrFuncInvocation) rhs, assign, v, m);
+		}
 		
 		if (rhs instanceof UnaryExpression) {
 			UnaryExpression unary = (UnaryExpression) rhs;
@@ -180,6 +184,13 @@ public class IrWithTemp implements IrNodeVistor {
 			return;
 		}
 
+	}
+	
+	private void HandleNoCompoundSymbolAssignRhsIsFuncInvoke(IrLocation lhs, IrFuncInvocation rhs, IrAssignment assign,  VariableTable v, MethodTable m) {
+		resetFuncInvokePara(rhs, v, m);
+		rhs.setHasRetValue(true);
+		setFuncPLT(rhs);
+		addIrStatement(assign);
 	}
 	
 	private IfBlock changeAssignRhsIsBoolToIfBlock(IrAssignment assign, VariableTable vtb) {
@@ -443,16 +454,27 @@ public class IrWithTemp implements IrNodeVistor {
 	public boolean visit(FuncInvokeStatement func) {
 		if(importIr.contains(func.getFuncName()))
 			func.setPLT(true);
-		if(func.getFunc().getFuncArgs() != null) {
-			List<IrExpression> lst = new ArrayList<>();
-			for(IrExpression e: func.getFunc().getFuncArgs()) {
-				lst.add(assignLocationToIrExpression(e, envs.peekVariables(), envs.peekMethod()));
-			}
-			func.getFunc().setFuncArgs(lst);
-		}
+		resetFuncInvokePara(func.getFunc(), envs.peekVariables(), envs.peekMethod());
 		addIrStatement(func);
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public void setFuncPLT(IrFuncInvocation func) {
+		if(importIr.contains(func.getId()))
+			func.setPLT(true);
+	}
+	
+	
+	
+	private void resetFuncInvokePara(IrFuncInvocation func, VariableTable v, MethodTable m) {
+		if(func.getFuncArgs() != null) {
+			List<IrExpression> lst = new ArrayList<>();
+			for(IrExpression e: func.getFuncArgs()) {
+				lst.add(assignLocationToIrExpression(e, v, m));
+			}
+			func.setFuncArgs(lst);
+		}
 	}
 
 	@Override

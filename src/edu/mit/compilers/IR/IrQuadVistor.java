@@ -17,6 +17,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.statement.FuncInvokeStatement;
@@ -93,6 +94,7 @@ public class IrQuadVistor implements IrNodeVistor{
 	public boolean visit(IrAssignment assign) {
 		// TODO Auto-generated method stub
 		addIrStatement(new IrQuadForAssign(assign, env.peekVariables(), env.peekMethod()));
+		
 		return false;
 	}
 

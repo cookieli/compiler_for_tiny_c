@@ -72,8 +72,8 @@ public class AssemblyFromCFGVistor {
 				if (ir instanceof IrQuadWithLocation)
 					sb.append(AssemblyForArith.getAssembly(((IrQuadWithLocation) ir)));
 				else if (ir instanceof IrQuadWithLocForFuncInvoke) {
+					IrQuadWithLocForFuncInvoke func = (IrQuadWithLocForFuncInvoke) ir;
 					sb.append(AssemblyForArith.getAssemBlyForFuncInvoke((IrQuadWithLocForFuncInvoke) ir));
-					sb.append(AssemblyForArith.SetRaxZero());
 				} else if(ir instanceof IrQuadForLoopStatement){
 					IrQuadForLoopStatement loop = (IrQuadForLoopStatement) ir;
 					sb.append("nop\n");

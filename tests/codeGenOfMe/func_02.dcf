@@ -1,0 +1,17 @@
+import printf;
+import rand;
+
+ int a[8];
+void main(){
+     
+      int b,c,d;
+    //  int i;
+     // for(i = 0; i < len(a); i++){
+     //     a[i] = 0;
+     // }
+      b = 5;
+      c = 2;
+      d = 6;
+      a[b] = rand();
+      printf("%d\n", a[b]);
+}

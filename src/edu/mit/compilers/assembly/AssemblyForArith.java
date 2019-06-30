@@ -7,6 +7,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.utils.ImmOperandForm;
 import edu.mit.compilers.utils.MemOperandForm;
 import edu.mit.compilers.utils.OperandForm;
+import edu.mit.compilers.utils.RegOperandForm;
 import edu.mit.compilers.utils.Util;
 import edu.mit.compilers.utils.X86_64Register;
 
@@ -193,7 +194,7 @@ public class AssemblyForArith {
 		//System.err.println("the error is:\n"+quad.getName());
 		OperandForm op1 = quad.getOp1();
 		OperandForm op2 = quad.getOp2();
-		boolean is_64bit = op1.getScale() == 8;
+		boolean is_64bit = op2.getScale() == 8;
 		
 		if(is_64bit)   symbol = "movq";
 		else          symbol = "movb";
@@ -255,8 +256,30 @@ public class AssemblyForArith {
 		}
 		sb.append(SetRaxZero());
 		sb.append(new AssemblyForm("call", func.getFuncName()));
+		
+		sb.append(afterFuncInvokeOpr(func));
 		if(moreParaNum > 0)
 			sb.append(new AssemblyForm("addq", (moreParaNum + allocNum)*8, X86_64Register.rsp.getName_64bit()).toString());
+		return sb.toString();
+	}
+	
+	private static String afterFuncInvokeOpr(IrQuadWithLocForFuncInvoke func) {
+		X86_64Register.freeAllRegisterTempForAssign();
+		StringBuilder sb = new StringBuilder();
+		if(func.getHasRetValue()) {
+			RegOperandForm op1 = new RegOperandForm(X86_64Register.getNxtTempForAssign());
+			String symbol = "movb";
+			X86_64Register.rax.alloc();
+			OperandForm op2 = func.getRetLoc();
+			if(func.isIs64bit()) {
+				op1.set64bit(true);
+				symbol = "movq";
+			}
+			IrQuadWithLocation  opr = new IrQuadWithLocation(symbol, op1, op2);
+			sb.append(getAssemblyForMov(opr));
+			
+		} else
+			sb.append(SetRaxZero());
 		return sb.toString();
 	}
 	

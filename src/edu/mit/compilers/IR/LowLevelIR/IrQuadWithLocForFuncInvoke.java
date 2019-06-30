@@ -13,6 +13,37 @@ public class IrQuadWithLocForFuncInvoke extends LowLevelIR {
 
 	public String opr = "call";
 	public String funcName;
+	
+	public boolean hasRetValue;
+	public OperandForm retLoc;
+	
+	
+	public boolean is64bit = false;
+	
+	
+	public boolean isIs64bit() {
+		return is64bit;
+	}
+
+	public void setIs64bit(boolean is64bit) {
+		this.is64bit = is64bit;
+	}
+
+	public OperandForm getRetLoc() {
+		return retLoc;
+	}
+
+	public void setRetLoc(OperandForm retLoc) {
+		this.retLoc = retLoc;
+	}
+
+	public void setHasRetValue(boolean boo) {
+		this.hasRetValue = boo;
+	}
+	
+	public boolean getHasRetValue() {
+		return hasRetValue;
+	}
 
 	public IrQuadWithLocForFuncInvoke(String funcName) {
 		this.funcName = funcName;
