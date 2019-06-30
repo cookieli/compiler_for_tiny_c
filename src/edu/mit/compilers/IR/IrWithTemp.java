@@ -51,6 +51,8 @@ public class IrWithTemp implements IrNodeVistor {
 	public IrBlock currentBlock = null;
 	public List<IrStatement> currentList = null;
 	public SemanticCheckerNode semantics;
+	
+	public boolean retValue64bit = false;
 
 	public EnvStack envs;
 	public String tempName = "$temp";
@@ -59,11 +61,13 @@ public class IrWithTemp implements IrNodeVistor {
 	public IrWithTemp() {
 		envs = new EnvStack();
 		semantics = new SemanticCheckerNode();
+		
 	}
 
 	public static IrProgram newProgram(IrProgram p) {
 		IrProgram program = (IrProgram) p.copy();
 		IrWithTemp vistor = new IrWithTemp();
+		vistor.semantics.importIr = program.importIR;
 		program.accept(vistor);
 		return program;
 	}
@@ -79,12 +83,16 @@ public class IrWithTemp implements IrNodeVistor {
 
 	public IrLocation getVarCorrespondTemp(IrOperand opr, VariableTable v, MethodTable m) {
 		IrType type = semantics.getIrOperandType(opr, v, m);
+		if(type.equals(IrType.notKnownType))
+			type = IrType.IntType;
 		IrLocation lhsTemp = setNewTempVariable(type, v);
 		return lhsTemp;
 	}
 
 	public IrLocation getExprCorrespondTemp(IrExpression expr, VariableTable v, MethodTable m) {
 		IrType type = semantics.getIrExpressionType(expr, v, m);
+		if(type.equals(IrType.notKnownType))
+			type = IrType.IntType;
 		IrLocation temp = setNewTempVariable(type, v);
 		return temp;
 	}
@@ -99,6 +107,7 @@ public class IrWithTemp implements IrNodeVistor {
 	public boolean visit(IrProgram p) {
 		// TODO Auto-generated method stub
 		importIr = p.getImportTable();
+		semantics.importIr = importIr;
 		envs.pushMethods(p.globalMethodTable);
 		envs.pushVariables(p.globalVariableTable);
 		for (MethodDecl m : p.globalMethodTable) {
@@ -115,6 +124,10 @@ public class IrWithTemp implements IrNodeVistor {
 		// TODO Auto-generated method stub
 		currentMethod = m;
 		envs.pushVariables(currentMethod.getVariableTable());
+		if(currentMethod.getMethodType().equals(IrType.IntType))
+			retValue64bit = true;
+		else
+			retValue64bit = false;
 		List<IrStatement> statements = currentMethod.statements;
 		currentMethod.statements = new ArrayList<>();
 
@@ -158,7 +171,8 @@ public class IrWithTemp implements IrNodeVistor {
 			return;
 		}
 		if(rhs instanceof IrFuncInvocation) {
-			HandleNoCompoundSymbolAssignRhsIsFuncInvoke(lhs, (IrFuncInvocation) rhs, assign, v, m);
+			HandleNoCompoundSymbolAssignRhsIsFuncInvoke((IrFuncInvocation) rhs, assign, v, m);
+			return;
 		}
 		
 		if (rhs instanceof UnaryExpression) {
@@ -186,7 +200,7 @@ public class IrWithTemp implements IrNodeVistor {
 
 	}
 	
-	private void HandleNoCompoundSymbolAssignRhsIsFuncInvoke(IrLocation lhs, IrFuncInvocation rhs, IrAssignment assign,  VariableTable v, MethodTable m) {
+	private void HandleNoCompoundSymbolAssignRhsIsFuncInvoke(IrFuncInvocation rhs, IrAssignment assign,  VariableTable v, MethodTable m) {
 		resetFuncInvokePara(rhs, v, m);
 		rhs.setHasRetValue(true);
 		setFuncPLT(rhs);
@@ -235,6 +249,9 @@ public class IrWithTemp implements IrNodeVistor {
 	private IrExpression assignLocationToIrExpression(IrExpression expr, VariableTable vtb, MethodTable mtb) {
 		if(expr instanceof IrLocation && ((IrLocation) expr).locationIsArray())
 			return assignLocationToArray((IrLocation) expr, vtb, mtb);
+		if(expr instanceof IrFuncInvocation) {
+			return assignLocationToFunction((IrFuncInvocation) expr, vtb, mtb);
+		}
 		if(expr instanceof UnaryExpression) {
 			expr = setTempForUnaryExpr((UnaryExpression) expr);
 		}
@@ -245,6 +262,13 @@ public class IrWithTemp implements IrNodeVistor {
 	}
 	
 	
+	
+	private IrLocation assignLocationToFunction(IrFuncInvocation func, VariableTable v, MethodTable m) {
+		IrLocation temp = getExprCorrespondTemp(func, v, m);
+		IrAssignment newAssign = new IrAssignment(temp, func, "=");
+		HandleNoCompoundSymbolAssignRhsIsFuncInvoke(func, newAssign, v, m);
+		return temp;
+	}
 	
 	private IrLocation assignLocationToBinary(BinaryExpression expr, VariableTable v, MethodTable m) {
 		IrLocation temp = getExprCorrespondTemp(expr, v ,m);
@@ -260,6 +284,8 @@ public class IrWithTemp implements IrNodeVistor {
 		addIrStatement(new IrAssignment(temp, arr, "="));
 		return temp;
 	}
+	
+	
 
 	private boolean OperandNotNeedTemp(IrExpression expr) {
 		return expr instanceof IrLiteral || (expr instanceof IrLocation && !((IrLocation) expr).locationIsArray()) || expr instanceof IrLenExpr;
@@ -480,6 +506,10 @@ public class IrWithTemp implements IrNodeVistor {
 	@Override
 	public boolean visit(Return_Assignment r) {
 		// TODO Auto-generated method stub
+		IrExpression expr = r.getExpr();
+		r.setIs64bit(retValue64bit);
+		r.setReturnExpr(assignLocationToIrExpression(expr, envs.peekVariables(), envs.peekMethod()));
+		addIrStatement(r);
 		return false;
 	}
 

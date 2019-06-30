@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
+import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.utils.ImmOperandForm;
 import edu.mit.compilers.utils.MemOperandForm;
 import edu.mit.compilers.utils.OperandForm;
@@ -194,13 +195,15 @@ public class AssemblyForArith {
 		//System.err.println("the error is:\n"+quad.getName());
 		OperandForm op1 = quad.getOp1();
 		OperandForm op2 = quad.getOp2();
-		boolean is_64bit = op2.getScale() == 8;
-		
-		if(is_64bit)   symbol = "movq";
-		else          symbol = "movb";
-		
-		MemOperandForm memOp2 = (MemOperandForm) op2;
-		changeMemOperandFormLocToReg(memOp2, code);
+		boolean is_64bit = op2.is64bit();
+				
+		OperandForm memOp2;
+		if(op2 instanceof RegOperandForm)
+			memOp2 = (RegOperandForm) op2;
+		else {
+			memOp2 = (MemOperandForm) op2;
+			changeMemOperandFormLocToReg((MemOperandForm) memOp2, code);
+		}
 		if(op1 instanceof MemOperandForm) {
 			MemOperandForm memOp1 = (MemOperandForm) op1;
 			
@@ -228,6 +231,17 @@ public class AssemblyForArith {
 			op.setLoc(reg);
 			
 		}
+	}
+	
+	public static String getAssemblyForReturn(ReturnQuadWithLoc quad) {
+		X86_64Register.freeAllRegisterTempForAssign();
+		RegOperandForm op1 = new RegOperandForm(X86_64Register.getNxtTempForAssign());
+		op1.set64bit(quad.isIs64bit());
+		OperandForm op2 = quad.getRetLoc();
+		String symbol = "movb";
+		if(quad.isIs64bit())    symbol = "movq";
+		IrQuadWithLocation opr = new IrQuadWithLocation(symbol, op2, op1);
+		return getAssemblyForMov(opr);
 	}
 	
 	public static String getAssemBlyForFuncInvoke(IrQuadWithLocForFuncInvoke func) {

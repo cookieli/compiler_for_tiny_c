@@ -78,5 +78,6 @@ public class IrType {
 	public static final IrType stringType = new IrType(Type.STRING_LITERAL);
 	public static final IrType IntArray = new IrType(Type.INT_ARRAY);
 	public static final IrType boolArray = new IrType(Type.BOOL_ARRAY);
+	public static final IrType notKnownType = new IrType(Type.NOTKNOWN);
 	
 }

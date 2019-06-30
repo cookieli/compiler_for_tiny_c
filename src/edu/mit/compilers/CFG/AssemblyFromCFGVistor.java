@@ -14,6 +14,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.assembly.AssemblyForArith;
 
 public class AssemblyFromCFGVistor {
@@ -81,7 +82,9 @@ public class AssemblyFromCFGVistor {
 						setJmpOpr(branch.getMostClosestLoopEndNode().getLabel());
 					else
 						setJmpOpr(loopStack.peek());
-				}else 
+				} else if(ir instanceof ReturnQuadWithLoc) {
+					sb.append(AssemblyForArith.getAssemblyForReturn((ReturnQuadWithLoc) ir));
+				}else
 					sb.append(ir.getName());
 
 			}

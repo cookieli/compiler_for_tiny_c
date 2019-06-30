@@ -183,6 +183,7 @@ public class IrQuadVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(Return_Assignment r) {
 		// TODO Auto-generated method stub
+		addIrStatement(r);
 		return false;
 	}
 

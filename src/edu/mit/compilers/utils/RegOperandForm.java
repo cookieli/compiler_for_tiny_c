@@ -7,6 +7,11 @@ public class RegOperandForm  extends OperandForm {
 	
 	public boolean is_64bit = false;
 	
+	@Override
+	public boolean is64bit() {
+		return is_64bit;
+	}
+	
 	public RegOperandForm(Register reg) {
 		this.reg = reg;
 	}

@@ -1,0 +1,11 @@
+import printf;
+import rand;
+int a;
+void main(){
+   int b,c,d, e;
+   a =4;
+   b = a;
+   c = a+ b* rand();
+   e = (c + rand()) /100 *((b - a)+ a*rand());
+   printf("%d\n", e);
+}

@@ -9,6 +9,18 @@ public class Return_Assignment extends IrStatement{
 	
 	public IrExpression expr;
 	
+	public boolean is64bit;
+	
+	
+	public boolean isIs64bit() {
+		return is64bit;
+	}
+	public void setIs64bit(boolean is64bit) {
+		this.is64bit = is64bit;
+	}
+	public void setReturnExpr(IrExpression expr) {
+		this.expr = expr;
+	}
 	public Return_Assignment(IrExpression expr) {
 		this.expr = expr;
 	}

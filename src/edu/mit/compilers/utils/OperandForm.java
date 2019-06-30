@@ -5,6 +5,10 @@ public class OperandForm {
 	public int getScale() {
 		return scale;
 	}
+	public boolean is64bit() {
+		return getScale() == 8;
+	}
+	
 	public void setScale(int scale) {
 		this.scale = scale;
 	}

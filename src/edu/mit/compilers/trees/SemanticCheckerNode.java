@@ -312,7 +312,7 @@ public class SemanticCheckerNode implements IrNodeVistor {
 			if (res.equals(new IrType(Type.INT)))
 				checkIntLiteralOutOfRange((IrLiteral) expr);
 		} else if (expr instanceof IrFuncInvocation) {
-			if (importIr.contains(((IrFuncInvocation) expr).getId()))
+			if (importIr != null &&importIr.contains(((IrFuncInvocation) expr).getId()))
 				res = new IrType(Type.NOTKNOWN);
 			else
 				res = m.getMethodType(((IrFuncInvocation) expr).getId());

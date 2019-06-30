@@ -17,6 +17,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
@@ -160,6 +161,10 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	@Override
 	public boolean visit(Return_Assignment r) {
 		// TODO Auto-generated method stub
+		IrOperand ret = (IrOperand) r.getExpr();
+		ReturnQuadWithLoc quad = new ReturnQuadWithLoc(getOperandForm(ret, env.peekVariables(), env.peekMethod()));
+		quad.setIs64bit(r.isIs64bit());
+		addIrStatement(quad);
 		return false;
 	}
 

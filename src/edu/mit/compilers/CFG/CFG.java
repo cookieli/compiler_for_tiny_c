@@ -13,6 +13,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
 import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
@@ -247,7 +248,7 @@ public class CFG {
 
 	public static List<CFGNode> destruct(LowLevelIR ir) {
 		if (ir instanceof IrQuadWithLocForFuncInvoke || ir instanceof IrQuadWithLocation
-				|| ir instanceof IrQuadForLoopStatement)
+				|| ir instanceof IrQuadForLoopStatement || ir instanceof ReturnQuadWithLoc)
 			return destructOnelineQuad(ir);
 		else if (ir instanceof IrIfBlockQuad)
 			return destruct((IrIfBlockQuad) ir);
