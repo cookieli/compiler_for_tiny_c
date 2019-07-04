@@ -36,6 +36,10 @@ public class Variable_decl extends IrDeclaration{
 		return id;
 	}
 	
+	public IrType getIrType() {
+		return type;
+	}
+	
 	public String getType() {
 		return type.toString();
 	}

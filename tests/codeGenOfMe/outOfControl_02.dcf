@@ -1,0 +1,25 @@
+int func(int a, int b){
+     int c,d, e,f;
+     if(a > b){
+         if(c > d){
+             return c;
+         }
+     } else{
+        if(c > d){
+            if(a == b){
+               return 5;
+            }
+        } else{
+           if(e > f){
+              return 2;
+           } else{
+              if(3 > 8){
+                 return 6;
+              }
+           }
+        }
+     }
+}
+
+void main(){
+}

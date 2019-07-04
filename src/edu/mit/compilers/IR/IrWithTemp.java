@@ -420,7 +420,7 @@ public class IrWithTemp implements IrNodeVistor {
 	
 	
 	private IrExpression handleBoolExpr(IrExpression expr, VariableTable vtb, MethodTable mtb) {
-		if(expr instanceof IrLiteral || expr instanceof IrLocation)
+		if(expr instanceof IrLiteral || expr instanceof IrLocation || expr instanceof IrFuncInvocation)
 			return assignLocationToIrExpression(expr, vtb, mtb);
 		if(expr instanceof BinaryExpression) {
 			BinaryExpression binary = (BinaryExpression) expr;

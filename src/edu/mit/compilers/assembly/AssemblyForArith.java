@@ -11,6 +11,7 @@ import edu.mit.compilers.utils.OperandForm;
 import edu.mit.compilers.utils.RegOperandForm;
 import edu.mit.compilers.utils.Util;
 import edu.mit.compilers.utils.X86_64Register;
+import edu.mit.compilers.utils.X86_64Register.Register;
 
 public class AssemblyForArith {
 	public static final String[] arithOp = {"add", "sub", "imul", "div", "mod"};
@@ -222,6 +223,33 @@ public class AssemblyForArith {
 		return code.toString();
 	}
 	
+	public static String setParaAssemblyMov(Register reg, MemOperandForm op2) {
+		String symbol = "movb";
+		boolean is64bit = op2.is64bit();
+		if(is64bit) symbol = "movq";
+		RegOperandForm op1 = new RegOperandForm(reg);
+		op1.set64bit(is64bit);
+		return new AssemblyForm(symbol, op1.toString(), op2.toString()).toString();
+	}
+	
+	public static String setAssemblyMov(MemOperandForm paraOnStack, MemOperandForm op2) {
+		StringBuilder sb = new StringBuilder();
+		String symbol = "movq";
+		RegOperandForm reg = new RegOperandForm(X86_64Register.rax);
+		reg.set64bit(true);
+		sb.append(new AssemblyForm(symbol, paraOnStack.toString(), reg.toString()).toString());
+		//sb.append("\n");
+		if(!op2.is64bit()) {
+			reg.set64bit(false);
+			symbol = "movb";
+		}
+		sb.append(new AssemblyForm(symbol, reg.toString(), op2.toString()).toString());
+		//sb.append("\n");
+		return sb.toString();
+	}
+	
+	
+	
 	private static void changeMemOperandFormLocToReg(MemOperandForm op, StringBuilder code) {
 		resembleMemOperandForm(op, code);
 		if(op.getLoc() != null) {
@@ -235,6 +263,7 @@ public class AssemblyForArith {
 	
 	public static String getAssemblyForReturn(ReturnQuadWithLoc quad) {
 		X86_64Register.freeAllRegisterTempForAssign();
+		if(quad.getRetLoc() == null)   return "\n";
 		RegOperandForm op1 = new RegOperandForm(X86_64Register.getNxtTempForAssign());
 		op1.set64bit(quad.isIs64bit());
 		OperandForm op2 = quad.getRetLoc();

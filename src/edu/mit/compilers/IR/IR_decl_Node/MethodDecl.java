@@ -9,6 +9,7 @@ import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.SymbolTables.VariableTable;
+import edu.mit.compilers.utils.OperandForm;
 
 public class MethodDecl extends Variable_decl{
 	
@@ -16,6 +17,19 @@ public class MethodDecl extends Variable_decl{
 	public VariableTable localVars;
 	public List<String> paraList;
 	
+	public List<OperandForm> paraOpr;
+	
+	public boolean hasReturnValue() {
+		return !this.type.equals(IrType.VoidType);
+	}
+	
+	
+	public List<OperandForm> getParaOpr() {
+		return paraOpr;
+	}
+	public void setParaOpr(List<OperandForm> paraOpr) {
+		this.paraOpr = paraOpr;
+	}
 	public MethodDecl(Token type, Token id, String fileName) {
 		this(type, id, fileName, null);
 	}

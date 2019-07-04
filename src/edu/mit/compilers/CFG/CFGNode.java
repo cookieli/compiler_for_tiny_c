@@ -7,6 +7,7 @@ import java.util.List;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 
 public class CFGNode extends IrNode {
 	public List<LowLevelIR> statements;
@@ -28,6 +29,13 @@ public class CFGNode extends IrNode {
 		this.forAfterBlock = boo;
 	}
 	
+	public boolean lastStatementIsReturn() {
+		if(statements == null || statements.isEmpty())
+			return false;
+		else
+			return statements.get(statements.size() -1) instanceof ReturnQuadWithLoc;
+	}
+	
 	public boolean isForAfterBlock() {
 		return forAfterBlock;
 	}
@@ -46,7 +54,7 @@ public class CFGNode extends IrNode {
 		if(this.statements == null && (parents != null && !parents.isEmpty())) {
 			ret = true;
 			for(CFGNode parent: parents) {
-				System.out.println(parent.getName());
+				//System.out.println(parent.getName());
 				if(parent.pointTo == null ) {
 					throw new IllegalArgumentException( parent.getStats() + " " + this.getSuccessor().get(0).getStats());
 				}

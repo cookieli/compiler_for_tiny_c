@@ -5,28 +5,41 @@ import java.io.PrintWriter;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Stack;
 
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.LowLevelIR.CondQuad;
+import edu.mit.compilers.IR.LowLevelIR.EntryPoint;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.assembly.AssemblyForArith;
+import edu.mit.compilers.utils.MemOperandForm;
+import edu.mit.compilers.utils.OperandForm;
+import edu.mit.compilers.utils.X86_64Register;
 
 public class AssemblyFromCFGVistor {
 	StringBuilder sb;
 	public static final String tab = "\t";
 	public String currenWhileLabel = null;
 	
+	
+	
+	public static CFG currentCFG = null; 
+
 	public cfgNodeStack branch;
-	public Stack<String>  loopStack = null;
+	public Stack<String> loopStack = null;
+	
+	public List<OperandForm> currMethodPara = null;
+
 	public AssemblyFromCFGVistor() {
 		sb = new StringBuilder();
 	}
+	
 
 	public static void assemblyFile(String code, String file) throws FileNotFoundException {
 		String fileName = file;
@@ -58,6 +71,7 @@ public class AssemblyFromCFGVistor {
 		sb.append(".text\n");
 		LinkedHashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(p);
 		for (String key : maps.keySet()) {
+			currentCFG = maps.get(key);
 			sb.append(maps.get(key).accept(new AssemblyFromCFGVistor()));
 		}
 		return sb.toString();
@@ -65,7 +79,7 @@ public class AssemblyFromCFGVistor {
 
 	public void visit(CFGNode n) {
 		if (n.getLabel() != null) {
-			//sb.append(" label");
+			// sb.append(" label");
 			sb.append(n.getLabel() + ":\n");
 		}
 		if (n.statements != null) {
@@ -75,20 +89,25 @@ public class AssemblyFromCFGVistor {
 				else if (ir instanceof IrQuadWithLocForFuncInvoke) {
 					IrQuadWithLocForFuncInvoke func = (IrQuadWithLocForFuncInvoke) ir;
 					sb.append(AssemblyForArith.getAssemBlyForFuncInvoke((IrQuadWithLocForFuncInvoke) ir));
-				} else if(ir instanceof IrQuadForLoopStatement){
+				} else if (ir instanceof IrQuadForLoopStatement) {
 					IrQuadForLoopStatement loop = (IrQuadForLoopStatement) ir;
 					sb.append("nop\n");
-					if(loop.isBreak())
+					if (loop.isBreak())
 						setJmpOpr(branch.getMostClosestLoopEndNode().getLabel());
 					else
 						setJmpOpr(loopStack.peek());
-				} else if(ir instanceof ReturnQuadWithLoc) {
+				} else if (ir instanceof ReturnQuadWithLoc) {
 					sb.append(AssemblyForArith.getAssemblyForReturn((ReturnQuadWithLoc) ir));
-				}else
+					sb.append(getJmpOpr(currentCFG.getEndLabel()));
+				} else {
 					sb.append(ir.getName());
+					if(ir instanceof EntryPoint && currMethodPara != null) {
+						sb.append(setParaAsm(currMethodPara));
+					}
+				}
 
 			}
-		}else {
+		} else {
 			sb.append("nop\n");
 		}
 	}
@@ -101,24 +120,51 @@ public class AssemblyFromCFGVistor {
 		sb.append(getJmpOpr(label));
 	}
 
+	private String setParaAsm(List<OperandForm> lst) {
+		StringBuilder code = new StringBuilder();
+		int len = lst.size();
+		if (len > X86_64Register.paraRegNum) {
+			for (int i = 0; i < X86_64Register.paraRegNum; i++) {
+				code.append(AssemblyForArith.setParaAssemblyMov(X86_64Register.paraPassReg[i], (MemOperandForm) lst.get(i)));
+			}
+			for(int i = X86_64Register.paraRegNum; i < len; i++) {
+				MemOperandForm op1 = getParaOnStack(i- X86_64Register.paraRegNum + 1);
+				code.append(AssemblyForArith.setAssemblyMov(op1, (MemOperandForm) lst.get(i)));
+			}
+		} else {
+			for(int i = 0; i < len; i++) {
+				code.append(AssemblyForArith.setParaAssemblyMov(X86_64Register.paraPassReg[i], (MemOperandForm) lst.get(i)));
+			}
+		}
+		return code.toString();
+	}
+	
+	private MemOperandForm getParaOnStack(int i) {
+		String imm = Integer.toString(i*8+8);
+		String base = X86_64Register.rbp.getName_64bit();
+		int step = 8;
+		return new MemOperandForm(imm, base, null, step);
+	}
+
 	public void visit(CFG graph) {
-		
-		
+
 		branch = new cfgNodeStack();
 		CFGNode node = graph.entry;
 		CFGNode before = null;
+		currMethodPara = graph.getParaLst();
 		sb.append(graph.getFuncTitile());
-		//int count = 1;
+		
 		while (node != null) {
-			if(node.isWhileNode()) {
-				if(loopStack == null)   loopStack = new Stack<>();
-				if(node.getLabel() == null)
+			if (node.isWhileNode()) {
+				if (loopStack == null)
+					loopStack = new Stack<>();
+				if (node.getLabel() == null)
 					node.setLabel(AssemblyForArith.getNxtJmpLabel());
 				loopStack.push(node.getLabel());
 			}
-			if (!node.isAssemblyVisited())
+			if (!node.isAssemblyVisited()) {
 				node.accept(this);
-			else if (node.getLabel() != null) {
+			}else if (node.getLabel() != null) {
 				setJmpOpr(node.getLabel());
 
 				if (branch.isEmpty())
@@ -126,7 +172,7 @@ public class AssemblyFromCFGVistor {
 				else {
 					node = branch.pop();
 					continue;
-					//throw new IllegalArgumentException("branch "+ node.getStats());
+					// throw new IllegalArgumentException("branch "+ node.getStats());
 				}
 			} else {
 				throw new IllegalArgumentException("the node is visited and doesn't have label " + node.isMergeNode()
@@ -150,17 +196,16 @@ public class AssemblyFromCFGVistor {
 								node = branch.pop();
 							}
 						}
-						
 
 					} else if (node.visitCount == node.getIncomingDegree() && node.isMergeNode()) {
-						if(node.isWhileNode()) {
-							//node = branch.pop();
-							//throw new IllegalArgumentException(node.getStats());
-							if(!branch.isEmpty())   {
+						if (node.isWhileNode()) {
+							// node = branch.pop();
+							// throw new IllegalArgumentException(node.getStats());
+							if (!branch.isEmpty()) {
 								setJmpOpr(node.getLabel());
 								node = branch.pop();
 							}
-							if(!loopStack.isEmpty()) {
+							if (!loopStack.isEmpty()) {
 								loopStack.pop();
 							}
 						}
@@ -168,7 +213,7 @@ public class AssemblyFromCFGVistor {
 				} else {
 					if (node.getSuccessor().get(1).getLabel() == null) {
 						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
-						
+
 					}
 					branch.push(node.getSuccessor().get(1));
 					if (!before.isAssemblyVisited())
@@ -192,12 +237,20 @@ public class AssemblyFromCFGVistor {
 	}
 
 	private void setJmpLabel(String label) {
-		
+
 		sb.append(AssemblyForArith.setJmpLabel(label));
 	}
 
 	public String getAssembly() {
 		return sb.toString();
+	}
+	
+	public static void main(String[] args) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("jmp .L1\n");
+		sb.append("jmp .L2\n");
+		System.out.println(sb.lastIndexOf("jmp") + " " + sb.lastIndexOf("\n") + " " +sb.capacity());
+		System.out.println(sb.lastIndexOf("\n") - sb.lastIndexOf("jmp"));
 	}
 
 }

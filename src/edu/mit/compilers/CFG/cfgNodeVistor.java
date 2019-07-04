@@ -52,12 +52,15 @@ public class cfgNodeVistor implements IrNodeVistor{
 	public boolean visit(MethodDecl m) {
 		// TODO Auto-generated method stub
 		CFG cfg = new CFG(m.getMethodStackSize(), m.getId());
+		cfg.setParaLst(m.getParaOpr());
 		currentCFG = cfg;
+		currentCFG.setHasReturnValue(m.hasReturnValue());
 		for(IrStatement s: m.getStatements()) {
 			s.accept(this);
 		}
 		currentCFG.end();
 		currentCFG.compressCFG();
+		currentCFG.checkMethodOutOfCtrl();
 		cfgs.put(m.getId(), cfg);
 		return false;
 	}

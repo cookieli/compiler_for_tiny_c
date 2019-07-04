@@ -9,12 +9,13 @@ public class X86_64Register {
 
 	public static final Register rip = new Register("%rip");
 
-	public static final Register rdx = new Register("%rdx");
+	public static final Register rdx = new Register("%rdx", "%dl");
 
-	public static final Register rdi = new Register("%rdi"), rsi = new Register("%rsi"), rcx = new Register("%rcx"),
-			r8 = new Register("%r8"), r9 = new Register("%r9"), r12 = new Register("%r12", "%r12b");
+	public static final Register rdi = new Register("%rdi", "%dil"), rsi = new Register("%rsi", "%sil"), rcx = new Register("%rcx", "%cl"),
+			r8 = new Register("%r8","%r8b"), r9 = new Register("%r9", "%r9b"), r12 = new Register("%r12", "%r12b");
 
 	public static final Register[] tempForAssign = { rax, r10, r11 }, paraPassReg = { rdi, rsi, rdx, rcx, r8, r9 };
+	public static final int paraRegNum = 6;
 	private static int tempForAssignCursor = 0;
 
 	public static Register getNxtTempForAssign() {

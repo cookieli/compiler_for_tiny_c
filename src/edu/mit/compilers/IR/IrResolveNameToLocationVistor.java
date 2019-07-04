@@ -59,6 +59,8 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	public static final String[] paraPassReg_8bit = {"%dil", "%sil", "%dl", "%cl", "%r8b", "%r9b"};
 	public static final String rip = "%rip";
 	public static final String rax = "%rax";
+	
+	
 	public IrResolveNameToLocationVistor() {
 		env = new EnvStack();
 		semantics = new SemanticCheckerNode();
@@ -99,6 +101,8 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	public boolean visit(MethodDecl m) {
 		// TODO Auto-generated method stub
 		currentMethod = m;
+		List<OperandForm> lst = new ArrayList<>();
+		
 		List<IrStatement> statements = currentMethod.statements;
 		currentMethod.statements = new ArrayList<>();
 		if(Util.isMainMethod(m)) {
@@ -107,7 +111,10 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		env.pushVariables(m.localVars);
 		setArraySizeForAllVar(env.peekVariables(), env.peekMethod(), false);
 		
-		
+		for(String id: m.paraList) {
+			lst.add(getParaOperandForm(id, env.peekVariables(), env.peekMethod()));
+		}
+		m.setParaOpr(lst);
 		
 		for (IrStatement s : statements) {
 			s.accept(this);
@@ -203,6 +210,17 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		return new IrQuadWithLocation("movq", new ImmOperandForm(size, 8), operand);
 	}
 	
+	
+	private OperandForm getParaOperandForm(String id, VariableTable vtb, MethodTable mtb) {
+		int step = 1;
+		Variable_decl decl = vtb.get(id);
+		if(decl.getIrType().equals(IrType.IntType))
+			step = 8;
+		String imm = vtb.getMemLocation(id);
+		String base = X86_64Register.rbp.getName_64bit();
+		
+		return new MemOperandForm(imm,base, null, step);
+	}
 
 	
 	public OperandForm  getOperandForm(IrOperand opr, VariableTable vtb, MethodTable mtb) {

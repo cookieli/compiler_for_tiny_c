@@ -1,0 +1,10 @@
+int func(int i){
+    if(i > 4){
+        return 4;
+    }
+}
+
+
+void main(){
+    
+}

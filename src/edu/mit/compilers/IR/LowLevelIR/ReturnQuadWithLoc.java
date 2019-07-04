@@ -7,7 +7,7 @@ import edu.mit.compilers.utils.OperandForm;
 
 public class ReturnQuadWithLoc extends LowLevelIR{
 	
-	public OperandForm ret;
+	public OperandForm ret =null;
 	
 	public boolean is64bit;
 	
@@ -35,7 +35,10 @@ public class ReturnQuadWithLoc extends LowLevelIR{
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
-		return "return " + ret.toString()+"\n";
+		if(ret != null)
+			return "return " + ret.toString()+"\n";
+		else
+			return "return\n";
 	}
 
 	@Override

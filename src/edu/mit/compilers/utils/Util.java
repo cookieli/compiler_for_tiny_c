@@ -1,5 +1,8 @@
 package edu.mit.compilers.utils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,15 +46,28 @@ public class Util {
 		return expr instanceof IrLocation || expr instanceof IrLiteral;
 	}
 	
-	public static void main(String[] args) {
-		String text = ">=b";
-		Matcher match = ComPattern.matcher(text);
-		if(match.matches()) {
-			System.out.println(match.group(1));
-			System.out.println(match.group(2));
-		}else {
-			System.out.println("not match");
-		}
+	public static void main(String[] args) throws FileNotFoundException {
+//		String text = ">=b";
+//		Matcher match = ComPattern.matcher(text);
+//		if(match.matches()) {
+//			System.out.println(match.group(1));
+//			System.out.println(match.group(2));
+//		}else {
+//			System.out.println("not match");
+//		}
+		
+		PrintStream o = new PrintStream(new File("A.txt")); 
+		  
+        // Store current System.out before assigning a new value 
+        PrintStream console = System.out; 
+  
+        // Assign o to output stream 
+        System.setOut(o); 
+        System.out.println("This will be written to the text file"); 
+  
+        // Use stored value for output stream 
+        System.setOut(console); 
+        System.out.println("This will be written on the console!");
 	}
 	
 }

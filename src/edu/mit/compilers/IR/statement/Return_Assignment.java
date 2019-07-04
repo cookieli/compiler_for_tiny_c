@@ -7,7 +7,7 @@ import edu.mit.compilers.IR.expr.IrExpression;
 
 public class Return_Assignment extends IrStatement{
 	
-	public IrExpression expr;
+	public IrExpression expr =null;
 	
 	public boolean is64bit;
 	
@@ -31,7 +31,8 @@ public class Return_Assignment extends IrStatement{
 	
 	public Return_Assignment(Return_Assignment ret) {
 		super(ret.getLineNumber(), ret.getColumnNumber(), ret.getFilename());
-		expr = (IrExpression) ret.getExpr().copy();
+		if(ret.getExpr() != null)
+			expr = (IrExpression) ret.getExpr().copy();
 	}
 	
 	public IrExpression getExpr() {

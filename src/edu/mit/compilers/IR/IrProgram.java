@@ -137,9 +137,7 @@ public class IrProgram extends IrNode{
 	@Override
 	public void accept(IrNodeVistor vistor) {
 		// TODO Auto-generated method stub
-		if(vistor.visit(this)) {
-			System.out.println();
-		};
+		vistor.visit(this);
 		
 	}
 

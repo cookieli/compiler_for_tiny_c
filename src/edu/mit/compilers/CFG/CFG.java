@@ -17,12 +17,37 @@ import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
 import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
+import edu.mit.compilers.assembly.AssemblyForArith;
+import edu.mit.compilers.utils.OperandForm;
 
 public class CFG {
 
 	public String method;
+	
+	public List<OperandForm> paraLst;
+	
+
+	public List<OperandForm> getParaLst() {
+		return paraLst;
+	}
+
+	public void setParaLst(List<OperandForm> paraLst) {
+		this.paraLst = paraLst;
+	}
+
 	public CFGNode entry;
 	public CFGNode end;
+	
+	public boolean hasReturnValue;
+	
+
+	public boolean isHasReturnValue() {
+		return hasReturnValue;
+	}
+
+	public void setHasReturnValue(boolean hasReturnValue) {
+		this.hasReturnValue = hasReturnValue;
+	}
 
 	public static IrWhileBlockQuad currentLoop = null;
 
@@ -58,7 +83,11 @@ public class CFG {
 
 	public void end() {
 		addCFGNode(new ExitNode());
-
+		end.setLabel(AssemblyForArith.getNxtJmpLabel());
+	}
+	
+	public String getEndLabel() {
+		return end.getLabel();
 	}
 
 	private static CFGNode getFlowBeginNode(List<CFGNode> flow, CFGNode succ) {
@@ -149,6 +178,8 @@ public class CFG {
 
 	private static CFGNode shortcircuit(CondQuad quad, CFGNode trueStart, CFGNode falseStart) {
 		if (quad.getSymbol().isEmpty()) {
+			if(quad.getCondStack().isEmpty())
+				throw new IllegalArgumentException("empty ");
 			return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
 		}
 		if (quad.getSymbol().size() == 1 && quad.getSymbol().get(0).equals("!")) {
@@ -318,8 +349,12 @@ public class CFG {
 					CFGNode succ = successors.get(0);
 					if (!succ.isVisited()) {
 						succ.setVisited();
-						if (succ.getIncomingDegree() == 1) {
+						if (succ.getIncomingDegree() == 1 && (succ != end || node.statements == null)) {
 							node.combineNode(succ);
+							if(succ == end) {
+								node.label = succ.label;
+								end = node;
+							}
 							queue.add(node);
 							continue;
 						} else {
@@ -328,12 +363,10 @@ public class CFG {
 					}
 
 					if (node.isTransitionNodeForEliminate() && succ.isMergeNode() && !succ.isWhileNode()) {
-						// if (succ.getParents().get(0).equals(node))
-						// succ.deleteParent();
+						
 						if (succ.getParents().contains(node)) {
 							succ.removeParent(node);
 						}
-						// System.out.println("count: "+ node.getParents().size());
 						for (CFGNode n : node.getParents()) {
 							n.deletePointTo();
 							n.addSuccessor(succ);
@@ -351,6 +384,24 @@ public class CFG {
 			}
 		}
 	}
+	
+	
+	public boolean methodHasReturnValue() {
+		for(CFGNode n: end.parents) {
+			if(!n.lastStatementIsReturn()) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public void checkMethodOutOfCtrl() {
+		if(this.hasReturnValue && !methodHasReturnValue()) {
+			System.out.println("Sorry, this method out of Control " + method);
+			System.exit(-2);
+		}
+	}
+	
 
 	@Override
 	public String toString() {
