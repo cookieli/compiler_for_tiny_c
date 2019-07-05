@@ -216,6 +216,10 @@ public class AssemblyForArith {
 			code.append(new AssemblyForm(symbol, reg, memOp2.toString()));
 			
 		} else {
+			if(op1 == null)
+				throw new IllegalArgumentException("op1 is null" + quad.getName());
+			if(memOp2 == null)
+				throw new IllegalArgumentException("op2 is null" + quad.getName());
 			code.append(new AssemblyForm(symbol, op1.toString(), memOp2.toString()));
 		}
 		

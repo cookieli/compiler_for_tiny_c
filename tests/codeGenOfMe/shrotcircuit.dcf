@@ -13,10 +13,22 @@ bool test_short_circuit ( bool andy, bool okay ) {
 
 void main(){
    bool a;
+   int c,  b;
    a = true;
+   c = 5 ;
+   b = 4;
    if(a!= true && test_short_circuit(true, false)){
           printf("hello world\n");
    } else{
          printf("wrong\n");
    }
+   
+   if(a == true && (!a || c > b || test_short_circuit(true, false))){
+      printf("should be here\n");
+   } else{
+      printf("not be here\n");
+   }
+   
+   
+   
 }

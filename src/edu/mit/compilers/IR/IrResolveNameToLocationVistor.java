@@ -17,6 +17,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.MultiQuadLowIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
@@ -370,6 +371,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	}
 	
 	public IrQuadWithLocation resetQuad(IrQuad quad, VariableTable vtb, MethodTable mtb) {
+		
 		IrOperand op1 = quad.getOp1();
 		IrOperand op2 = quad.getOp2();
 		IrOperand dst = quad.getDest();
@@ -381,6 +383,29 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		return new IrQuadWithLocation(quad.getSymbol(), opForm1, opForm2, dstForm);
 	}
 	
+	
+	public MultiQuadLowIR resetMultiQuad(MultiQuadLowIR quad, VariableTable vtb, MethodTable mtb) {
+		List<LowLevelIR> lst = new ArrayList<>();
+		List<IrStatement> temp = currentList;
+		currentList = new ArrayList<>();
+		for(LowLevelIR ir: quad.getQuadLst()) {
+			if(ir instanceof IrQuad) {
+				//lst.add(resetQuad((IrQuad) ir, vtb,  mtb));
+				if(ir instanceof IrQuadForAssign) {
+					//addIrStatement(ir);
+					((IrQuadForAssign)ir).accept(this);
+				} else {
+					lst.add(resetQuad((IrQuad) ir, vtb,  mtb));
+				}
+				
+			}
+		}
+		quad.setQuadLst(lst);
+		currentList = temp;
+		return quad;
+		
+	}
+	
 	public void resetCondQuad(CondQuad cond, VariableTable vtb, MethodTable mtb) {
 		List<LowLevelIR> condStack = cond.getCondStack();
 		if(condStack.size() == 1) {
@@ -388,6 +413,9 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 			LowLevelIR quad =  condStack.remove(0);
 			if(quad instanceof IrQuad)
 				condStack.add(resetQuad((IrQuad)quad, vtb, mtb));
+			else if(quad instanceof MultiQuadLowIR) {
+				condStack.add(resetMultiQuad((MultiQuadLowIR) quad, vtb, mtb));
+			}
 			else if(quad instanceof IrQuadWithLocation)
 				throw new ClassCastException(quad.getName());
 		} else {
@@ -400,11 +428,16 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	private LowLevelIR giveLocationToLowIr(LowLevelIR ir, VariableTable vtb, MethodTable mtb) {
 		if(ir instanceof IrQuad) {
 			return resetQuad((IrQuad) ir, vtb, mtb);
-		} else if(ir instanceof CondQuad) {
+		} else if(ir instanceof MultiQuadLowIR) {
+			return resetMultiQuad((MultiQuadLowIR) ir, vtb, mtb);
+		}else  if(ir instanceof CondQuad) {
 			List<LowLevelIR> condStack = ((CondQuad)ir).getCondStack();
 			if(condStack.size() == 1) {
-				IrQuad quad = (IrQuad) condStack.remove(0);
-				condStack.add(resetQuad(quad, vtb, mtb));
+				LowLevelIR quad =  condStack.remove(0);
+				if(quad instanceof IrQuad)
+					condStack.add(resetQuad((IrQuad) quad, vtb, mtb));
+				else if(quad instanceof MultiQuadLowIR)
+					condStack.add(resetMultiQuad((MultiQuadLowIR) quad, vtb, mtb));
 			} else {
 				for(int i = 0; i < condStack.size(); i++) {
 					LowLevelIR member = condStack.get(i);

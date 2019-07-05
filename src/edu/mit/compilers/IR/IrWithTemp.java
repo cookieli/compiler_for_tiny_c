@@ -20,6 +20,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.MultiStatementExpr;
 import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
@@ -51,17 +52,18 @@ public class IrWithTemp implements IrNodeVistor {
 	public IrBlock currentBlock = null;
 	public List<IrStatement> currentList = null;
 	public SemanticCheckerNode semantics;
-	
+
 	public boolean retValue64bit = false;
 
 	public EnvStack envs;
 	public String tempName = "$temp";
-	
+
 	public ImportTable importIr;
+
 	public IrWithTemp() {
 		envs = new EnvStack();
 		semantics = new SemanticCheckerNode();
-		
+
 	}
 
 	public static IrProgram newProgram(IrProgram p) {
@@ -83,7 +85,7 @@ public class IrWithTemp implements IrNodeVistor {
 
 	public IrLocation getVarCorrespondTemp(IrOperand opr, VariableTable v, MethodTable m) {
 		IrType type = semantics.getIrOperandType(opr, v, m);
-		if(type.equals(IrType.notKnownType))
+		if (type.equals(IrType.notKnownType))
 			type = IrType.IntType;
 		IrLocation lhsTemp = setNewTempVariable(type, v);
 		return lhsTemp;
@@ -91,8 +93,12 @@ public class IrWithTemp implements IrNodeVistor {
 
 	public IrLocation getExprCorrespondTemp(IrExpression expr, VariableTable v, MethodTable m) {
 		IrType type = semantics.getIrExpressionType(expr, v, m);
-		if(type.equals(IrType.notKnownType))
-			type = IrType.IntType;
+		if (!type.equals(IrType.BoolType) && !type.equals(IrType.IntType)) {
+			if (type.equals(IrType.notKnownType)) {
+				type = IrType.IntType;
+				// throw new IllegalArgumentException("it's type is unknown" + expr.getName());
+			}
+		}
 		IrLocation temp = setNewTempVariable(type, v);
 		return temp;
 	}
@@ -124,7 +130,7 @@ public class IrWithTemp implements IrNodeVistor {
 		// TODO Auto-generated method stub
 		currentMethod = m;
 		envs.pushVariables(currentMethod.getVariableTable());
-		if(currentMethod.getMethodType().equals(IrType.IntType))
+		if (currentMethod.getMethodType().equals(IrType.IntType))
 			retValue64bit = true;
 		else
 			retValue64bit = false;
@@ -137,19 +143,18 @@ public class IrWithTemp implements IrNodeVistor {
 		envs.popVariables();
 		return false;
 	}
-	
+
 	public void addIrStatement(IrStatement s) {
-		if(currentList != null) {
+		if (currentList != null) {
 			currentList.add(s);
 			return;
 		}
-		if(currentBlock == null)
+		if (currentBlock == null)
 			currentMethod.addIrStatement(s);
 		else
 			currentBlock.addIrStatement(s);
 	}
-	
-	
+
 	public void addIrStatement(IrStatement s, List<IrStatement> lst) {
 		lst.add(s);
 	}
@@ -162,22 +167,22 @@ public class IrWithTemp implements IrNodeVistor {
 			addIrStatement(assign);
 			return;
 		}
-		
-		if(rhs instanceof IrLenExpr) {
+
+		if (rhs instanceof IrLenExpr) {
 			addIrStatement(assign);
 		}
 		if (rhs instanceof IrLocation) {
 			HandleNoCompoundSymbolAssignRhsIsIrLocation(lhs, (IrLocation) rhs, assign, v, m);
 			return;
 		}
-		if(rhs instanceof IrFuncInvocation) {
+		if (rhs instanceof IrFuncInvocation) {
 			HandleNoCompoundSymbolAssignRhsIsFuncInvoke((IrFuncInvocation) rhs, assign, v, m);
 			return;
 		}
-		
+
 		if (rhs instanceof UnaryExpression) {
 			UnaryExpression unary = (UnaryExpression) rhs;
-			if(unary.isBool()) {
+			if (unary.isBool()) {
 				changeAssignRhsIsBoolToIfBlock(assign, v).accept(this);
 				return;
 			}
@@ -186,27 +191,27 @@ public class IrWithTemp implements IrNodeVistor {
 		}
 
 		if (rhs instanceof BinaryExpression) {
-			if(lhs.locationIsArray()) {
-				//handleLocation(lhs, v, m);
-				IrLocation lhsTemp = getExprCorrespondTemp(lhs,v, m);
+			if (lhs.locationIsArray()) {
+				// handleLocation(lhs, v, m);
+				IrLocation lhsTemp = getExprCorrespondTemp(lhs, v, m);
 				IrAssignment newAssign = new IrAssignment(lhsTemp, rhs, "=");
 				HandleNoCompoundSymbolAssignRhsIsBinaryExpression(newAssign, v, m);
 				addIrStatement(new IrAssignment(lhs, lhsTemp, "="));
-			}
-			else
+			} else
 				HandleNoCompoundSymbolAssignRhsIsBinaryExpression(assign, v, m);
 			return;
 		}
 
 	}
-	
-	private void HandleNoCompoundSymbolAssignRhsIsFuncInvoke(IrFuncInvocation rhs, IrAssignment assign,  VariableTable v, MethodTable m) {
+
+	private void HandleNoCompoundSymbolAssignRhsIsFuncInvoke(IrFuncInvocation rhs, IrAssignment assign, VariableTable v,
+			MethodTable m) {
 		resetFuncInvokePara(rhs, v, m);
 		rhs.setHasRetValue(true);
 		setFuncPLT(rhs);
 		addIrStatement(assign);
 	}
-	
+
 	private IfBlock changeAssignRhsIsBoolToIfBlock(IrAssignment assign, VariableTable vtb) {
 		IfBlock block = new IfBlock(assign.getRhs(), vtb);
 		block.addTrueStatement(new IrAssignment(assign.getLhs(), IrLiteral.getTrueLiteral(), "="));
@@ -219,81 +224,79 @@ public class IrWithTemp implements IrNodeVistor {
 			return new BinaryExpression(new IrLiteral(0), expr.getIrExpression(), "-");
 		return null;
 	}
-	
 
-	private void HandleNoCompoundSymbolAssignRhsIsBinaryExpression(IrAssignment assign, VariableTable v, MethodTable m) {
+	private void HandleNoCompoundSymbolAssignRhsIsBinaryExpression(IrAssignment assign, VariableTable v,
+			MethodTable m) {
 		IrLocation lhs = assign.getLhs();
 		BinaryExpression binary = (BinaryExpression) assign.getRhs();
-		if(binary.isBoolExpr() || binary.isCmpExpr()) {
+		if (binary.isBoolExpr() || binary.isCmpExpr()) {
 			changeAssignRhsIsBoolToIfBlock(assign, v).accept(this);
 			return;
 		}
-		
+
 		IrExpression binaryLhs = binary.getlhs();
 		IrExpression binaryRhs = binary.getrhs();
 		boolean binaryLhsNotNeedTemp = OperandNotNeedTemp(binaryLhs);
 		boolean binaryRhsNotNeedTemp = OperandNotNeedTemp(binaryRhs);
-		if(binaryLhsNotNeedTemp && binaryRhsNotNeedTemp) {
+		if (binaryLhsNotNeedTemp && binaryRhsNotNeedTemp) {
 			addIrStatement(assign);
 			return;
 		}
-		
+
 		binaryLhs = assignLocationToIrExpression(binaryLhs, v, m);
 		binaryRhs = assignLocationToIrExpression(binaryRhs, v, m);
 		BinaryExpression expr = new BinaryExpression(binaryLhs, binaryRhs, binary.getSymbol());
 		IrAssignment newAssign = new IrAssignment(lhs, expr, "=");
 		addIrStatement(newAssign);
-		
+
 	}
-	
+
 	private IrExpression assignLocationToIrExpression(IrExpression expr, VariableTable vtb, MethodTable mtb) {
-		if(expr instanceof IrLocation && ((IrLocation) expr).locationIsArray())
+		if (expr instanceof IrLocation && ((IrLocation) expr).locationIsArray())
 			return assignLocationToArray((IrLocation) expr, vtb, mtb);
-		if(expr instanceof IrFuncInvocation) {
+		if (expr instanceof IrFuncInvocation) {
 			return assignLocationToFunction((IrFuncInvocation) expr, vtb, mtb);
 		}
-		if(expr instanceof UnaryExpression) {
+		if (expr instanceof UnaryExpression) {
 			expr = setTempForUnaryExpr((UnaryExpression) expr);
 		}
-		if(expr instanceof BinaryExpression) {
+		if (expr instanceof BinaryExpression) {
 			expr = assignLocationToBinary((BinaryExpression) expr, vtb, mtb);
 		}
 		return expr;
 	}
-	
-	
-	
+
 	private IrLocation assignLocationToFunction(IrFuncInvocation func, VariableTable v, MethodTable m) {
 		IrLocation temp = getExprCorrespondTemp(func, v, m);
 		IrAssignment newAssign = new IrAssignment(temp, func, "=");
 		HandleNoCompoundSymbolAssignRhsIsFuncInvoke(func, newAssign, v, m);
 		return temp;
 	}
-	
+
 	private IrLocation assignLocationToBinary(BinaryExpression expr, VariableTable v, MethodTable m) {
-		IrLocation temp = getExprCorrespondTemp(expr, v ,m);
+		IrLocation temp = getExprCorrespondTemp(expr, v, m);
 		IrAssignment newAssign = new IrAssignment(temp, expr, "=");
 		HandleNoCompoundSymbolAssignRhsIsBinaryExpression(newAssign, v, m);
 		return temp;
 	}
+
 	private IrLocation assignLocationToArray(IrLocation arr, VariableTable v, MethodTable m) {
-		if(!arr.locationIsArray())
+		if (!arr.locationIsArray())
 			throw new IllegalArgumentException("parameter not array");
-		handleLocation(arr,v,m);
+		handleLocation(arr, v, m);
 		IrLocation temp = getExprCorrespondTemp(arr, v, m);
 		addIrStatement(new IrAssignment(temp, arr, "="));
 		return temp;
 	}
-	
-	
 
 	private boolean OperandNotNeedTemp(IrExpression expr) {
-		return expr instanceof IrLiteral || (expr instanceof IrLocation && !((IrLocation) expr).locationIsArray()) || expr instanceof IrLenExpr;
+		return expr instanceof IrLiteral || (expr instanceof IrLocation && !((IrLocation) expr).locationIsArray())
+				|| expr instanceof IrLenExpr;
 	}
 
 	private void HandleNoCompoundSymbolAssignRhsIsIrLocation(IrLocation lhs, IrLocation rhs, IrAssignment assign,
 			VariableTable v, MethodTable m) {
-		handleLocation(lhs,v ,m);
+		handleLocation(lhs, v, m);
 		handleLocation(rhs, v, m);
 		if (!((IrLocation) rhs).locationIsArray() || !lhs.locationIsArray()) {
 			addIrStatement(assign);
@@ -307,15 +310,16 @@ public class IrWithTemp implements IrNodeVistor {
 			addIrStatement(assign2);
 		}
 	}
-	
+
 	private void handleLocation(IrLocation arr, VariableTable v, MethodTable m) {
-		if(!arr.locationIsArray()) {
+		if (!arr.locationIsArray()) {
 			return;
 		} else {
 			IrExpression size = arr.getSizeExpr();
-			if(size instanceof IrLiteral)       return;
-			if(size instanceof IrLocation && !((IrLocation) size).locationIsArray()) {
-				return ;
+			if (size instanceof IrLiteral)
+				return;
+			if (size instanceof IrLocation && !((IrLocation) size).locationIsArray()) {
+				return;
 			}
 			IrLocation sizeLoc = getExprCorrespondTemp(size, v, m);
 			arr.setSizeExpr(sizeLoc);
@@ -335,7 +339,7 @@ public class IrWithTemp implements IrNodeVistor {
 		MethodTable mtb = envs.peekMethod();
 		if (symbol.equals("=")) {
 			HandleNoCompoundSymbolAssign(assign, vtb, mtb);
-		} else if(symbol.equals("++") || symbol.equals("--")) {
+		} else if (symbol.equals("++") || symbol.equals("--")) {
 			handleIncOrDec(assign, vtb, mtb);
 		} else {
 			handleComboundOp(assign, vtb, mtb);
@@ -343,29 +347,28 @@ public class IrWithTemp implements IrNodeVistor {
 
 		return false;
 	}
-	
-	
-	
-	public  void handleComboundOp(IrAssignment assign, VariableTable vtb, MethodTable mtb) {
+
+	public void handleComboundOp(IrAssignment assign, VariableTable vtb, MethodTable mtb) {
 		Pattern comboundOp = Pattern.compile("(\\+|\\-|\\*|\\/)(=)");
 		Matcher m = comboundOp.matcher(assign.getSymbol());
 		String symbol;
-		if(m.matches())   symbol = m.group(1);
-		else 
+		if (m.matches())
+			symbol = m.group(1);
+		else
 			throw new IllegalArgumentException(assign.getSymbol() + "not right");
 		expandComboundAssign(assign.getLhs(), assign.getRhs(), symbol, vtb, mtb);
-		
-		
+
 	}
-	
-	private void expandComboundAssign(IrLocation lhs, IrExpression rhs,String symbol,  VariableTable vtb, MethodTable mtb) {
+
+	private void expandComboundAssign(IrLocation lhs, IrExpression rhs, String symbol, VariableTable vtb,
+			MethodTable mtb) {
 		handleLocation(lhs, vtb, mtb);
 		IrAssignment newAssign;
-		if(lhs.locationIsArray()) {
+		if (lhs.locationIsArray()) {
 			IrLocation lhsTemp = getExprCorrespondTemp(lhs, vtb, mtb);
 			addIrStatement(new IrAssignment(lhsTemp, lhs, "="));
 			BinaryExpression binary = new BinaryExpression(lhsTemp, rhs, symbol);
-		    newAssign = new IrAssignment(lhsTemp, binary, "=");
+			newAssign = new IrAssignment(lhsTemp, binary, "=");
 			newAssign.accept(this);
 			addIrStatement(new IrAssignment(lhs, lhsTemp, "="));
 		} else {
@@ -374,11 +377,11 @@ public class IrWithTemp implements IrNodeVistor {
 			newAssign.accept(this);
 		}
 	}
-	
-	public void handleIncOrDec(IrAssignment assign,VariableTable v, MethodTable m) {
+
+	public void handleIncOrDec(IrAssignment assign, VariableTable v, MethodTable m) {
 		IrLocation lhs = assign.getLhs();
 		String symbol = "-";
-		if(assign.getSymbol().equals("++"))
+		if (assign.getSymbol().equals("++"))
 			symbol = "+";
 		expandComboundAssign(assign.getLhs(), IrLiteral.getLiteral(1), symbol, v, m);
 	}
@@ -390,11 +393,11 @@ public class IrWithTemp implements IrNodeVistor {
 		currentList = null;
 		IrBlock tempBlock = currentBlock;
 		currentBlock = block;
-		//currentBlock.setLocalVarTableParent(envs.peekVariables());
+		// currentBlock.setLocalVarTableParent(envs.peekVariables());
 		envs.pushVariables(block.localVars);
 		List<IrStatement> statements = block.statements;
 		block.statements = new ArrayList<>();
-		for(IrStatement s: statements) {
+		for (IrStatement s : statements) {
 			s.accept(this);
 		}
 		envs.popVariables();
@@ -406,48 +409,57 @@ public class IrWithTemp implements IrNodeVistor {
 	@Override
 	public boolean visit(IfBlock ifCode) {
 		// TODO Auto-generated method stub
-	
+
 		ifCode.setBoolExpr(handleBoolExpr(ifCode.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
 		ifCode.getTrueBlock().accept(this);
-		if(ifCode.getFalseBlock() != null) {
-			
+		if (ifCode.getFalseBlock() != null) {
+
 			ifCode.getFalseBlock().accept(this);
 		}
-		
+
 		addIrStatement(ifCode);
 		return false;
 	}
-	
-	
+
 	private IrExpression handleBoolExpr(IrExpression expr, VariableTable vtb, MethodTable mtb) {
-		if(expr instanceof IrLiteral || expr instanceof IrLocation || expr instanceof IrFuncInvocation)
-			return assignLocationToIrExpression(expr, vtb, mtb);
-		if(expr instanceof BinaryExpression) {
+		if (expr instanceof IrLiteral || expr instanceof IrLocation || expr instanceof IrFuncInvocation) {
+			List<IrStatement> tempLst = currentList;
+			currentList = new ArrayList<>();
+			IrExpression ret = assignLocationToIrExpression(expr, vtb, mtb);
+			MultiStatementExpr mul = new MultiStatementExpr(ret, currentList);
+			currentList = tempLst;
+			return mul;
+		}
+		if (expr instanceof BinaryExpression) {
 			BinaryExpression binary = (BinaryExpression) expr;
-			if(binary.isCmpExpr())  return handleCmpExpr(binary, vtb, mtb);
-			if(binary.isBoolExpr()) {
+			if (binary.isCmpExpr())
+				return handleCmpExpr(binary, vtb, mtb);
+			if (binary.isBoolExpr()) {
 				binary.setLhs(handleBoolExpr(binary.getlhs(), vtb, mtb));
 				binary.setRhs(handleBoolExpr(binary.getrhs(), vtb, mtb));
 				return binary;
 			}
 		}
-		if(expr instanceof UnaryExpression) {
+		if (expr instanceof UnaryExpression) {
 			UnaryExpression unary = (UnaryExpression) expr;
 			unary.setExpr(handleBoolExpr(unary.getIrExpression(), vtb, mtb));
 			return unary;
 		}
 		return null;
 	}
-	
+
 	private IrExpression handleCmpExpr(BinaryExpression expr, VariableTable vtb, MethodTable mtb) {
 		IrExpression binaryLhs;
 		IrExpression binaryRhs;
-		
+		List<IrStatement> tempList = currentList;
+		currentList = new ArrayList<>();
 		binaryLhs = assignLocationToIrExpression(expr.getlhs(), vtb, mtb);
 		binaryRhs = assignLocationToIrExpression(expr.getrhs(), vtb, mtb);
 		expr.setLhs(binaryLhs);
 		expr.setRhs(binaryRhs);
-		return expr;
+		MultiStatementExpr ret = new MultiStatementExpr(expr, currentList);
+		currentList = tempList;
+		return ret;
 	}
 
 	@Override
@@ -478,25 +490,23 @@ public class IrWithTemp implements IrNodeVistor {
 
 	@Override
 	public boolean visit(FuncInvokeStatement func) {
-		if(importIr.contains(func.getFuncName()))
+		if (importIr.contains(func.getFuncName()))
 			func.setPLT(true);
 		resetFuncInvokePara(func.getFunc(), envs.peekVariables(), envs.peekMethod());
 		addIrStatement(func);
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+
 	public void setFuncPLT(IrFuncInvocation func) {
-		if(importIr.contains(func.getId()))
+		if (importIr.contains(func.getId()))
 			func.setPLT(true);
 	}
-	
-	
-	
+
 	private void resetFuncInvokePara(IrFuncInvocation func, VariableTable v, MethodTable m) {
-		if(func.getFuncArgs() != null) {
+		if (func.getFuncArgs() != null) {
 			List<IrExpression> lst = new ArrayList<>();
-			for(IrExpression e: func.getFuncArgs()) {
+			for (IrExpression e : func.getFuncArgs()) {
 				lst.add(assignLocationToIrExpression(e, v, m));
 			}
 			func.setFuncArgs(lst);
@@ -549,28 +559,27 @@ public class IrWithTemp implements IrNodeVistor {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+
 	public static void main(String[] args) {
 		Pattern comboundOp = Pattern.compile("(\\+|\\-|\\*|\\/)(=)");
 		String s = "/=";
 		Matcher m = comboundOp.matcher(s);
-		if(m.matches()) {
-			System.out.println(m.group(1) +" "+ m.group(2));
+		if (m.matches()) {
+			System.out.println(m.group(1) + " " + m.group(2));
 		}
-		
 
 	}
 
 	@Override
 	public void visit(IrIfBlockQuad irIfBlockQuad) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void visit(IrWhileBlockQuad whileQuad) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

@@ -8,6 +8,7 @@ import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.MultiStatementExpr;
 import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
@@ -77,7 +78,9 @@ public class CondQuad extends LowLevelIR {
 			ir = setCondQuad((BinaryExpression) expr, vtb, mtb);
 		else if (expr instanceof UnaryExpression) {
 			ir = setCondQuad((UnaryExpression) expr, vtb, mtb);
-		} else
+		} else if(expr instanceof MultiStatementExpr) {
+			ir = new MultiQuadLowIR((MultiStatementExpr) expr, vtb, mtb);
+		}else
 			ir = null;
 		return ir;
 	}

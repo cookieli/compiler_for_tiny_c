@@ -13,6 +13,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
+import edu.mit.compilers.IR.LowLevelIR.MultiQuadLowIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
@@ -180,11 +181,16 @@ public class CFG {
 		if (quad.getSymbol().isEmpty()) {
 			if(quad.getCondStack().isEmpty())
 				throw new IllegalArgumentException("empty ");
-			return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
+			if(quad.getCondStack().get(0) instanceof IrQuadWithLocation)
+				return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
+			else
+				return shortcircuit((MultiQuadLowIR)quad.getCondStack().get(0), trueStart, falseStart);
 		}
 		if (quad.getSymbol().size() == 1 && quad.getSymbol().get(0).equals("!")) {
 			if (quad.getCondStack().get(0) instanceof IrQuadWithLocation)
 				return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), falseStart, trueStart);
+			else if(quad.getCondStack().get(0) instanceof MultiQuadLowIR)
+				return shortcircuit((MultiQuadLowIR) quad.getCondStack().get(0), falseStart, trueStart);
 			return shortcircuit((CondQuad) quad.getCondStack().get(0), falseStart, trueStart);
 		}
 
@@ -195,7 +201,9 @@ public class CFG {
 		LowLevelIR op1 = condStack.get(stackCursor--);
 		if (op1 instanceof IrQuadWithLocation) {
 			beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
-		} else {
+		} else if(op1 instanceof MultiQuadLowIR){
+			beginNode = shortcircuit((MultiQuadLowIR)op1, trueStart, falseStart);
+		}else {
 			beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
 		}
 		for (int i = symbol.size() - 1; i >= 0; i--) {
@@ -208,6 +216,8 @@ public class CFG {
 			op1 = condStack.get(stackCursor--);
 			if (op1 instanceof IrQuadWithLocation) {
 				beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
+			} else if(op1 instanceof MultiQuadLowIR){
+				beginNode = shortcircuit((MultiQuadLowIR)op1, trueStart, falseStart);
 			} else {
 				beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
 			}
@@ -220,6 +230,14 @@ public class CFG {
 		beginNode.addSuccessor(trueStart);
 		beginNode.addSuccessor(falseStart);
 		return beginNode;
+	}
+	
+	private static CFGNode shortcircuit(MultiQuadLowIR quad, CFGNode trueStart, CFGNode falseStart) {
+		CFGNode beginNode = new CFGNode();
+		for(LowLevelIR ir: quad.getQuadLst()) {
+			beginNode.addLowLevelIr(ir);
+		}
+		return shortcircuit(beginNode, trueStart, falseStart);
 	}
 
 	private static CFGNode shortcircuit(IrQuadWithLocation loc, CFGNode trueStart, CFGNode falseStart) {

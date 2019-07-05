@@ -45,6 +45,7 @@ public class MethodDecl extends Variable_decl{
 	public MethodDecl(MethodDecl m) {
 		super(m);
 		this.localVars = m.localVars.copy();
+		this.type = m.type;
 		this.statements = new ArrayList<>();
 		for(IrStatement s: m.statements) {
 			this.statements.add((IrStatement) s.copy());

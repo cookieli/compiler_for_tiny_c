@@ -178,7 +178,7 @@ public class AssemblyFromCFGVistor {
 				throw new IllegalArgumentException("the node is visited and doesn't have label " + node.isMergeNode()
 						+ " " + node.getIncomingDegree() + " \n" + node.getStats());
 			}
-			if (node.getSuccessor() != null) {
+			if (node.getSuccessor() != null ) {
 				before = node;
 				if (node.getSuccessor().size() == 1) {
 					node = node.getSuccessor().get(0);

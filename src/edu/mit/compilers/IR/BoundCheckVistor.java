@@ -54,6 +54,10 @@ public class BoundCheckVistor extends IrWithTemp{
 		return false;
 	}
 	
+	public boolean visit(IfBlock ifCode) {
+		return false;
+	}
+	
 	
 	@Override
 	public boolean visit(IrForBlock forBlock) {
@@ -90,6 +94,8 @@ public class BoundCheckVistor extends IrWithTemp{
 	public void boundCheckArrLocation(IrLocation loc, VariableTable v, MethodTable m) {
 		ifCodeForBoundCheck(loc, v, m).accept(this);
 	}
+	
+	
 	
 	private IfBlock ifCodeForBoundCheck(IrLocation loc, VariableTable v, MethodTable m) {
 		IrExpression sizeExpr = loc.getSizeExpr();
