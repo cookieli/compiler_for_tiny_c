@@ -1,0 +1,10 @@
+import printf;
+
+void main(){
+   int a[3];
+   int c;
+   c =10;
+   if(a[c]> 5){
+      printf("not coming here\n");
+   }
+}

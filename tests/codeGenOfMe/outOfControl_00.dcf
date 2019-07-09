@@ -2,4 +2,6 @@ int func(){
 }
 
 void main(){
+    int a;
+    a = func();
 }

@@ -124,10 +124,13 @@ public class IrQuadVistor implements IrNodeVistor{
 		IrExpression expr = ifCode.getBoolExpr();
 		IrBlock trueBlock = ifCode.getTrueBlock();
 		IrBlock falseBlock = ifCode.getFalseBlock();
-		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod());
+		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod(), this);
+		List<IrStatement> tempLst = currentList;
+		currentList = null;
 		trueBlock.accept(this);
 		if(falseBlock != null)  falseBlock.accept(this);
 		IrIfBlockQuad ifBlock = new IrIfBlockQuad(cond, trueBlock, falseBlock);
+		currentList = tempLst;
 		addIrStatement(ifBlock);
 		return false;
 	}
@@ -137,7 +140,7 @@ public class IrQuadVistor implements IrNodeVistor{
 		
 		IrExpression expr = whileBlock.getBoolExpr();
 		IrBlock block = whileBlock.getCodeBlock();
-		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod());
+		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod(), this);
 		block.accept(this);
 		//whileBlock.setBoolExpr(cond);
 		IrWhileBlockQuad whileQuad = new IrWhileBlockQuad(cond, block);
@@ -157,7 +160,7 @@ public class IrQuadVistor implements IrNodeVistor{
 		// TODO Auto-generated method stub
 		IrExpression expr = forBlock.getBoolExpr();
 		IrBlock block = forBlock.getBlock();
-		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod());
+		CondQuad cond = new CondQuad(expr, env.peekVariables(), env.peekMethod(), this);
 		block.accept(this);
 		IrWhileBlockQuad forQuad = new IrWhileBlockQuad(cond, block);
 		currentList = forQuad.getPreQuad();

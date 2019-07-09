@@ -29,6 +29,7 @@ public class IrProgram extends IrNode{
 		if(roData == null)
 			setRoData();
 		roData.addData(var);
+		//throw new IllegalArgumentException("add success");
 	}
 
 	//public String fileName;

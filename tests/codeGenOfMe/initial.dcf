@@ -1,0 +1,21 @@
+import printf;
+
+void main(){
+     int a,b;
+     bool c,d;
+     int e[5];
+     bool f[5];
+     
+     
+     printf("a: %d, b: %d\n", a, b);
+     printf("c: %d\n", c);
+     printf("d== false: %d\n", d == false);
+     for(a = 0; a < len(e); a++){
+          printf("%d ", e[a]);
+     }
+     printf("\n");
+     for(a = 0; a < len(f); a++){
+        printf("%d ", f[a]);
+     }
+     printf("\n");
+}

@@ -36,10 +36,10 @@ class Main {
 			} else if (CLI.target == Action.INTER) {
 				DecafParser parser = parse(inputStream);
 				inter(parser);
-			} else if(CLI.target == Action.ASSEMBLY) {
+			} else if (CLI.target == Action.ASSEMBLY) {
 				DecafParser parser = parse(inputStream);
 				asm(inter(parser), outputStream);
-				
+
 			}
 		} catch (Exception e) {
 			// print the error:
@@ -142,33 +142,27 @@ class Main {
 
 	public static void asm(IrProgram p, PrintStream out) throws FileNotFoundException {
 		IrProgram newP = IrWithTemp.newProgram(p);
-	
-			System.out.println("------temp-------");
-			System.out.println(newP);
-			System.out.println("------temp-------");
-		
+
+		System.out.println("------temp-------");
+		System.out.println(newP);
+		System.out.println("------temp-------");
+
 		newP = BoundCheckVistor.newProgram(newP);
-		
-			System.out.println("-----boundCheck-----");
-			System.out.println(newP);
-			System.out.println("-----boundCheck-----");
-		
+
+		System.out.println("-----boundCheck-----");
+		System.out.println(newP);
+		System.out.println("-----boundCheck-----");
+
 		IrProgram assemP = IrQuadVistor.newProgram(newP);
-		
-			System.out.println(assemP);
+
+		System.out.println(assemP);
 		assemP = IrResolveNameToLocationVistor.newProgram(assemP);
-		
-			System.out.println(assemP);
-		HashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(assemP);
-		
-			for (String s : maps.keySet()) {
-				System.out.println(maps.get(s));
-			}
-		
-		
+
+		System.out.println(assemP);
+
 		String code = AssemblyFromCFGVistor.assemblyForWholeCFG(assemP);
 		out.println(code);
-		//AssemblyFromCFGVistor.assemblyFile(code, p.getFilename());
+		// AssemblyFromCFGVistor.assemblyFile(code, p.getFilename());
 	}
 
 }

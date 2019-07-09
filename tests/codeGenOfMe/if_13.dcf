@@ -1,0 +1,13 @@
+import printf;
+bool func(){
+   return false;
+}
+void main(){
+  int a;
+  bool b;
+  b= true;
+  a = 14;
+  if(!(a > 4 && func())){
+      printf("hello world\n");
+  }
+}

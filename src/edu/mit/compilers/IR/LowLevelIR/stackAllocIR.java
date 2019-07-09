@@ -6,14 +6,16 @@ import edu.mit.compilers.IR.IrNodeVistor;
 public class stackAllocIR extends LowLevelIR {
 	
 	public String stackAlloc;
+	public StackZeroIR zeroStack;
 	
 	public stackAllocIR(int size) {
 		stackAlloc = "subq " +"$"+ size+", "+ "%rsp";
+		zeroStack = new StackZeroIR(size, true);
 	}
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
-		return stackAlloc+"\n";
+		return stackAlloc+"\n"+ zeroStack.getName();
 	}
 
 	@Override

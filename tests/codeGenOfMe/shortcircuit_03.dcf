@@ -1,0 +1,13 @@
+import printf;
+
+void main(){
+     int a[5];
+     
+     int b, c;
+     b = 10;
+     c = 9;
+     while(!(b > 15 && a[c] > 6)){
+         b++;
+         printf("another check\n");
+     }
+}

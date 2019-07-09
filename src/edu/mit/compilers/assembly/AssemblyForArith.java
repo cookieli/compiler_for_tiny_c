@@ -293,7 +293,10 @@ public class AssemblyForArith {
 			if(oprand instanceof ImmOperandForm)  sb.append(new AssemblyForm("movq", oprand.toString(), paraReg).toString());
 			if(oprand instanceof MemOperandForm) {
 				MemOperandForm memOp = (MemOperandForm) oprand;
-				if(memOp.isString())            sb.append(new AssemblyForm("leaq", memOp.toString(), paraReg).toString());
+				if(memOp.isString())   {
+					//throw new IllegalArgumentException(memOp.toString());
+					sb.append(new AssemblyForm("leaq", memOp.toString(), paraReg).toString());
+				}
 				else if(memOp.getScale() == 1)  sb.append(new AssemblyForm("movsbq", memOp.toString(), paraReg).toString());
 				else                            sb.append(new AssemblyForm("movq", memOp.toString(), paraReg).toString());
 			}

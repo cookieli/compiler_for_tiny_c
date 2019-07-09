@@ -6,9 +6,11 @@ import java.util.Stack;
 
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.IR.IrQuadVistor;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.MultiStatementExpr;
+import edu.mit.compilers.IR.expr.RealUnaryExpression;
 import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
@@ -19,6 +21,7 @@ import edu.mit.compilers.SymbolTables.VariableTable;
 public class CondQuad extends LowLevelIR {
 	public List<LowLevelIR> condStack;
 	public List<String> symbol;
+	public IrNodeVistor vistor;
 
 	public CondQuad() {
 		condStack = new ArrayList<>();
@@ -30,9 +33,11 @@ public class CondQuad extends LowLevelIR {
 		condStack.add(quad);
 	}
 
-	public CondQuad(IrExpression expr, VariableTable vtb, MethodTable mtb) {
+	public CondQuad(IrExpression expr, VariableTable vtb, MethodTable mtb, IrNodeVistor vistor) {
 		this();
+		this.vistor = vistor;
 		addCondQuad(expr, vtb, mtb);
+		
 	}
 
 	public List<LowLevelIR> getCondStack() {
@@ -58,9 +63,11 @@ public class CondQuad extends LowLevelIR {
 			condStack.add(generateCondLowIr(binary.getlhs(), vtb, mtb));
 			condStack.add(generateCondLowIr(binary.getrhs(), vtb, mtb));
 			// condStack.push(generateCondLowIr(binary, vtb, mtb));
-		} else if (expr instanceof UnaryExpression) {
-			symbol.add(((UnaryExpression) expr).getSymbol());
-			condStack.add(generateCondLowIr(((UnaryExpression) expr).getIrExpression(), vtb, mtb));
+		} else if (expr instanceof RealUnaryExpression) {
+			if(((RealUnaryExpression) expr).getSymbol() != null){
+				symbol.add(((RealUnaryExpression) expr).getSymbol());
+			}
+			condStack.add(generateCondLowIr(((RealUnaryExpression) expr).getIrExpression(), vtb, mtb));
 		} else {
 			condStack.add(generateCondLowIr(expr, vtb, mtb));
 		}
@@ -76,18 +83,20 @@ public class CondQuad extends LowLevelIR {
 			ir = generateCmpQuadForBool((IrOperand) expr, vtb, mtb);
 		else if (expr instanceof BinaryExpression)
 			ir = setCondQuad((BinaryExpression) expr, vtb, mtb);
-		else if (expr instanceof UnaryExpression) {
-			ir = setCondQuad((UnaryExpression) expr, vtb, mtb);
+		else if (expr instanceof RealUnaryExpression) {
+			ir = setCondQuad((RealUnaryExpression) expr, vtb, mtb);
 		} else if(expr instanceof MultiStatementExpr) {
-			ir = new MultiQuadLowIR((MultiStatementExpr) expr, vtb, mtb);
+			ir = new MultiQuadLowIR((MultiStatementExpr) expr, vtb, mtb, (IrQuadVistor) vistor);
 		}else
 			ir = null;
 		return ir;
 	}
 
-	private CondQuad setCondQuad(UnaryExpression unary, VariableTable vtb, MethodTable mtb) {
+	private CondQuad setCondQuad(RealUnaryExpression unary, VariableTable vtb, MethodTable mtb) {
+		
 		CondQuad quad = new CondQuad();
-		quad.symbol.add(unary.getSymbol());
+		if(unary.getSymbol() != null)
+			quad.symbol.add(unary.getSymbol());
 		quad.condStack.add(generateCondLowIr(unary.getIrExpression(), vtb, mtb));
 		return quad;
 	}
@@ -113,6 +122,7 @@ public class CondQuad extends LowLevelIR {
 	public String getName() {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
+		//System.out.println(symbol);
 		if (symbol.isEmpty()) {
 			sb.append(condStack.get(0).getName());
 		} else if (symbol.size() == 1 && symbol.get(0).equals("!")) {

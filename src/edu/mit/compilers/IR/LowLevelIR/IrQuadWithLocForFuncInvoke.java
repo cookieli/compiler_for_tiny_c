@@ -5,6 +5,10 @@ import java.util.List;
 
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.IR.IrProgram;
+import edu.mit.compilers.IR.IrResolveNameToLocationVistor;
+import edu.mit.compilers.IR.expr.operand.IrLiteral;
+import edu.mit.compilers.utils.ImmOperandForm;
 import edu.mit.compilers.utils.OperandForm;
 
 public class IrQuadWithLocForFuncInvoke extends LowLevelIR {
@@ -103,6 +107,21 @@ public class IrQuadWithLocForFuncInvoke extends LowLevelIR {
 		// TODO Auto-generated method stub
 		vistor.visit(this);
 
+	}
+	
+	public static IrQuadWithLocForFuncInvoke getPrintFunc( String msg, IrProgram program) {
+		String funcName = "printf@PLT";
+		IrQuadWithLocForFuncInvoke func = new IrQuadWithLocForFuncInvoke(funcName);
+		IrLiteral str = IrLiteral.getStringLiteral("\""+ msg+"\"");
+		func.addParameter(IrResolveNameToLocationVistor.setStringLiteralForFunc(str, program));
+		return func;
+	}
+	
+	public static IrQuadWithLocForFuncInvoke getExitFunc(int status) {
+		String funcName = "exit@PLT";
+		IrQuadWithLocForFuncInvoke func = new IrQuadWithLocForFuncInvoke(funcName);
+		func.addParameter(new ImmOperandForm(status, 8));
+		return func;
 	}
 
 }

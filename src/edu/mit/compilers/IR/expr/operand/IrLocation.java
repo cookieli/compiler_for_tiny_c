@@ -26,6 +26,8 @@ public class IrLocation extends IrOperand{
 	
 	public void setSizeExpr(IrExpression sizeExpr) {
 		this.sizeExpr = sizeExpr;
+		if(isArray == false)
+			isArray = true;
 	}
 	
 	public IrLocation(Token t, String filename) {

@@ -57,6 +57,7 @@ public class AssemblyFromCFGVistor {
 	}
 
 	public static String assemblyForWholeCFG(IrProgram p) {
+		LinkedHashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(p);
 		StringBuilder sb = new StringBuilder();
 		sb.append(".file " + "\"" + p.getFilename() + "\"" + "\n");
 		sb.append(".text\n");
@@ -69,9 +70,10 @@ public class AssemblyFromCFGVistor {
 			sb.append(p.getRoData().toString());
 		}
 		sb.append(".text\n");
-		LinkedHashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(p);
+		
 		for (String key : maps.keySet()) {
 			currentCFG = maps.get(key);
+			System.out.println(currentCFG);
 			sb.append(maps.get(key).accept(new AssemblyFromCFGVistor()));
 		}
 		return sb.toString();
@@ -211,6 +213,9 @@ public class AssemblyFromCFGVistor {
 						}
 					}
 				} else {
+					if(node.getSuccessor().size() == 0) {
+						throw new IllegalArgumentException("no succ  " + node.getName());
+					}
 					if (node.getSuccessor().get(1).getLabel() == null) {
 						node.getSuccessor().get(1).setLabel(AssemblyForArith.getNxtJmpLabel());
 

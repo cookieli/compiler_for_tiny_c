@@ -1,0 +1,13 @@
+import printf;
+
+void main(){
+     bool a;
+     bool c;
+     a = true;
+     c = !!!!a;
+     if(!!a){
+        printf("correct\n");
+     } else {
+        printf("incorrect\n");
+     }
+}

@@ -4,6 +4,10 @@ import antlr.Token;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
+import edu.mit.compilers.IR.expr.operand.IrLiteral;
+import edu.mit.compilers.IR.expr.operand.IrLocation;
+import edu.mit.compilers.IR.statement.IrAssignment;
+import edu.mit.compilers.IR.statement.IrStatement;
 
 public class Variable_decl extends IrDeclaration{
 	public IrType type;
@@ -26,6 +30,19 @@ public class Variable_decl extends IrDeclaration{
 		this.isArray = v.isArray;
 		this.id = v.getId();
 	}
+	
+	private IrLocation getCorrespondLocation() {
+		return new IrLocation(this.id);
+	}
+	
+	public IrStatement getInitialAssign() {
+		IrLocation loc = getCorrespondLocation();
+		if(type.equals(IrType.IntType))
+			return new IrAssignment(loc, IrLiteral.getLiteral(0), "=");
+		else
+			return new IrAssignment(loc, IrLiteral.getFalseLiteral(), "=");
+	}
+	
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub

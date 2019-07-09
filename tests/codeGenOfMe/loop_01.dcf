@@ -1,0 +1,23 @@
+import printf;
+int A[100];
+int y;
+void clobbery ( ) {
+  y = y + 1;
+}
+void main ( ) {
+  int i;
+  for ( i = 0; i < 30; i += 1 ) {
+    int j;
+    for ( j = 0; j < y + 1; j += 1 ) {
+    //printf("j: %d\n", j);
+    //printf("y: %d\n", y);
+    
+      A[2*i + j] = 1;
+      //clobbery ( );
+      y = y+ 1;
+      printf("after j: %d\n", j);
+    printf("after y: %d\n", y);
+    }
+    printf("i: %d\n", i);
+  }
+}

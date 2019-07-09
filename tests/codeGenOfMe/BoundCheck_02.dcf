@@ -7,8 +7,8 @@ void main(){
    d = 3;
    e = 80;
    f = 2;
-  // for(i = 0; i < len(a); i++){
-      // a[i] = i;
- //  }
+   for(i = 0; i < len(a); i++){
+       a[i] = i;
+   }
    a[a[b+c*d/(d - f) + b %e]] = 20;
 }

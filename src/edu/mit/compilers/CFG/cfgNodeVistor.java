@@ -29,6 +29,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	public LinkedHashMap<String, CFG> cfgs;
 	public CFG currentCFG;
 	public IrWhileBlockQuad currentLoop = null;
+	public IrProgram p;
 	public cfgNodeVistor() {
 		cfgs = new LinkedHashMap<>();
 	}
@@ -42,6 +43,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(IrProgram p) {
 		// TODO Auto-generated method stub
+		this.p = p;
 		for(MethodDecl m: p.globalMethodTable) {
 			m.accept(this);
 		}
@@ -60,7 +62,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 		}
 		currentCFG.end();
 		currentCFG.compressCFG();
-		currentCFG.checkMethodOutOfCtrl();
+		currentCFG.checkMethodOutOfCtrl(p);
 		cfgs.put(m.getId(), cfg);
 		return false;
 	}

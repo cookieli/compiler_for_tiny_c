@@ -32,8 +32,14 @@ public class CFGNode extends IrNode {
 	public boolean lastStatementIsReturn() {
 		if(statements == null || statements.isEmpty())
 			return false;
-		else
-			return statements.get(statements.size() -1) instanceof ReturnQuadWithLoc;
+		else {
+			for(LowLevelIR ir: statements) {
+			//return statements.get(statements.size() -1) instanceof ReturnQuadWithLoc;
+				if(ir instanceof ReturnQuadWithLoc)
+					return true;
+			}
+			return false;
+		}
 	}
 	
 	public boolean isForAfterBlock() {
@@ -90,7 +96,7 @@ public class CFGNode extends IrNode {
 	}
 
 	public void deletePointTo() {
-		pointTo = new LinkedList<>();
+		pointTo = null;
 		//throw new IllegalArgumentException("point to == null");
 	}
 
@@ -108,6 +114,13 @@ public class CFGNode extends IrNode {
 			pointTo = new LinkedList<>();
 		pointTo.add(node);
 		node.addParent(this);
+	}
+	
+	//TODO: warning : only use for insert exit node.
+	public void insertNode(CFGNode node) {
+		node.pointTo = this.pointTo;
+		this.pointTo = new ArrayList<>();
+		this.pointTo.add(node);
 	}
 
 	public List<CFGNode> getParents() {

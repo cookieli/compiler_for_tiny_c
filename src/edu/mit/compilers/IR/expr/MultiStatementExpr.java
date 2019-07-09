@@ -23,11 +23,14 @@ public class MultiStatementExpr extends IrExpression{
 	public String getName() {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
+		sb.append("MultiStatement:\n");
 		if(preStatement != null) {
 			for(IrStatement s: preStatement)
 				sb.append(s.getName());
 		}
 		sb.append(expr.getName());
+		sb.append("\n");
+		sb.append("Multi end\n");
 		return sb.toString();
 	}
 

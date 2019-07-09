@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
 
+import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
@@ -234,10 +235,14 @@ public class CFG {
 	
 	private static CFGNode shortcircuit(MultiQuadLowIR quad, CFGNode trueStart, CFGNode falseStart) {
 		CFGNode beginNode = new CFGNode();
-		for(LowLevelIR ir: quad.getQuadLst()) {
-			beginNode.addLowLevelIr(ir);
+		CFGNode endNode = beginNode;
+		for(IrStatement n: quad.getQuadLst()) {
+			List<CFGNode> pair = destruct((LowLevelIR)n);
+			endNode.addSuccessor(pair.get(0));
+			endNode = pair.get(1);
 		}
-		return shortcircuit(beginNode, trueStart, falseStart);
+		shortcircuit(endNode, trueStart, falseStart);
+		return beginNode;
 	}
 
 	private static CFGNode shortcircuit(IrQuadWithLocation loc, CFGNode trueStart, CFGNode falseStart) {
@@ -407,16 +412,26 @@ public class CFG {
 	public boolean methodHasReturnValue() {
 		for(CFGNode n: end.parents) {
 			if(!n.lastStatementIsReturn()) {
+				//throw new IllegalArgumentException(n.getName());
 				return false;
 			}
 		}
 		return true;
 	}
 	
-	public void checkMethodOutOfCtrl() {
+	public void checkMethodOutOfCtrl(IrProgram p) {
 		if(this.hasReturnValue && !methodHasReturnValue()) {
-			System.out.println("Sorry, this method out of Control " + method);
-			System.exit(-2);
+			//System.out.println("Sorry, this method out of Control " + method);
+			//System.exit(-2);
+			CFGNode newNode = new CFGNode();
+			newNode.addLowLevelIr(IrQuadWithLocForFuncInvoke.getPrintFunc("Sorry, this method out of Control " + method +"\\n", p));
+			newNode.addLowLevelIr(IrQuadWithLocForFuncInvoke.getExitFunc(-2));
+			//entry.deletePointTo();
+			entry = new EntryNode(0);
+			entry.addSuccessor(newNode);
+			newNode.deletePointTo();
+			//this.end();
+			
 		}
 	}
 	

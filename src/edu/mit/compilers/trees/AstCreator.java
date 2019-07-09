@@ -296,9 +296,18 @@ public class AstCreator {
 	
 	public static UnaryExpression parseUnaryExpr(ParseTreeNode n) {
 		if(n.isUnaryExpr()) {
-			String symbol = n.getFirstChild().getName();
+			//throw new IllegalArgumentException(n.getName());
+			
+			//String symbol = n.getFirstChild().getName();
+			List<String> lst = new ArrayList<>();
+			ParseTreeNode cursor;
+			for(cursor = n.getFirstChild(); cursor != n.getLastChild(); cursor = cursor.getRightSibling()) {
+				//System.out.println(cursor.getName());
+				lst.add(cursor.getName());
+			}
+			
 			IrExpression expr = getSpecificExpr(n.getLastChild());
-			return new UnaryExpression(symbol, expr);
+			return new UnaryExpression(lst, expr);
 		}
 		throw new IllegalArgumentException("the tree node isn't unary expression");
 	}

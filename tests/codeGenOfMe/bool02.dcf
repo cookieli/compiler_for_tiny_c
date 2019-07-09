@@ -1,0 +1,18 @@
+import printf;
+bool fail ( bool b ) {
+  printf ( "INCORRECT - shorcircuiting failed\n" );
+  return b;
+}
+void main ( ) {
+  bool a, b, c;
+  printf ( "should see 6 corrects and no incorrects\n" );
+  a = ( 0 == 0 );
+  b = ( 0 - 3 ) == 1;
+  c = ! a;
+   if ( ! ! c ) {
+    printf ( "4INCORRECT\n" );
+  }
+  else {
+    printf ( "correct\n" );
+  }
+}

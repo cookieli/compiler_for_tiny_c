@@ -6,5 +6,7 @@ int func(int i){
 
 
 void main(){
-    
+    int a;
+    func(2);
+    a = func(3);
 }

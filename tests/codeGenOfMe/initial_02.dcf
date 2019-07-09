@@ -1,0 +1,10 @@
+import printf;
+
+void main(){
+    int a;
+    if(a == 0){
+        int b;
+        bool c;
+        printf("%d, %d\n", b, c);
+    }
+}

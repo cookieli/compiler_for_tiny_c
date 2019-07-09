@@ -9,6 +9,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.mit.compilers.IR.IR_decl_Node.ArrayDecl;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
 import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
@@ -21,6 +22,8 @@ import edu.mit.compilers.IR.LowLevelIR.IrWhileBlockQuad;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.MultiStatementExpr;
+import edu.mit.compilers.IR.expr.RealUnaryExpression;
+import edu.mit.compilers.IR.expr.TernaryExpression;
 import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.expr.operand.IrFuncInvocation;
 import edu.mit.compilers.IR.expr.operand.IrLenExpr;
@@ -124,19 +127,21 @@ public class IrWithTemp implements IrNodeVistor {
 		envs.popVariables();
 		return false;
 	}
+	
+	
 
 	@Override
 	public boolean visit(MethodDecl m) {
 		// TODO Auto-generated method stub
 		currentMethod = m;
 		envs.pushVariables(currentMethod.getVariableTable());
+		
 		if (currentMethod.getMethodType().equals(IrType.IntType))
 			retValue64bit = true;
 		else
 			retValue64bit = false;
 		List<IrStatement> statements = currentMethod.statements;
 		currentMethod.statements = new ArrayList<>();
-
 		for (IrStatement s : statements) {
 			s.accept(this);
 		}
@@ -181,12 +186,22 @@ public class IrWithTemp implements IrNodeVistor {
 		}
 
 		if (rhs instanceof UnaryExpression) {
+			//throw new IllegalArgumentException("assign " + assign.getName());
 			UnaryExpression unary = (UnaryExpression) rhs;
+			
+			//throw new IllegalArgumentException("unary name:" + unary.getName());
 			if (unary.isBool()) {
+				RealUnaryExpression rUnary = unary.convertToRealUnary();
+				//System.out.println(rUnary.getName());
+				if(rUnary.getSymbol() == null) {
+					new IrAssignment(lhs, rUnary.getIrExpression(), "=").accept(this);
+					return;
+				}
+				
 				changeAssignRhsIsBoolToIfBlock(assign, v).accept(this);
 				return;
 			}
-			rhs = setTempForUnaryExpr(unary);
+			rhs = setTempForMathUnaryExpr(unary);
 			assign = new IrAssignment(lhs, rhs, "=");
 		}
 
@@ -201,7 +216,25 @@ public class IrWithTemp implements IrNodeVistor {
 				HandleNoCompoundSymbolAssignRhsIsBinaryExpression(assign, v, m);
 			return;
 		}
+		
+		if(rhs instanceof TernaryExpression) {
+			TernaryExpression ternary = (TernaryExpression) rhs;
+			HandleNoCompoundSymbolAssignRhsIsTernaryExpr(ternary, lhs, v, m);
+		}
 
+	}
+	
+	private void HandleNoCompoundSymbolAssignRhsIsTernaryExpr(TernaryExpression ternary, IrLocation lhs, VariableTable v, MethodTable m) {
+		IrAssignment trueAssign = new IrAssignment(lhs, ternary.getFirstExpr(), "=");
+		IrAssignment falseAssign = new IrAssignment(lhs, ternary.getSecondExpr(), "=");
+		IrBlock trueBlock = new IrBlock();
+		trueBlock.addIrStatement(trueAssign);
+		IrBlock falseBlock = new IrBlock();
+		falseBlock.addIrStatement(falseAssign);
+		trueBlock.addLocalVarParent(envs.peekVariables());
+		falseBlock.addLocalVarParent(envs.peekVariables());
+		IfBlock ifCode = new IfBlock(ternary.getCondExpr(), trueBlock, falseBlock);
+		ifCode.accept(this);
 	}
 
 	private void HandleNoCompoundSymbolAssignRhsIsFuncInvoke(IrFuncInvocation rhs, IrAssignment assign, VariableTable v,
@@ -219,10 +252,19 @@ public class IrWithTemp implements IrNodeVistor {
 		return block;
 	}
 
-	public IrExpression setTempForUnaryExpr(UnaryExpression expr) {
+	public IrExpression setTempForMathUnaryExpr(UnaryExpression expr) {
 		if (expr.getSymbol().equals("-"))
 			return new BinaryExpression(new IrLiteral(0), expr.getIrExpression(), "-");
 		return null;
+	}
+	
+	public IrExpression setTempForBoolUnaryExpr(UnaryExpression expr, VariableTable vtb, MethodTable mtb) {
+		if(expr.isBool()) {
+			IrLocation temp = setNewTempVariable(IrType.BoolType, vtb);
+			new IrAssignment(temp, expr, "=").accept(this);
+			return temp;
+		}
+		throw new IllegalArgumentException("not bool: " +expr.getName());
 	}
 
 	private void HandleNoCompoundSymbolAssignRhsIsBinaryExpression(IrAssignment assign, VariableTable v,
@@ -258,11 +300,23 @@ public class IrWithTemp implements IrNodeVistor {
 			return assignLocationToFunction((IrFuncInvocation) expr, vtb, mtb);
 		}
 		if (expr instanceof UnaryExpression) {
-			expr = setTempForUnaryExpr((UnaryExpression) expr);
+			UnaryExpression unary = (UnaryExpression) expr;
+			if(unary.isBool()) {
+				return setTempForBoolUnaryExpr(unary, vtb, mtb);
+			}
+			expr = setTempForMathUnaryExpr((UnaryExpression) expr);
+			
 		}
 		if (expr instanceof BinaryExpression) {
 			expr = assignLocationToBinary((BinaryExpression) expr, vtb, mtb);
+			return expr;
 		}
+		
+		if(expr instanceof TernaryExpression) {
+			expr = assignLocationToTernary((TernaryExpression) expr, vtb, mtb);
+		}
+		
+		
 		return expr;
 	}
 
@@ -270,6 +324,13 @@ public class IrWithTemp implements IrNodeVistor {
 		IrLocation temp = getExprCorrespondTemp(func, v, m);
 		IrAssignment newAssign = new IrAssignment(temp, func, "=");
 		HandleNoCompoundSymbolAssignRhsIsFuncInvoke(func, newAssign, v, m);
+		return temp;
+	}
+	
+	private IrLocation assignLocationToTernary(TernaryExpression ternary, VariableTable v, MethodTable m) {
+		IrLocation temp = getExprCorrespondTemp(ternary, v, m);
+		//IrAssignment newAssign = new IrAssignment(temp, ternary, "=");
+		HandleNoCompoundSymbolAssignRhsIsTernaryExpr(ternary, temp, v, m);
 		return temp;
 	}
 
@@ -338,7 +399,8 @@ public class IrWithTemp implements IrNodeVistor {
 		VariableTable vtb = envs.peekVariables();
 		MethodTable mtb = envs.peekMethod();
 		if (symbol.equals("=")) {
-			HandleNoCompoundSymbolAssign(assign, vtb, mtb);
+			//throw new IllegalArgumentException("name: " + assign.getName());
+		HandleNoCompoundSymbolAssign(assign, vtb, mtb);
 		} else if (symbol.equals("++") || symbol.equals("--")) {
 			handleIncOrDec(assign, vtb, mtb);
 		} else {
@@ -413,7 +475,6 @@ public class IrWithTemp implements IrNodeVistor {
 		ifCode.setBoolExpr(handleBoolExpr(ifCode.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
 		ifCode.getTrueBlock().accept(this);
 		if (ifCode.getFalseBlock() != null) {
-
 			ifCode.getFalseBlock().accept(this);
 		}
 
@@ -422,7 +483,7 @@ public class IrWithTemp implements IrNodeVistor {
 	}
 
 	private IrExpression handleBoolExpr(IrExpression expr, VariableTable vtb, MethodTable mtb) {
-		if (expr instanceof IrLiteral || expr instanceof IrLocation || expr instanceof IrFuncInvocation) {
+		if (expr instanceof IrLiteral || expr instanceof IrLocation || expr instanceof IrFuncInvocation || expr instanceof TernaryExpression) {
 			List<IrStatement> tempLst = currentList;
 			currentList = new ArrayList<>();
 			IrExpression ret = assignLocationToIrExpression(expr, vtb, mtb);
@@ -441,11 +502,22 @@ public class IrWithTemp implements IrNodeVistor {
 			}
 		}
 		if (expr instanceof UnaryExpression) {
-			UnaryExpression unary = (UnaryExpression) expr;
-			unary.setExpr(handleBoolExpr(unary.getIrExpression(), vtb, mtb));
-			return unary;
+			return setUnaryExpr((UnaryExpression) expr, vtb, mtb);
 		}
-		return null;
+		//return null;
+		throw new IllegalArgumentException(expr.getName());
+	}
+	
+	public RealUnaryExpression setUnaryExpr(UnaryExpression expr, VariableTable vtb, MethodTable mtb) {
+		RealUnaryExpression unary;
+		if(!(expr instanceof RealUnaryExpression))
+			unary = ((UnaryExpression) expr).convertToRealUnary();
+		else
+			unary  = (RealUnaryExpression) expr;
+		
+		unary.setExpr(handleBoolExpr(unary.getIrExpression(), vtb, mtb));
+		//System.out.println(unary.getName());
+		return unary;
 	}
 
 	private IrExpression handleCmpExpr(BinaryExpression expr, VariableTable vtb, MethodTable mtb) {
@@ -466,9 +538,9 @@ public class IrWithTemp implements IrNodeVistor {
 	public boolean visit(IrWhileBlock whileBlock) {
 		// TODO Auto-generated method stub
 		whileBlock.getCodeBlock().accept(this);
-		currentList = whileBlock.getPreTempStat();
+		//currentList = whileBlock.getPreTempStat();
 		whileBlock.setBoolExpr(handleBoolExpr(whileBlock.getBoolExpr(), envs.peekVariables(), envs.peekMethod()));
-		currentList = null;
+		//currentList = null;
 		addIrStatement(whileBlock);
 		return false;
 	}

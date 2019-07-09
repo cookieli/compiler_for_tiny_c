@@ -5,6 +5,7 @@ import java.util.List;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.UnaryExpression;
 import edu.mit.compilers.IR.statement.IrAssignment;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.SymbolTables.VariableTable;
@@ -13,7 +14,7 @@ public class IfBlock extends IrStatement{
 	
 	public IrExpression boolExpr;
 	
-	public List<IrStatement> preForBool;
+
 	
 	
 	public IrBlock trueBlock;
@@ -22,6 +23,7 @@ public class IfBlock extends IrStatement{
 	
 	public IfBlock(IrExpression boolExpr, VariableTable parent) {
 		this.boolExpr = boolExpr;
+		//System.out.println(this.boolExpr.getName());
 		this.trueBlock = new IrBlock(parent);
 		this.falseBlock = new IrBlock(parent);
 	}

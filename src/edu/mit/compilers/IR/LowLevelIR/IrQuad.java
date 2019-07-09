@@ -45,7 +45,7 @@ public class IrQuad extends LowLevelIR{
 	public IrQuad(BinaryExpression expr, VariableTable v, MethodTable m) {
 		this(v, m);
 		if(!(expr.getlhs() instanceof IrOperand) || !(expr.getrhs() instanceof IrOperand))
-			throw new IllegalArgumentException("not binary expr we want");
+			throw new IllegalArgumentException("not binary expr we want " + expr.getName());
 		this.symbol = expr.getSymbol();
 		this.op1 = (IrOperand) expr.getlhs();
 		this.op2 = (IrOperand) expr.getrhs();

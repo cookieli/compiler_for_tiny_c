@@ -69,14 +69,15 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 		if (v.type().equals(IrType.IntType)) {
 			currentSlotPosition += 8;
 		}
-		if (v.type().equals(IrType.BoolType)) {
+		else if (v.type().equals(IrType.BoolType)) {
 			currentSlotPosition += 1;
 		}
-		if (v.type().equals(IrType.IntArray)) {
+		else if (v.type().equals(IrType.IntArray)) {
+			System.out.println(v.getName());
 			ArrayDecl arr = (ArrayDecl) v;
 			currentSlotPosition += 8 * arr.arraySize.getIntValue().intValue() + Util.ArrayHeaderSize;
 		}
-		if (v.type().equals(IrType.boolArray)) {
+		else if (v.type().equals(IrType.boolArray)) {
 			ArrayDecl arr = (ArrayDecl) v;
 			currentSlotPosition += 1 * arr.arraySize.getIntValue().intValue() + Util.ArrayHeaderSize;
 		}

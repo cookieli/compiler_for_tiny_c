@@ -22,4 +22,6 @@ int func(int a, int b){
 }
 
 void main(){
+    int a;
+    a = func(3, 4);
 }

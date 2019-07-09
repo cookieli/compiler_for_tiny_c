@@ -5,7 +5,7 @@ import java.util.List;
 
 public class RODataArea {
 	public List<RoData> area;
-	public static int count = 0;
+	private static int count = 0;
 	public RODataArea() {
 		area = new LinkedList<>();
 	}
@@ -37,6 +37,9 @@ public class RODataArea {
 	}
 	
 	public String getLastLabel() {
+//		for(int i = 0; i < count; i++) {
+//			System.out.println(area.get(i));
+//		}
 		return area.get(count -1).label;
 	}
 	

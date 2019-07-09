@@ -10,9 +10,10 @@ public class EntryPoint extends LowLevelIR{
 	public static final String pushOp = "pushq %rbp";
 	public static final String movOp = "movq %rsp, %rbp";
 	public String stackAlloc;
-	
+	public StackZeroIR zeroStack;
 	public EntryPoint(int stackSize) {
 		stackAlloc = "subq " +"$"+ stackSize+", "+ "%rsp";
+		zeroStack = new StackZeroIR(stackSize);
 	}
 
 	@Override
@@ -22,6 +23,7 @@ public class EntryPoint extends LowLevelIR{
 		sb.append(pushOp +"\n");
 		sb.append(movOp + "\n");
 		sb.append(stackAlloc+"\n");
+		sb.append(zeroStack.getName());
 		return sb.toString();
 	}
 

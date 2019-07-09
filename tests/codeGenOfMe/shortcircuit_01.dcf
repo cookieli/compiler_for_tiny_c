@@ -1,0 +1,28 @@
+import printf;
+bool test_short_circuit ( bool andy, bool okay ) {
+  if ( okay != true ) {
+    if ( andy != true ) {
+      printf ( "short circuit failed in and\n" );
+    }
+    else {
+      printf ( "short circuit failed in or\n" );
+    }
+  }
+  return andy;
+}
+
+
+void main(){
+    int a;
+    bool b, c;
+    b = true;
+    c = false;
+    a = 0;
+    while(a < 3 || test_short_circuit(b, c)){
+       printf("hello world\n");
+       a++;
+       if(a == 5){
+          b = false;
+       }
+    }
+}
