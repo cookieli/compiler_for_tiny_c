@@ -17,6 +17,7 @@ import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
+import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.assembly.AssemblyForArith;
 import edu.mit.compilers.utils.MemOperandForm;
 import edu.mit.compilers.utils.OperandForm;
@@ -55,6 +56,30 @@ public class AssemblyFromCFGVistor {
 			// e.printStackTrace();
 		}
 	}
+	
+	public static String assemblyForWholeCFG(ProgramCFG pro) {
+		LinkedHashMap<String, CFG> maps  = pro.cfgs;
+		IrProgram p =pro.program;
+		StringBuilder sb = new StringBuilder();
+		sb.append(".file " + "\"" + p.getFilename() + "\"" + "\n");
+		sb.append(".text\n");
+		if (p.globalVariableTable != null) {
+			for (Variable_decl v : p.getGlobalVariableTable().idList()) {
+				sb.append(v.getGloblAddr());
+			}
+		}
+		if (p.getRoData() != null) {
+			sb.append(p.getRoData().toString());
+		}
+		sb.append(".text\n");
+		
+		for (String key : maps.keySet()) {
+			currentCFG = maps.get(key);
+			System.out.println(currentCFG);
+			sb.append(maps.get(key).accept(new AssemblyFromCFGVistor()));
+		}
+		return sb.toString();
+	}
 
 	public static String assemblyForWholeCFG(IrProgram p) {
 		LinkedHashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(p);
@@ -85,7 +110,7 @@ public class AssemblyFromCFGVistor {
 			sb.append(n.getLabel() + ":\n");
 		}
 		if (n.statements != null) {
-			for (LowLevelIR ir : n.statements) {
+			for (IrStatement ir : n.statements) {
 				if (ir instanceof IrQuadWithLocation)
 					sb.append(AssemblyForArith.getAssembly(((IrQuadWithLocation) ir)));
 				else if (ir instanceof IrQuadWithLocForFuncInvoke) {

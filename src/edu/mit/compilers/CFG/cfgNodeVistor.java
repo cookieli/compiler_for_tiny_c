@@ -40,6 +40,10 @@ public class cfgNodeVistor implements IrNodeVistor{
 		return vistor.cfgs;
 	}
 	
+	public static ProgramCFG programCfgForProgram(IrProgram p) {
+		return new ProgramCFG(p,p.globalVariableTable, p.globalMethodTable, cfgForProgram(p));
+	}
+	
 	@Override
 	public boolean visit(IrProgram p) {
 		// TODO Auto-generated method stub
@@ -56,13 +60,16 @@ public class cfgNodeVistor implements IrNodeVistor{
 		CFG cfg = new CFG(m.getMethodStackSize(), m.getId());
 		cfg.setParaNameLst(m.paraList);
 		currentCFG = cfg;
-		currentCFG.setVariableTale(m.getVariableTable());
+		currentCFG.setWholeMethodVtb(m.localVars);
+		currentCFG.setVariableTable(m.getVariableTable());
 		currentCFG.setHasReturnValue(m.hasReturnValue());
+		currentCFG.entry.setVtb(m.localVars);
 		for(IrStatement s: m.getStatements()) {
 			s.accept(this);
 		}
 		currentCFG.end();
 		currentCFG.compressCFG();
+		currentCFG.end.setVtb(m.localVars);
 		currentCFG.checkMethodOutOfCtrl(p);
 		cfgs.put(m.getId(), cfg);
 		return false;
@@ -104,6 +111,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(Return_Assignment r) {
 		// TODO Auto-generated method stub
+		currentCFG.addCFGPair(CFG.destruct(r));
 		return false;
 	}
 
@@ -116,6 +124,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(IrQuad quad) {
 		// TODO Auto-generated method stub
+		
 		return false;
 	}
 

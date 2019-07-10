@@ -37,8 +37,23 @@ public class CFG {
 	
 	public static VariableTable currentVtb;
 	
-	public void setVariableTale(VariableTable vtb) {
-		this.currentVtb = vtb;
+	public VariableTable wholeMethodVtb;
+	
+	
+	public void setVariableTable(VariableTable vtb) {
+		currentVtb = vtb;
+	}
+	
+	public VariableTable getWholeMethodVtb() {
+		return wholeMethodVtb;
+	}
+
+	public void setWholeMethodVtb(VariableTable wholeMethodVtb) {
+		this.wholeMethodVtb = wholeMethodVtb;
+	}
+
+	public boolean isMain() {
+		return method.equals("main");
 	}
 
 	public List<String> getParaNameLst() {
@@ -313,6 +328,8 @@ public class CFG {
 		if (quad instanceof IrQuadForLoopStatement && !((IrQuadForLoopStatement) quad).isBreak())
 			return destructContinue(quad);
 		CFGNode newNode = new CFGNode(quad);
+		if(currentVtb == null)
+			throw new IllegalArgumentException("table is null");
 		newNode.setVtb(currentVtb);
 		List<CFGNode> pair = new ArrayList<>();
 		pair.add(newNode);
@@ -337,11 +354,13 @@ public class CFG {
 	}
 
 	public static List<CFGNode> destruct(IrBlock block) {
-		currentVtb = block.getLocalVar();
+		
 		List<CFGNode> pair = null;
 		if (block == null || block.haveNoStatements()) {
 			return null;
 		}
+		VariableTable tempVtb = currentVtb;
+		currentVtb = block.getLocalVar();
 		List<IrStatement> lowLevelIRs = block.getStatements();
 		CFGNode beginNode, endNode;
 
@@ -382,6 +401,7 @@ public class CFG {
 		pair = new ArrayList<>();
 		pair.add(beginNode);
 		pair.add(endNode);
+		currentVtb = tempVtb;
 		return pair;
 	}
 

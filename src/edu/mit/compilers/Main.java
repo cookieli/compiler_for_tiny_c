@@ -11,12 +11,14 @@ import antlr.TokenStreamException;
 import edu.mit.compilers.CFG.AssemblyFromCFGVistor;
 import edu.mit.compilers.CFG.CFG;
 import edu.mit.compilers.CFG.CFGNode;
+import edu.mit.compilers.CFG.ProgramCFG;
 import edu.mit.compilers.CFG.cfgNodeVistor;
 import edu.mit.compilers.IR.BoundCheckVistor;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IrQuadVistor;
 import edu.mit.compilers.IR.IrResolveNameToLocationVistor;
 import edu.mit.compilers.IR.IrWithTemp;
+import edu.mit.compilers.IR.ResolveNameForCFG;
 import edu.mit.compilers.grammar.*;
 import edu.mit.compilers.tools.CLI;
 import edu.mit.compilers.tools.CLI.Action;
@@ -158,16 +160,25 @@ class Main {
 		IrProgram assemP = IrQuadVistor.newProgram(newP);
 
 		System.out.println(assemP);
-		cfgNodeVistor.cfgForProgram(assemP);
-		LinkedHashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(assemP);
-		for(String s: maps.keySet()) {
-			System.out.println(maps.get(s));
+		//cfgNodeVistor.cfgForProgram(assemP);
+		ProgramCFG pCFG = cfgNodeVistor.programCfgForProgram(assemP);
+		for(String s: pCFG.cfgs.keySet()) {
+			System.out.println(pCFG.cfgs.get(s));
 			System.out.println("--------------");
-			for(CFGNode n: maps.get(s).nodes) {
+			for(CFGNode n: pCFG.cfgs.get(s).nodes) {
 				System.out.println(n.getStats());
 				System.out.println("\n");
 			}
 		}
+		
+		ResolveNameForCFG.visit(pCFG);
+		for(String s: pCFG.cfgs.keySet()) {
+			System.out.println(pCFG.cfgs.get(s));
+		}
+		
+		String code = AssemblyFromCFGVistor.assemblyForWholeCFG(pCFG);
+		out.println(code);
+		
 //		assemP = IrResolveNameToLocationVistor.newProgram(assemP);
 //
 //		System.out.println(assemP);

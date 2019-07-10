@@ -186,6 +186,7 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 	@Override
 	public boolean visit(IrQuad quad) {
 		// TODO Auto-generated method stub
+		addIrStatement(resetQuad(quad, env.peekVariables(), env.peekMethod()));
 		return false;
 	}
 	
@@ -205,14 +206,14 @@ public class IrResolveNameToLocationVistor implements IrNodeVistor {
 		//if(arr.type.equals(IrType.boolArray))    step = 1;
 		return new MemOperandForm(imm, base, null, step);
 	}
-	private IrQuadWithLocation setArraySize(ArrayDecl arr, VariableTable vtb, MethodTable mtb, boolean isGlobl) {
+	public IrQuadWithLocation setArraySize(ArrayDecl arr, VariableTable vtb, MethodTable mtb, boolean isGlobl) {
 		OperandForm operand = arrayStartMemLoc(arr, vtb, mtb, isGlobl);
 		int size = arr.getArraySize();
 		return new IrQuadWithLocation("movq", new ImmOperandForm(size, 8), operand);
 	}
 	
 	
-	private OperandForm getParaOperandForm(String id, VariableTable vtb, MethodTable mtb) {
+	protected OperandForm getParaOperandForm(String id, VariableTable vtb, MethodTable mtb) {
 		int step = 1;
 		Variable_decl decl = vtb.get(id);
 		if(decl.getIrType().equals(IrType.IntType))

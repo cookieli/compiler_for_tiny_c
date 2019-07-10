@@ -8,10 +8,12 @@ import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
+import edu.mit.compilers.IR.statement.IrStatement;
+import edu.mit.compilers.IR.statement.Return_Assignment;
 import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class CFGNode extends IrNode {
-	public List<LowLevelIR> statements;
+	public List<IrStatement> statements;
 	public List<CFGNode> pointTo;
 	public List<CFGNode> parents;
 	public int inComingDegree;
@@ -45,9 +47,9 @@ public class CFGNode extends IrNode {
 		if(statements == null || statements.isEmpty())
 			return false;
 		else {
-			for(LowLevelIR ir: statements) {
+			for(IrStatement ir: statements) {
 			//return statements.get(statements.size() -1) instanceof ReturnQuadWithLoc;
-				if(ir instanceof ReturnQuadWithLoc)
+				if(ir instanceof Return_Assignment)
 					return true;
 			}
 			return false;
@@ -220,6 +222,9 @@ public class CFGNode extends IrNode {
 		node.inComingDegree = 0;
 		this.isWhileNode = this.isWhileNode || node.isWhileNode();
 		this.isLoopEnd = this.isLoopEnd || node.isLoopEnd;
+		if(this.vtb == null && node.vtb != null) {
+			this.vtb = node.vtb;
+		}
 	}
 
 	@Override
@@ -254,7 +259,7 @@ public class CFGNode extends IrNode {
 		if (statements == null) {
 			sb.append("noOp\n");
 		} else
-			for (LowLevelIR s : statements) {
+			for (IrStatement s : statements) {
 				sb.append(s.getName());
 			}
 		return sb.toString();

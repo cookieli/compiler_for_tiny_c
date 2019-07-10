@@ -1,0 +1,14 @@
+import printf;
+int c[3];
+void func(){
+   int a[5];
+   printf("%d\n", len(a));
+   printf("c: %d\n", len(c));
+}
+
+void main(){
+    int b[3];
+    printf("%d\n", len(b));
+    func();
+    printf("c: %d\n", len(c));
+}
