@@ -2,6 +2,7 @@ package edu.mit.compilers;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import antlr.CharStreamException;
 import antlr.RecognitionException;
@@ -9,6 +10,7 @@ import antlr.Token;
 import antlr.TokenStreamException;
 import edu.mit.compilers.CFG.AssemblyFromCFGVistor;
 import edu.mit.compilers.CFG.CFG;
+import edu.mit.compilers.CFG.CFGNode;
 import edu.mit.compilers.CFG.cfgNodeVistor;
 import edu.mit.compilers.IR.BoundCheckVistor;
 import edu.mit.compilers.IR.IrProgram;
@@ -156,12 +158,22 @@ class Main {
 		IrProgram assemP = IrQuadVistor.newProgram(newP);
 
 		System.out.println(assemP);
-		assemP = IrResolveNameToLocationVistor.newProgram(assemP);
-
-		System.out.println(assemP);
-
-		String code = AssemblyFromCFGVistor.assemblyForWholeCFG(assemP);
-		out.println(code);
+		cfgNodeVistor.cfgForProgram(assemP);
+		LinkedHashMap<String, CFG> maps = cfgNodeVistor.cfgForProgram(assemP);
+		for(String s: maps.keySet()) {
+			System.out.println(maps.get(s));
+			System.out.println("--------------");
+			for(CFGNode n: maps.get(s).nodes) {
+				System.out.println(n.getStats());
+				System.out.println("\n");
+			}
+		}
+//		assemP = IrResolveNameToLocationVistor.newProgram(assemP);
+//
+//		System.out.println(assemP);
+//
+//		String code = AssemblyFromCFGVistor.assemblyForWholeCFG(assemP);
+//		out.println(code);
 		// AssemblyFromCFGVistor.assemblyFile(code, p.getFilename());
 	}
 

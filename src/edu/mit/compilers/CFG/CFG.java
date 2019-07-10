@@ -9,6 +9,7 @@ import java.util.Stack;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
+import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
@@ -43,6 +44,8 @@ public class CFG {
 	public CFGNode entry;
 	public CFGNode end;
 	
+	public List<CFGNode> nodes;
+	
 	public boolean hasReturnValue;
 	
 
@@ -62,6 +65,7 @@ public class CFG {
 	public CFG(int size) {
 		this();
 		entry = new EntryNode(size);
+		nodes = new ArrayList<>();
 		end = entry;
 	}
 
@@ -185,14 +189,14 @@ public class CFG {
 		if (quad.getSymbol().isEmpty()) {
 			if(quad.getCondStack().isEmpty())
 				throw new IllegalArgumentException("empty ");
-			if(quad.getCondStack().get(0) instanceof IrQuadWithLocation)
-				return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), trueStart, falseStart);
+			if(quad.getCondStack().get(0) instanceof IrQuad)
+				return shortcircuit((IrQuad) quad.getCondStack().get(0), trueStart, falseStart);
 			else
 				return shortcircuit((MultiQuadLowIR)quad.getCondStack().get(0), trueStart, falseStart);
 		}
 		if (quad.getSymbol().size() == 1 && quad.getSymbol().get(0).equals("!")) {
-			if (quad.getCondStack().get(0) instanceof IrQuadWithLocation)
-				return shortcircuit((IrQuadWithLocation) quad.getCondStack().get(0), falseStart, trueStart);
+			if (quad.getCondStack().get(0) instanceof IrQuad)
+				return shortcircuit((IrQuad) quad.getCondStack().get(0), falseStart, trueStart);
 			else if(quad.getCondStack().get(0) instanceof MultiQuadLowIR)
 				return shortcircuit((MultiQuadLowIR) quad.getCondStack().get(0), falseStart, trueStart);
 			return shortcircuit((CondQuad) quad.getCondStack().get(0), falseStart, trueStart);
@@ -203,8 +207,8 @@ public class CFG {
 		int stackCursor = condStack.size() - 1;
 		CFGNode beginNode = null;
 		LowLevelIR op1 = condStack.get(stackCursor--);
-		if (op1 instanceof IrQuadWithLocation) {
-			beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
+		if (op1 instanceof IrQuad) {
+			beginNode = shortcircuit((IrQuad) op1, trueStart, falseStart);
 		} else if(op1 instanceof MultiQuadLowIR){
 			beginNode = shortcircuit((MultiQuadLowIR)op1, trueStart, falseStart);
 		}else {
@@ -218,8 +222,8 @@ public class CFG {
 				falseStart = beginNode;
 			}
 			op1 = condStack.get(stackCursor--);
-			if (op1 instanceof IrQuadWithLocation) {
-				beginNode = shortcircuit((IrQuadWithLocation) op1, trueStart, falseStart);
+			if (op1 instanceof IrQuad) {
+				beginNode = shortcircuit((IrQuad) op1, trueStart, falseStart);
 			} else if(op1 instanceof MultiQuadLowIR){
 				beginNode = shortcircuit((MultiQuadLowIR)op1, trueStart, falseStart);
 			} else {
@@ -248,7 +252,7 @@ public class CFG {
 		return beginNode;
 	}
 
-	private static CFGNode shortcircuit(IrQuadWithLocation loc, CFGNode trueStart, CFGNode falseStart) {
+	private static CFGNode shortcircuit(IrQuad loc, CFGNode trueStart, CFGNode falseStart) {
 
 		CFGNode beginNode = new CFGNode();
 		beginNode.addLowLevelIr(loc);
@@ -301,12 +305,11 @@ public class CFG {
 	private static boolean oneLineQuad(LowLevelIR ir) {
 		return ir instanceof IrQuadWithLocation || ir instanceof IrQuadWithLocForFuncInvoke
 				|| ir instanceof IrQuadForLoopStatement || ir instanceof IrQuadForAssign
-				|| ir instanceof IrQuadForFuncInvoke    ||  ir instanceof Return_Assignment;
+				|| ir instanceof IrQuadForFuncInvoke    ||  ir instanceof Return_Assignment || ir instanceof IrQuad;
 	}
 
 	public static List<CFGNode> destruct(LowLevelIR ir) {
-		if (ir instanceof IrQuadWithLocForFuncInvoke || ir instanceof IrQuadWithLocation
-				|| ir instanceof IrQuadForLoopStatement || ir instanceof ReturnQuadWithLoc)
+		if(oneLineQuad(ir))
 			return destructOnelineQuad(ir);
 		else if (ir instanceof IrIfBlockQuad)
 			return destruct((IrIfBlockQuad) ir);
@@ -368,8 +371,10 @@ public class CFG {
 		CFGNode node;
 		entry.setVisited();
 		queue.add(entry);
+		nodes.add(entry);
 		while (!queue.isEmpty()) {
 			node = queue.remove();
+			nodes.remove(node);
 			List<CFGNode> successors = node.getSuccessor();
 			if (successors != null) {
 				if (successors.size() == 1) {
@@ -383,9 +388,12 @@ public class CFG {
 								end = node;
 							}
 							queue.add(node);
+							nodes.add(node);
 							continue;
 						} else {
 							queue.add(succ);
+							nodes.add(node);
+							nodes.add(succ);
 						}
 					}
 
@@ -405,12 +413,15 @@ public class CFG {
 						if (!n.isVisited()) {
 							n.setVisited();
 							queue.add(n);
+							nodes.add(n);
 						}
 					}
 				}
 			}
 		}
 	}
+	
+	
 	
 	
 	public boolean methodHasReturnValue() {
