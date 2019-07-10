@@ -121,6 +121,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(IrQuadForAssign quad) {
 		// TODO Auto-generated method stub
+		currentCFG.addCFGPair(CFG.destruct(quad));
 		return false;
 	}
 
@@ -135,6 +136,7 @@ public class cfgNodeVistor implements IrNodeVistor{
 	@Override
 	public boolean visit(IrQuadForFuncInvoke quad) {
 		// TODO Auto-generated method stub
+		currentCFG.addCFGPair(CFG.destruct(quad));
 		return false;
 	}
 

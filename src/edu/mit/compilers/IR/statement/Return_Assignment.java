@@ -3,9 +3,10 @@ package edu.mit.compilers.IR.statement;
 import antlr.Token;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.expr.IrExpression;
 
-public class Return_Assignment extends IrStatement{
+public class Return_Assignment extends LowLevelIR{
 	
 	public IrExpression expr =null;
 	

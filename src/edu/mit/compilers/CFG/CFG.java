@@ -9,6 +9,8 @@ import java.util.Stack;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.LowLevelIR.CondQuad;
 import edu.mit.compilers.IR.LowLevelIR.IrIfBlockQuad;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForAssign;
+import edu.mit.compilers.IR.LowLevelIR.IrQuadForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadForLoopStatement;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocForFuncInvoke;
 import edu.mit.compilers.IR.LowLevelIR.IrQuadWithLocation;
@@ -17,6 +19,7 @@ import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.LowLevelIR.MultiQuadLowIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
 import edu.mit.compilers.IR.statement.IrStatement;
+import edu.mit.compilers.IR.statement.Return_Assignment;
 import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
 import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
 import edu.mit.compilers.assembly.AssemblyForArith;
@@ -297,7 +300,8 @@ public class CFG {
 
 	private static boolean oneLineQuad(LowLevelIR ir) {
 		return ir instanceof IrQuadWithLocation || ir instanceof IrQuadWithLocForFuncInvoke
-				|| ir instanceof IrQuadForLoopStatement;
+				|| ir instanceof IrQuadForLoopStatement || ir instanceof IrQuadForAssign
+				|| ir instanceof IrQuadForFuncInvoke    ||  ir instanceof Return_Assignment;
 	}
 
 	public static List<CFGNode> destruct(LowLevelIR ir) {
@@ -338,7 +342,7 @@ public class CFG {
 			beginNode = pair.get(0);
 			endNode = pair.get(1);
 		}
-		for (int i = 1; i < lowLevelIRs.size(); i++) {
+		for (int i = cursor; i < lowLevelIRs.size(); i++) {
 			pair = destruct((LowLevelIR) lowLevelIRs.get(i));
 			if (pair == null) {
 				// throw new IllegalArgumentException(lowLevelIRs.get(i).getName());
