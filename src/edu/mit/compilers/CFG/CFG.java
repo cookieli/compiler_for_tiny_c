@@ -374,7 +374,7 @@ public class CFG {
 		nodes.add(entry);
 		while (!queue.isEmpty()) {
 			node = queue.remove();
-			nodes.remove(node);
+			//nodes.remove(node);
 			List<CFGNode> successors = node.getSuccessor();
 			if (successors != null) {
 				if (successors.size() == 1) {
@@ -382,6 +382,7 @@ public class CFG {
 					if (!succ.isVisited()) {
 						succ.setVisited();
 						if (succ.getIncomingDegree() == 1 && (succ != end || node.statements == null)) {
+							nodes.remove(node);
 							node.combineNode(succ);
 							if(succ == end) {
 								node.label = succ.label;
@@ -392,7 +393,7 @@ public class CFG {
 							continue;
 						} else {
 							queue.add(succ);
-							nodes.add(node);
+							//nodes.add(node);
 							nodes.add(succ);
 						}
 					}
