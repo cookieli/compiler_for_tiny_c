@@ -23,6 +23,7 @@ import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.IR.statement.Return_Assignment;
 import edu.mit.compilers.IR.statement.codeBlock.IfBlock;
 import edu.mit.compilers.IR.statement.codeBlock.IrBlock;
+import edu.mit.compilers.SymbolTables.VariableTable;
 import edu.mit.compilers.assembly.AssemblyForArith;
 import edu.mit.compilers.utils.OperandForm;
 
@@ -30,8 +31,23 @@ public class CFG {
 
 	public String method;
 	
+	public List<String> paraNameLst;
+
 	public List<OperandForm> paraLst;
 	
+	public static VariableTable currentVtb;
+	
+	public void setVariableTale(VariableTable vtb) {
+		this.currentVtb = vtb;
+	}
+
+	public List<String> getParaNameLst() {
+		return paraNameLst;
+	}
+
+	public void setParaNameLst(List<String> paraNameLst) {
+		this.paraNameLst = paraNameLst;
+	}
 
 	public List<OperandForm> getParaLst() {
 		return paraLst;
@@ -43,11 +59,10 @@ public class CFG {
 
 	public CFGNode entry;
 	public CFGNode end;
-	
+
 	public List<CFGNode> nodes;
-	
+
 	public boolean hasReturnValue;
-	
 
 	public boolean isHasReturnValue() {
 		return hasReturnValue;
@@ -94,7 +109,7 @@ public class CFG {
 		addCFGNode(new ExitNode());
 		end.setLabel(AssemblyForArith.getNxtJmpLabel());
 	}
-	
+
 	public String getEndLabel() {
 		return end.getLabel();
 	}
@@ -187,17 +202,17 @@ public class CFG {
 
 	private static CFGNode shortcircuit(CondQuad quad, CFGNode trueStart, CFGNode falseStart) {
 		if (quad.getSymbol().isEmpty()) {
-			if(quad.getCondStack().isEmpty())
+			if (quad.getCondStack().isEmpty())
 				throw new IllegalArgumentException("empty ");
-			if(quad.getCondStack().get(0) instanceof IrQuad)
+			if (quad.getCondStack().get(0) instanceof IrQuad)
 				return shortcircuit((IrQuad) quad.getCondStack().get(0), trueStart, falseStart);
 			else
-				return shortcircuit((MultiQuadLowIR)quad.getCondStack().get(0), trueStart, falseStart);
+				return shortcircuit((MultiQuadLowIR) quad.getCondStack().get(0), trueStart, falseStart);
 		}
 		if (quad.getSymbol().size() == 1 && quad.getSymbol().get(0).equals("!")) {
 			if (quad.getCondStack().get(0) instanceof IrQuad)
 				return shortcircuit((IrQuad) quad.getCondStack().get(0), falseStart, trueStart);
-			else if(quad.getCondStack().get(0) instanceof MultiQuadLowIR)
+			else if (quad.getCondStack().get(0) instanceof MultiQuadLowIR)
 				return shortcircuit((MultiQuadLowIR) quad.getCondStack().get(0), falseStart, trueStart);
 			return shortcircuit((CondQuad) quad.getCondStack().get(0), falseStart, trueStart);
 		}
@@ -209,9 +224,9 @@ public class CFG {
 		LowLevelIR op1 = condStack.get(stackCursor--);
 		if (op1 instanceof IrQuad) {
 			beginNode = shortcircuit((IrQuad) op1, trueStart, falseStart);
-		} else if(op1 instanceof MultiQuadLowIR){
-			beginNode = shortcircuit((MultiQuadLowIR)op1, trueStart, falseStart);
-		}else {
+		} else if (op1 instanceof MultiQuadLowIR) {
+			beginNode = shortcircuit((MultiQuadLowIR) op1, trueStart, falseStart);
+		} else {
 			beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
 		}
 		for (int i = symbol.size() - 1; i >= 0; i--) {
@@ -224,8 +239,8 @@ public class CFG {
 			op1 = condStack.get(stackCursor--);
 			if (op1 instanceof IrQuad) {
 				beginNode = shortcircuit((IrQuad) op1, trueStart, falseStart);
-			} else if(op1 instanceof MultiQuadLowIR){
-				beginNode = shortcircuit((MultiQuadLowIR)op1, trueStart, falseStart);
+			} else if (op1 instanceof MultiQuadLowIR) {
+				beginNode = shortcircuit((MultiQuadLowIR) op1, trueStart, falseStart);
 			} else {
 				beginNode = shortcircuit((CondQuad) op1, trueStart, falseStart);
 			}
@@ -239,12 +254,13 @@ public class CFG {
 		beginNode.addSuccessor(falseStart);
 		return beginNode;
 	}
-	
+
 	private static CFGNode shortcircuit(MultiQuadLowIR quad, CFGNode trueStart, CFGNode falseStart) {
 		CFGNode beginNode = new CFGNode();
+		beginNode.setVtb(currentVtb);
 		CFGNode endNode = beginNode;
-		for(IrStatement n: quad.getQuadLst()) {
-			List<CFGNode> pair = destruct((LowLevelIR)n);
+		for (IrStatement n : quad.getQuadLst()) {
+			List<CFGNode> pair = destruct((LowLevelIR) n);
 			endNode.addSuccessor(pair.get(0));
 			endNode = pair.get(1);
 		}
@@ -256,6 +272,7 @@ public class CFG {
 
 		CFGNode beginNode = new CFGNode();
 		beginNode.addLowLevelIr(loc);
+		beginNode.setVtb(currentVtb);
 		return shortcircuit(beginNode, trueStart, falseStart);
 	}
 
@@ -292,10 +309,11 @@ public class CFG {
 	}
 
 	private static List<CFGNode> destructOnelineQuad(LowLevelIR quad) {
-		
-		if(quad instanceof IrQuadForLoopStatement && !((IrQuadForLoopStatement) quad).isBreak())
+
+		if (quad instanceof IrQuadForLoopStatement && !((IrQuadForLoopStatement) quad).isBreak())
 			return destructContinue(quad);
 		CFGNode newNode = new CFGNode(quad);
+		newNode.setVtb(currentVtb);
 		List<CFGNode> pair = new ArrayList<>();
 		pair.add(newNode);
 		pair.add(newNode);
@@ -305,11 +323,11 @@ public class CFG {
 	private static boolean oneLineQuad(LowLevelIR ir) {
 		return ir instanceof IrQuadWithLocation || ir instanceof IrQuadWithLocForFuncInvoke
 				|| ir instanceof IrQuadForLoopStatement || ir instanceof IrQuadForAssign
-				|| ir instanceof IrQuadForFuncInvoke    ||  ir instanceof Return_Assignment || ir instanceof IrQuad;
+				|| ir instanceof IrQuadForFuncInvoke || ir instanceof Return_Assignment || ir instanceof IrQuad;
 	}
 
 	public static List<CFGNode> destruct(LowLevelIR ir) {
-		if(oneLineQuad(ir))
+		if (oneLineQuad(ir))
 			return destructOnelineQuad(ir);
 		else if (ir instanceof IrIfBlockQuad)
 			return destruct((IrIfBlockQuad) ir);
@@ -319,6 +337,7 @@ public class CFG {
 	}
 
 	public static List<CFGNode> destruct(IrBlock block) {
+		currentVtb = block.getLocalVar();
 		List<CFGNode> pair = null;
 		if (block == null || block.haveNoStatements()) {
 			return null;
@@ -374,7 +393,7 @@ public class CFG {
 		nodes.add(entry);
 		while (!queue.isEmpty()) {
 			node = queue.remove();
-			//nodes.remove(node);
+			// nodes.remove(node);
 			List<CFGNode> successors = node.getSuccessor();
 			if (successors != null) {
 				if (successors.size() == 1) {
@@ -384,7 +403,7 @@ public class CFG {
 						if (succ.getIncomingDegree() == 1 && (succ != end || node.statements == null)) {
 							nodes.remove(node);
 							node.combineNode(succ);
-							if(succ == end) {
+							if (succ == end) {
 								node.label = succ.label;
 								end = node;
 							}
@@ -393,13 +412,13 @@ public class CFG {
 							continue;
 						} else {
 							queue.add(succ);
-							//nodes.add(node);
+							// nodes.add(node);
 							nodes.add(succ);
 						}
 					}
 
 					if (node.isTransitionNodeForEliminate() && succ.isMergeNode() && !succ.isWhileNode()) {
-						
+
 						if (succ.getParents().contains(node)) {
 							succ.removeParent(node);
 						}
@@ -421,36 +440,33 @@ public class CFG {
 			}
 		}
 	}
-	
-	
-	
-	
+
 	public boolean methodHasReturnValue() {
-		for(CFGNode n: end.parents) {
-			if(!n.lastStatementIsReturn()) {
-				//throw new IllegalArgumentException(n.getName());
+		for (CFGNode n : end.parents) {
+			if (!n.lastStatementIsReturn()) {
+				// throw new IllegalArgumentException(n.getName());
 				return false;
 			}
 		}
 		return true;
 	}
-	
+
 	public void checkMethodOutOfCtrl(IrProgram p) {
-		if(this.hasReturnValue && !methodHasReturnValue()) {
-			//System.out.println("Sorry, this method out of Control " + method);
-			//System.exit(-2);
+		if (this.hasReturnValue && !methodHasReturnValue()) {
+			// System.out.println("Sorry, this method out of Control " + method);
+			// System.exit(-2);
 			CFGNode newNode = new CFGNode();
-			newNode.addLowLevelIr(IrQuadWithLocForFuncInvoke.getPrintFunc("Sorry, this method out of Control " + method +"\\n", p));
+			newNode.addLowLevelIr(
+					IrQuadWithLocForFuncInvoke.getPrintFunc("Sorry, this method out of Control " + method + "\\n", p));
 			newNode.addLowLevelIr(IrQuadWithLocForFuncInvoke.getExitFunc(-2));
-			//entry.deletePointTo();
+			// entry.deletePointTo();
 			entry = new EntryNode(0);
 			entry.addSuccessor(newNode);
 			newNode.deletePointTo();
-			//this.end();
-			
+			// this.end();
+
 		}
 	}
-	
 
 	@Override
 	public String toString() {

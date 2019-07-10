@@ -8,6 +8,7 @@ import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
+import edu.mit.compilers.SymbolTables.VariableTable;
 
 public class CFGNode extends IrNode {
 	public List<LowLevelIR> statements;
@@ -23,8 +24,19 @@ public class CFGNode extends IrNode {
 	private boolean isWhileNode = false;
 	private boolean isLoopEnd   = false;
 	
+	private VariableTable vtb;
+	
+	
 	//private CFGNode afterNode = null;
 	
+	public VariableTable getVtb() {
+		return vtb;
+	}
+
+	public void setVtb(VariableTable vtb) {
+		this.vtb = vtb;
+	}
+
 	public void setForAfterBlock(boolean boo) {
 		this.forAfterBlock = boo;
 	}

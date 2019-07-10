@@ -171,6 +171,7 @@ public class IrQuadVistor implements IrNodeVistor{
 		for(IrStatement s: forBlock.getAfterBlockStat()) {
 			s.accept(this);
 		}
+		block.addIrStatement(currentList);
 		currentList = null;
 		addIrStatement(forQuad);
 		return false;

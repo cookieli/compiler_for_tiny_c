@@ -54,8 +54,9 @@ public class cfgNodeVistor implements IrNodeVistor{
 	public boolean visit(MethodDecl m) {
 		// TODO Auto-generated method stub
 		CFG cfg = new CFG(m.getMethodStackSize(), m.getId());
-		cfg.setParaLst(m.getParaOpr());
+		cfg.setParaNameLst(m.paraList);
 		currentCFG = cfg;
+		currentCFG.setVariableTale(m.getVariableTable());
 		currentCFG.setHasReturnValue(m.hasReturnValue());
 		for(IrStatement s: m.getStatements()) {
 			s.accept(this);
