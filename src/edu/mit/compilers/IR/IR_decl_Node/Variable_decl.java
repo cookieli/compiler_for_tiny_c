@@ -13,6 +13,16 @@ public class Variable_decl extends IrDeclaration{
 	public IrType type;
 	public boolean isArray = false;
 	
+	public int numbering;
+	
+	public int getNumbering() {
+		return numbering;
+	}
+
+	public void setNumbering(int numbering) {
+		this.numbering = numbering;
+	}
+
 	public Variable_decl(Token type, Token id, String fileName) {
 		super(id.getLine(), id.getColumn(),fileName);
 		this.type = new IrType(type);

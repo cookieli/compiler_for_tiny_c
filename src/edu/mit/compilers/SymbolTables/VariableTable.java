@@ -10,6 +10,8 @@ import edu.mit.compilers.utils.Util;
 
 public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 
+	
+	public int numbering = 0;
 	public int currentSlotPosition = 0;
 	public int wholeStackFrame = 0;
 	public HashMap<String, Integer> variableSlot;
@@ -21,14 +23,27 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 
 	public VariableTable(VariableTable parent) {
 		super(parent);
+		if(parent != null && numbering != parent.numbering + 1)
+			numbering = parent.numbering + 1;
+		for(Variable_decl v: idList) {
+			if(v.numbering != numbering)
+				v.setNumbering(numbering);
+		}
 		variableSlot = new HashMap<>();
 		computeWholeStackFrame();
 
 	}
+	
 
 	@Override
 	public void addParent(VariableTable parent) {
 		this.parent = parent;
+		if(numbering != parent.numbering+1)
+			numbering = parent.numbering + 1;
+		for(Variable_decl v: idList) {
+			if(v.numbering != numbering)
+				v.setNumbering(numbering);
+		}
 		computeWholeStackFrame();
 	}
 
@@ -42,9 +57,25 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 	}
 
 	public IrType getVariableType(String var) {
-		if (!containsVariable(var))
+		if (!containsVariable(var)) {
+			System.out.println("vtb contains: ?");
+			System.out.println(this.toString());
 			throw new IllegalArgumentException("the whole scope doesn't have var " + var);
+			
+		}
 		return get(var).type;
+	}
+	
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for(Variable_decl v: idList) {
+			sb.append(v.getName());
+			sb.append(" ");
+		}
+		sb.append("\n");
+		return sb.toString();
 	}
 
 	@Override
@@ -60,11 +91,17 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 		}
 		return array;
 	}
+	
+	@Override
+	public void put(String id, Variable_decl v) {
+		v.setNumbering(numbering);
+		super.put(id, v);
+	}
 
 	@Override
 	public void put(Variable_decl v) {
 		// TODO Auto-generated method stub
-		super.put(v.getId(), v);
+		put(v.getId(), v);
 		variableSlot.put(v.getId(), currentSlotPosition);
 		if (v.type().equals(IrType.IntType)) {
 			currentSlotPosition += 8;
@@ -115,6 +152,13 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 			return this.getParent().isGloblVariable(id);
 		return false;
 	}
+	
+	public int getNumbering(String id) {
+		Variable_decl decl = get(id);
+		if(decl == null)
+			return - 1;
+		return decl.getNumbering();
+	}
 
 	public int getMemSize() {
 		computeWholeStackFrame();
@@ -138,12 +182,14 @@ public class VariableTable extends SymbolTable<VariableTable, Variable_decl> {
 			for (Variable_decl decl : this) {
 				v.put((Variable_decl) decl.copy());
 			}
+			v.numbering = this.numbering;
 			return v;
 		} else {
 			VariableTable v = new VariableTable();
 			for(Variable_decl decl: this) {
 				v.put(decl.getId(), (Variable_decl) decl.copy());
 			}
+			v.numbering = this.numbering;
 			return v;
 		}
 	}

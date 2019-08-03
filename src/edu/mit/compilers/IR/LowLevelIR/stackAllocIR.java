@@ -7,11 +7,21 @@ public class stackAllocIR extends LowLevelIR {
 	
 	public String stackAlloc;
 	public StackZeroIR zeroStack;
+	public int allocSize;
 	
 	public stackAllocIR(int size) {
-		stackAlloc = "subq " +"$"+ size+", "+ "%rsp";
-		zeroStack = new StackZeroIR(size, true);
+		allocSize = size;
+		stackAlloc = "subq " +"$"+ allocSize+", "+ "%rsp";
+		zeroStack = new StackZeroIR(allocSize, true);
 	}
+	
+	public void resetAllocSize(int size) {
+		allocSize = size;
+		stackAlloc = "subq " +"$"+ allocSize+", "+ "%rsp";
+		zeroStack = new StackZeroIR(allocSize, true);
+	}
+	
+	
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub

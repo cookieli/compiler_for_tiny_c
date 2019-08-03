@@ -1,0 +1,13 @@
+import printf;
+int gurp ( int a, int b, int d, int e, int f) {
+  return 1;
+}
+void main ( ) {
+  int y, z, a, b;
+  int x;
+  for ( x = 3; x < 5; x += 1 ) {
+    printf ( "Top of loop\n" );
+    z = gurp (1 + x, 0-x,2 + x, 1 - x, 4 - x);
+    printf ( "done z gurp\n" );
+  }
+}

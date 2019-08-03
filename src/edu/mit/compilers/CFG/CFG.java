@@ -446,6 +446,7 @@ public class CFG {
 							n.deletePointTo();
 							n.addSuccessor(succ);
 						}
+						nodes.remove(node);
 					}
 
 				} else {

@@ -62,6 +62,10 @@ public class IrType {
 		
 	}
 	
+	public boolean isNotKonwnType() {
+		return this.type == Type.NOTKNOWN;
+	}
+	
 	public boolean typeIs(Type t) {
 		return type == t;
 	}

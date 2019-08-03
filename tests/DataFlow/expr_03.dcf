@@ -1,0 +1,11 @@
+import printf;
+
+void main(){
+    int a,b,c,x,y,z,w;
+    
+    w = (a+b)+c;
+    x = b;
+    y = (a+x) +c;
+    z = a+ b;
+    
+}

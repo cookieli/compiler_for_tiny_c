@@ -13,6 +13,8 @@ import edu.mit.compilers.CFG.CFG;
 import edu.mit.compilers.CFG.CFGNode;
 import edu.mit.compilers.CFG.ProgramCFG;
 import edu.mit.compilers.CFG.cfgNodeVistor;
+import edu.mit.compilers.CFG.Optimizitation.BasicBlockOptimization;
+import edu.mit.compilers.CFG.Optimizitation.DataFlow;
 import edu.mit.compilers.IR.BoundCheckVistor;
 import edu.mit.compilers.IR.IrProgram;
 import edu.mit.compilers.IR.IrQuadVistor;
@@ -162,13 +164,10 @@ class Main {
 		System.out.println(assemP);
 		//cfgNodeVistor.cfgForProgram(assemP);
 		ProgramCFG pCFG = cfgNodeVistor.programCfgForProgram(assemP);
+		BasicBlockOptimization.optimizeForCFG(pCFG);
+		DataFlow.setDataFlow(pCFG);
 		for(String s: pCFG.cfgs.keySet()) {
 			System.out.println(pCFG.cfgs.get(s));
-			System.out.println("--------------");
-			for(CFGNode n: pCFG.cfgs.get(s).nodes) {
-				System.out.println(n.getStats());
-				System.out.println("\n");
-			}
 		}
 		
 		ResolveNameForCFG.visit(pCFG);
@@ -178,14 +177,6 @@ class Main {
 		
 		String code = AssemblyFromCFGVistor.assemblyForWholeCFG(pCFG);
 		out.println(code);
-		
-//		assemP = IrResolveNameToLocationVistor.newProgram(assemP);
-//
-//		System.out.println(assemP);
-//
-//		String code = AssemblyFromCFGVistor.assemblyForWholeCFG(assemP);
-//		out.println(code);
-		// AssemblyFromCFGVistor.assemblyFile(code, p.getFilename());
 	}
 
 }

@@ -105,6 +105,26 @@ public class IrLiteral extends IrOperand{
 		
 	}
 	
+	@Override
+	public int hashCode() {
+		return value.hashCode()  + ((Boolean)isPositive).hashCode();
+	}
+	
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null)
+			return false;
+		if(o == this)
+			return true;
+		if(!(o instanceof IrLiteral))
+			return false;
+		IrLiteral l = (IrLiteral)o;
+		if(l.value.equals(this.value) && this.isPositive == l.isPositive)
+			return true;
+		return false;
+	}
+	
 	public static IrLiteral getTrueLiteral() {
 		IrLiteral l = new IrLiteral();
 		l.type = IrType.BoolType;

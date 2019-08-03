@@ -1,0 +1,11 @@
+import printf;
+void main(){
+
+  int ll,u,v,a1,p;
+  u = 13;
+  v= -162;
+  a1 = -114;
+  p= -136;
+  ll = u-v+a1-p;
+  printf ( "%d", ll );
+}

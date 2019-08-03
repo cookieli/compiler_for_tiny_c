@@ -1,0 +1,15 @@
+import printf;
+
+void main(){
+    int x,y,z,a,b;
+    a = 10;
+    b = 20;
+    y = a+ b;
+    x = b;
+    z = a + x;
+    
+    y = 1;
+    z = a+b;
+    
+    printf("%d\n", z);
+}

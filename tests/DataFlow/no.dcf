@@ -1,0 +1,15 @@
+import printf;
+
+void main(){
+   bool a, b, c;
+  a = ( 0 == 0 );
+  b = ( 0 - 3 ) == 1;
+  c = ! a;
+   c = ! ! a;
+  if ( ! a != c ) {
+    printf ( "correct\n" );
+  }
+  else {
+    printf ( "6INCORRECT\n" );
+  }
+}

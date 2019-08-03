@@ -1,13 +1,17 @@
 package edu.mit.compilers.CFG;
 
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
+import edu.mit.compilers.IR.LowLevelIR.IrQuad;
 import edu.mit.compilers.IR.LowLevelIR.LowLevelIR;
 import edu.mit.compilers.IR.LowLevelIR.ReturnQuadWithLoc;
+import edu.mit.compilers.IR.expr.operand.IrLocation;
+import edu.mit.compilers.IR.expr.operand.IrOperand;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.IR.statement.Return_Assignment;
 import edu.mit.compilers.SymbolTables.VariableTable;
@@ -19,18 +23,67 @@ public class CFGNode extends IrNode {
 	public int inComingDegree;
 	public boolean isVisited = false;
 	public boolean isAssemblyVisited = false;
-	
+
 	private boolean forAfterBlock = false;
 	private int nameVisited = 0;
-	
+
 	private boolean isWhileNode = false;
-	private boolean isLoopEnd   = false;
-	
+	private boolean isLoopEnd = false;
+
 	private VariableTable vtb;
+
+	public BitSet in;
+	public BitSet out;
+
+	public BitSet gen = null;
+	public BitSet kill = null;
 	
+	public BitSet use = null;
 	
-	//private CFGNode afterNode = null;
+	public BitSet def = null;
 	
+	public BitSet mustInUse = null;
+	
+	public void resetBitSet() {
+		this.in = null;
+		this.out = null;
+		this.gen = null;
+		this.kill = null;
+		this.use = null;
+		this.def = null;
+	}
+	public HashMap<IrLocation, List<Integer>> defs = null;
+
+	public void addDefs(IrQuad quad) {
+
+		if (quad.getOp1() instanceof IrLocation) {
+			IrLocation op1 = (IrLocation) quad.getOp1();
+			if (!(op1.getNaming() == 0)&& !op1.isTempVariable()) {
+				if (defs == null)
+					defs = new HashMap<>();
+				if (!defs.containsKey(op1)) {
+					defs.put(op1, new ArrayList<>());
+				}
+			}
+		}
+
+		if (quad.getDest() != null) {
+			if (quad.getOp2() instanceof IrLocation) {
+				IrLocation op2 = (IrLocation) quad.getOp2();
+				if (!(op2.getNaming() == 0)&& !op2.isTempVariable()) {
+					if (defs == null)
+						defs = new HashMap<>();
+					if (!defs.containsKey(op2)) {
+						defs.put(op2, new ArrayList<>());
+					}
+				}
+			}
+		}
+
+	}
+
+	// private CFGNode afterNode = null;
+
 	public VariableTable getVtb() {
 		return vtb;
 	}
@@ -42,59 +95,59 @@ public class CFGNode extends IrNode {
 	public void setForAfterBlock(boolean boo) {
 		this.forAfterBlock = boo;
 	}
-	
+
 	public boolean lastStatementIsReturn() {
-		if(statements == null || statements.isEmpty())
+		if (statements == null || statements.isEmpty())
 			return false;
 		else {
-			for(IrStatement ir: statements) {
-			//return statements.get(statements.size() -1) instanceof ReturnQuadWithLoc;
-				if(ir instanceof Return_Assignment)
+			for (IrStatement ir : statements) {
+				// return statements.get(statements.size() -1) instanceof ReturnQuadWithLoc;
+				if (ir instanceof Return_Assignment)
 					return true;
 			}
 			return false;
 		}
 	}
-	
+
 	public boolean isForAfterBlock() {
 		return forAfterBlock;
 	}
-	
+
 	public void setLoopEnd(boolean boo) {
 		this.isLoopEnd = boo;
 	}
-	
+
 	public boolean istLoopEnd() {
 		return isLoopEnd;
 	}
-	
-	
+
 	public boolean isTransitionNodeForEliminate() {
 		boolean ret = false;
-		if(this.statements == null && (parents != null && !parents.isEmpty())) {
+		if (this.statements == null && (parents != null && !parents.isEmpty())) {
 			ret = true;
-			for(CFGNode parent: parents) {
-				//System.out.println(parent.getName());
-				if(parent.pointTo == null ) {
-					throw new IllegalArgumentException( parent.getStats() + " " + this.getSuccessor().get(0).getStats());
+			for (CFGNode parent : parents) {
+				// System.out.println(parent.getName());
+				if (parent.pointTo == null) {
+					throw new IllegalArgumentException(parent.getStats() + " " + this.getSuccessor().get(0).getStats());
 				}
-				if(!(parent.pointTo.size() == 1 && parent.pointTo.get(0).equals(this))) {
+				if (!(parent.pointTo.size() == 1 && parent.pointTo.get(0).equals(this))) {
 					ret = false;
 				}
 			}
 		}
 		return ret;
 	}
-	
+
 	public int visitCount = 1;
-	
+
 	public void setWhileNode(boolean isWhile) {
 		this.isWhileNode = isWhile;
 	}
-	
+
 	public boolean isWhileNode() {
 		return isWhileNode;
 	}
+
 	public String label = null;
 
 	public CFGNode() {
@@ -111,7 +164,7 @@ public class CFGNode extends IrNode {
 
 	public void deletePointTo() {
 		pointTo = null;
-		//throw new IllegalArgumentException("point to == null");
+		// throw new IllegalArgumentException("point to == null");
 	}
 
 	public void deleteParent() {
@@ -124,13 +177,13 @@ public class CFGNode extends IrNode {
 	}
 
 	public void addSuccessor(CFGNode node) {
-		if(pointTo == null)
+		if (pointTo == null)
 			pointTo = new LinkedList<>();
 		pointTo.add(node);
 		node.addParent(this);
 	}
-	
-	//TODO: warning : only use for insert exit node.
+
+	// TODO: warning : only use for insert exit node.
 	public void insertNode(CFGNode node) {
 		node.pointTo = this.pointTo;
 		this.pointTo = new ArrayList<>();
@@ -148,6 +201,7 @@ public class CFGNode extends IrNode {
 	public void addLowLevelIr(LowLevelIR ir) {
 		statements.add(ir);
 	}
+
 	public void addLowLevelIrFromHead(LowLevelIR ir) {
 		statements.add(0, ir);
 	}
@@ -157,7 +211,7 @@ public class CFGNode extends IrNode {
 	}
 
 	private void addParent(CFGNode node) {
-		if(parents == null)
+		if (parents == null)
 			parents = new LinkedList<>();
 		parents.add(node);
 		addPredecessor();
@@ -206,23 +260,23 @@ public class CFGNode extends IrNode {
 		else
 			this.statements.addAll(node.statements);
 		this.pointTo = node.pointTo;
-		if(node.pointTo != null)
-		for(CFGNode n: node.pointTo) {
-			int index = n.parents.indexOf(node);
-			if(index == -1) {
-				for(CFGNode c: n.parents) {
-					System.out.println(c.getStats());
+		if (node.pointTo != null)
+			for (CFGNode n : node.pointTo) {
+				int index = n.parents.indexOf(node);
+				if (index == -1) {
+					for (CFGNode c : n.parents) {
+						System.out.println(c.getStats());
+					}
+					throw new IllegalArgumentException("pointTo " + n.getStats() + "node " + node.getStats());
 				}
-				throw new IllegalArgumentException("pointTo " + n.getStats() + "node "+node.getStats());
+				n.parents.set(index, this);
 			}
-			n.parents.set(index, this);
-		}
 		node.pointTo = null;
 		node.parents = null;
 		node.inComingDegree = 0;
 		this.isWhileNode = this.isWhileNode || node.isWhileNode();
 		this.isLoopEnd = this.isLoopEnd || node.isLoopEnd;
-		if(this.vtb == null && node.vtb != null) {
+		if (this.vtb == null && node.vtb != null) {
 			this.vtb = node.vtb;
 		}
 	}
@@ -237,7 +291,7 @@ public class CFGNode extends IrNode {
 				return this.getStats();
 			} else
 				this.nameVisited += 1;
-			
+
 			sb.append("=======cfgNode======\n");
 			sb.append(this.getStats());
 			sb.append("=======cfgNode======\n");

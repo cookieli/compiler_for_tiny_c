@@ -1,0 +1,16 @@
+import printf;
+
+void main(){
+    int a,b,c,d,e;
+    a = 3;
+    b = 5;
+    c = a+ b;
+    d = a+b;
+    e = d + c;
+    if(a > 0){
+      e = a;
+    } else{
+      e = b;
+    }
+    printf("%d\n", e);
+}

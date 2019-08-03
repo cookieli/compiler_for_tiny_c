@@ -37,6 +37,26 @@ public class IrLenExpr extends IrOperand{
 		// TODO Auto-generated method stub
 		return "len(" + operand.getId() +")";
 	}
+	
+	@Override
+	public int hashCode() {
+		return operand.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null)
+			return false;
+		if(o == this)
+			return true;
+		if(!(o instanceof IrLenExpr)) {
+			return false;
+		}
+		IrLenExpr len = (IrLenExpr)o;
+		if(len.operand.equals(this.operand))
+			return true;
+		return false;
+	}
 
 	@Override
 	public void accept(IrNodeVistor vistor) {

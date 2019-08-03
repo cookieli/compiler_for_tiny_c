@@ -49,9 +49,9 @@ void main ( ) {
   }
   if ( ( a == a ) && ( b == c ) ) {
     printf ( "true and true is correct\n" );
-  }
-  if ( ( a != a ) && ( b == c ) ) {
-    printf ( "false and true is incorrect\n" );
+ }
+   if ( ( a != a ) && ( b == c ) ) {
+   printf ( "false and true is incorrect\n" );
   }
   if ( ( a == a ) && ( b != c ) ) {
     printf ( "true and false is incorrect\n" );

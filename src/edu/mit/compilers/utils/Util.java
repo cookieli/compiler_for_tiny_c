@@ -7,11 +7,16 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.IR_decl_Node.MethodDecl;
+import edu.mit.compilers.IR.IR_decl_Node.Variable_decl;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
 import edu.mit.compilers.IR.expr.operand.IrLiteral;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
+import edu.mit.compilers.SymbolTables.MethodTable;
+import edu.mit.compilers.SymbolTables.VariableTable;
+import edu.mit.compilers.trees.SemanticCheckerNode;
 
 public class Util {
 	public static final String stackBaseReg = "%rbp";
@@ -20,6 +25,8 @@ public class Util {
 	public static final String[] boolBinaryOp = {"&&", "||"};
 	public static final int ArrayHeaderSize = 8;
 	public static final Pattern ComPattern = Pattern.compile("(\\>=|\\<=|\\>|\\<|\\!=|\\==)(q|b)");
+	public static SemanticCheckerNode semantics = new SemanticCheckerNode();
+	
 	
 	public static boolean isInteger(String s) {
 		return s.matches("-?(0|[1-9]\\d*)");
@@ -27,6 +34,21 @@ public class Util {
 	
 	public static boolean isMainMethod(MethodDecl method) {
 		return method.getId().equals("main");
+	}
+	
+	public static IrLocation newTempVariable(IrType type, VariableTable v, String name, int subScript) {
+		String id = name + subScript;
+		Variable_decl var = new Variable_decl(id, type);
+		v.put(var);
+		IrLocation loc = new IrLocation(id);
+		return loc;
+	}
+	
+	public static IrLocation getExprCorrespondVar(IrExpression expr, VariableTable v, MethodTable m,String name, int subScript) {
+		IrType type = semantics.getIrOperandType(expr, v, m);
+		if(type.isNotKnownType())
+			type = IrType.IntType;
+		return newTempVariable(type, v, name, subScript);
 	}
 	
 	

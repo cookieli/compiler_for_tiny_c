@@ -54,6 +54,7 @@ public class ResolveNameForCFG extends IrResolveNameToLocationVistor {
 		for(int i = 1;  i < cfg.nodes.size(); i++) {
 			visit(cfg.nodes.get(i), false);
 		}
+		env.popVariables();
 	}
 
 	private List<LowLevelIR> setArraySizeForAllVar(VariableTable vtb, MethodTable mtb, boolean isGlobl) {
@@ -71,6 +72,7 @@ public class ResolveNameForCFG extends IrResolveNameToLocationVistor {
 		List<IrStatement> tempList = currentList;
 		currentList = stats;
 		env.pushVariables(node.getVtb());
+		System.out.println(env.peekVariables());
 		if(node.statements == null)
 			return ;
 		for (int i = 0; i < node.statements.size(); i++) {

@@ -1,0 +1,18 @@
+import printf;
+
+void main(){
+   int a,b,c,d;
+   if(a > b){
+      if(b > c){
+         a =3;
+      } else {
+         a= c;
+      }
+   } else{
+      if(c < d){
+         b = c;
+      } else{
+          b =d;
+      }
+   }
+}

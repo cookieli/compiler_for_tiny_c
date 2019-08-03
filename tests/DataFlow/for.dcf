@@ -1,0 +1,8 @@
+import printf;
+
+void main(){
+    int x;
+    for(x = 3; x< 6; x+=1){
+        printf("hello world\n");
+    }
+}

@@ -1,0 +1,18 @@
+import printf;
+//int a, b;
+void main(){
+   int a,b,c,d,e, h;
+   a= 5;
+   b =6;
+   c = 11;
+   d = 34;
+   e =101;
+   a = b+c;
+   d = b+c;
+   b = a+b;
+   printf("%d\n", b);
+   h = b+c;
+   printf("%d\n", h);
+   e = b+ c;
+   
+}

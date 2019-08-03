@@ -1,0 +1,11 @@
+int a,b,c;
+void main(){
+     int x,y,t,z;
+     a = x + y;
+     t =a;
+     c = a + x;
+     if(x == 0){
+        b =t + z;
+     }
+     c = y+ 1;
+}

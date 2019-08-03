@@ -1,11 +1,13 @@
 package edu.mit.compilers.IR.LowLevelIR;
 
 
+import edu.mit.compilers.CFG.Optimizitation.BinaryQuadExpr;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
 import edu.mit.compilers.IR.IrType;
 import edu.mit.compilers.IR.expr.BinaryExpression;
 import edu.mit.compilers.IR.expr.IrExpression;
+import edu.mit.compilers.IR.expr.operand.IrLocation;
 import edu.mit.compilers.IR.expr.operand.IrOperand;
 import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.SymbolTables.MethodTable;
@@ -20,10 +22,42 @@ public class IrQuad extends LowLevelIR{
 	public IrOperand op2;
 	public IrOperand dest;
 	
+	public BinaryQuadExpr binary = null;
+	
 	
 	public SemanticCheckerNode semantics;
 	public VariableTable v;
 	public MethodTable m;
+	
+	public boolean isValueAssign() {
+		for(int i = 0; i < operand.length; i++) {
+			if(symbol.contains(operand[i]))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean isMovAssign() {
+		return symbol.contains("mov");
+	}
+	
+	public BinaryQuadExpr getBinaryQuad() {
+		if(binary == null)
+			binary =  new BinaryQuadExpr(op1, op2, symbol);
+		return binary;
+	}
+	
+	public static boolean hasSameDst(IrQuad a, IrQuad b) {
+		IrLocation dstA = (IrLocation) a.getDest();
+		IrLocation dstB = (IrLocation)b.getDest();
+		if(dstA == null)
+			dstA = (IrLocation) a.getOp2();
+		if(dstB == null)
+			dstB = (IrLocation) b.getOp2();
+		if(dstA.getId().equals(dstB.getId()) && dstA.getNaming() == dstB.getNaming())
+			return true;
+		return false;
+	}
 	
 	
 	public IrQuad() {
