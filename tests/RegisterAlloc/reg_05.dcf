@@ -1,0 +1,9 @@
+import printf;
+
+void main(){
+    bool a;
+    a = true;
+    if(a){
+        printf("hello world\n");
+    }
+}

@@ -1,6 +1,8 @@
 package edu.mit.compilers.IR.LowLevelIR;
 
 
+import java.util.HashSet;
+
 import edu.mit.compilers.CFG.Optimizitation.BinaryQuadExpr;
 import edu.mit.compilers.IR.IrNode;
 import edu.mit.compilers.IR.IrNodeVistor;
@@ -13,10 +15,41 @@ import edu.mit.compilers.IR.statement.IrStatement;
 import edu.mit.compilers.SymbolTables.MethodTable;
 import edu.mit.compilers.SymbolTables.VariableTable;
 import edu.mit.compilers.trees.SemanticCheckerNode;
+import edu.mit.compilers.utils.Util;
 
 public class IrQuad extends LowLevelIR{
 	public static String[] operand = {"mov", "add", "sub", "mul", "div", "mod"};
 	
+	
+	public HashSet<IrLocation> use;
+	
+	public HashSet<IrLocation> subsequentAlive;
+	
+	public void setSubsequentAlive(HashSet<IrLocation> alive) {
+		subsequentAlive = new HashSet<>();
+		subsequentAlive.addAll(alive);
+	}
+	
+	public void addUse(IrLocation loc) {
+		if(use == null) {
+			use = new HashSet<>();
+		}
+		use.add(loc);
+	}
+	
+	public void addAllUse(HashSet <IrLocation> set) {
+		if(use == null) {
+			use = new HashSet<>();
+		}
+		use.addAll(set);
+	}
+	
+	public void removeUse(IrLocation loc) {
+		if(use == null) {
+			return ;
+		}
+		use.remove(loc);
+	}
 	public String symbol;
 	public IrOperand op1;
 	public IrOperand op2;
@@ -33,6 +66,15 @@ public class IrQuad extends LowLevelIR{
 		for(int i = 0; i < operand.length; i++) {
 			if(symbol.contains(operand[i]))
 				return true;
+		}
+		return false;
+	}
+	
+	public boolean isCmpQuad() {
+		for(int i = 0; i < Util.comOp.length; i++) {
+			if(symbol.contains(Util.comOp[i])) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -115,6 +157,13 @@ public class IrQuad extends LowLevelIR{
 			sb.append(op2.getName() + " ");
 		if(dest != null)
 			sb.append(dest.getName());
+		if(use != null) {
+			sb.append("   use( ");
+			for(IrLocation loc: use) {
+				sb.append(loc.getName() + ",");
+			}
+			sb.append(")");
+		}
 		sb.append("\n");
 		return sb.toString();
 	}
@@ -144,6 +193,15 @@ public class IrQuad extends LowLevelIR{
 
 	public IrOperand getDest() {
 		return dest;
+	}
+	
+	public IrOperand getRealDst() {
+		if(this.isValueAssign()) {
+			if( dest != null)
+				return dest;
+			return op2;
+		}
+		return null;
 	}
 
 	public void setDest(IrOperand dest) {

@@ -153,11 +153,11 @@ class Main {
 		System.out.println(newP);
 		System.out.println("------temp-------");
 
-		newP = BoundCheckVistor.newProgram(newP);
-
-		System.out.println("-----boundCheck-----");
-		System.out.println(newP);
-		System.out.println("-----boundCheck-----");
+//		newP = BoundCheckVistor.newProgram(newP);
+//
+//		System.out.println("-----boundCheck-----");
+//		System.out.println(newP);
+//		System.out.println("-----boundCheck-----");
 
 		IrProgram assemP = IrQuadVistor.newProgram(newP);
 
@@ -165,7 +165,9 @@ class Main {
 		//cfgNodeVistor.cfgForProgram(assemP);
 		ProgramCFG pCFG = cfgNodeVistor.programCfgForProgram(assemP);
 		BasicBlockOptimization.optimizeForCFG(pCFG);
-		DataFlow.setDataFlow(pCFG);
+		//DataFlow.setDataFlow(pCFG);
+		//DataFlow.loopOptimize(pCFG);
+		DataFlow.setUse(pCFG);
 		for(String s: pCFG.cfgs.keySet()) {
 			System.out.println(pCFG.cfgs.get(s));
 		}

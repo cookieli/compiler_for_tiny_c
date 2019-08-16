@@ -1,0 +1,12 @@
+import printf;
+
+void main(){
+     int a, b, c, d ,e, f;
+     c = 5; 
+     d = 8;
+     b = 10;
+     a = c + d;
+     e = a + b;
+     f = e - 1;
+     printf("%d, %d, %d", a, e, f);
+}

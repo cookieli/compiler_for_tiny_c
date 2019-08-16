@@ -3,6 +3,7 @@ package edu.mit.compilers.CFG;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import edu.mit.compilers.IR.IrNode;
@@ -23,6 +24,9 @@ public class CFGNode extends IrNode {
 	public int inComingDegree;
 	public boolean isVisited = false;
 	public boolean isAssemblyVisited = false;
+	
+	public int hash = -1;
+	public static int hashCount = 0;
 
 	private boolean forAfterBlock = false;
 	private int nameVisited = 0;
@@ -43,6 +47,8 @@ public class CFGNode extends IrNode {
 	public BitSet def = null;
 	
 	public BitSet mustInUse = null;
+	
+	public HashSet<CFGNode> dominators;
 	
 	public void resetBitSet() {
 		this.in = null;
@@ -182,6 +188,8 @@ public class CFGNode extends IrNode {
 		pointTo.add(node);
 		node.addParent(this);
 	}
+	
+	
 
 	// TODO: warning : only use for insert exit node.
 	public void insertNode(CFGNode node) {
@@ -220,6 +228,10 @@ public class CFGNode extends IrNode {
 	public void removeParent(CFGNode node) {
 		parents.remove(node);
 		inComingDegree--;
+	}
+	
+	public void removeSucc(CFGNode n) {
+		pointTo.remove(n);
 	}
 
 	public void setVisited() {
@@ -310,13 +322,31 @@ public class CFGNode extends IrNode {
 	public String getStats() {
 		StringBuilder sb = new StringBuilder();
 		// sb.append("=======cfgNode======\n");
-		if (statements == null) {
+		if (statements == null || statements.size() == 0) {
 			sb.append("noOp\n");
 		} else
 			for (IrStatement s : statements) {
 				sb.append(s.getName());
 			}
 		return sb.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		if(hash == -1) {
+			hash = hashCount;
+			hashCount ++;
+		}
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		return false;
 	}
 
 	public String getStruct() {

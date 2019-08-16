@@ -1,6 +1,7 @@
 package edu.mit.compilers.CFG;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -39,6 +40,8 @@ public class CFG {
 	
 	public VariableTable wholeMethodVtb;
 	
+	
+	public int allocSize;
 	
 	public void setVariableTable(VariableTable vtb) {
 		currentVtb = vtb;
@@ -92,16 +95,13 @@ public class CFG {
 	public CFG() {
 	}
 
-	public CFG(int size) {
+	public CFG(int size, String method) {
 		this();
 		entry = new EntryNode(size);
 		nodes = new ArrayList<>();
 		end = entry;
-	}
-
-	public CFG(int size, String method) {
-		this(size);
 		this.method = method;
+		
 	}
 
 	public void addCFGNode(CFGNode node) {
@@ -198,6 +198,9 @@ public class CFG {
 		List<CFGNode> prePair = destructLst(block.getPreQuad());
 		CFGNode beginNode = shortcircuit(block.getCond(), truePair.get(0), falseNode);
 		beginNode.setWhileNode(true);
+//		if(loopHeaders == null) {
+//			
+//		}
 		List<CFGNode> pair = new ArrayList<>();
 		if (prePair != null) {
 			prePair.get(0).setWhileNode(true);

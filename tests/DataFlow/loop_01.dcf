@@ -1,0 +1,23 @@
+int a,b,c,d,e,f,g;
+
+void main(){
+   a= 1;
+   if(a == 1){
+      b =2;
+   } else {
+     g = 5;
+   }
+   c =3;
+   while(true){
+      while(f == 3){
+         if(c == 4){
+            d = 4;
+         } else{
+            d =5;
+         }
+         e =6;
+      }
+      c++;
+   }
+}
+

@@ -12,9 +12,12 @@ public class X86_64Register {
 	public static final Register rdx = new Register("%rdx", "%dl");
 
 	public static final Register rdi = new Register("%rdi", "%dil"), rsi = new Register("%rsi", "%sil"), rcx = new Register("%rcx", "%cl"),
-			r8 = new Register("%r8","%r8b"), r9 = new Register("%r9", "%r9b"), r12 = new Register("%r12", "%r12b");
+			r8 = new Register("%r8","%r8b"), r9 = new Register("%r9", "%r9b"), r12 = new Register("%r12", "%r12b"), r13 = new Register("%r13", "%r13b"),
+			r14 = new Register("%r14", "r14b"), r15 = new Register("%r15", "%r15b"), rbx = new Register("%rbx", "%bl");
 
-	public static final Register[] tempForAssign = { rax, r10, r11 }, paraPassReg = { rdi, rsi, rdx, rcx, r8, r9 };
+	public static final Register[] tempForAssign = { rax, r10, r11}, paraPassReg = { rdi, rsi, rdx, rcx, r8, r9 };
+	public static final Register[]  calleeSaved = {rbx, r12, r13, r14, r15};
+	public static final Register[] usedForValue = {rdi, rsi, rdx, rcx, r8, r9, rbx, r12, r13, r14, r15};
 	public static final int paraRegNum = 6;
 	private static int tempForAssignCursor = 0;
 
@@ -49,6 +52,37 @@ public class X86_64Register {
 	}
 
 	public static class Register {
+		public void setName_64bit(String name_64bit) {
+			this.name_64bit = name_64bit;
+		}
+		
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((name_64bit == null) ? 0 : name_64bit.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Register other = (Register) obj;
+			if (name_64bit == null) {
+				if (other.name_64bit != null)
+					return false;
+			} else if (!name_64bit.equals(other.name_64bit))
+				return false;
+			return true;
+		}
+
+
 		public String name_64bit;
 		public String name_8bit;
 

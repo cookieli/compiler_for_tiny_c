@@ -4,5 +4,7 @@ void main(){
   a = 6;
   b = 2;
   c = a/b;
+  c = a % b;
+  c = a -b;
   printf("the %d divide %d is %d\n", a, b,c);
 }

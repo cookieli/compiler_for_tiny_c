@@ -3,6 +3,46 @@ package edu.mit.compilers.utils;
 import edu.mit.compilers.IR.expr.operand.IrLocation;
 
 public class MemOperandForm extends OperandForm{
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((base == null) ? 0 : base.hashCode());
+		result = prime * result + ((imm == null) ? 0 : imm.hashCode());
+		result = prime * result + ((loc == null) ? 0 : loc.hashCode());
+		result = prime * result + this.scale;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MemOperandForm other = (MemOperandForm) obj;
+		if (base == null) {
+			if (other.base != null)
+				return false;
+		} else if (!base.equals(other.base))
+			return false;
+		if (imm == null) {
+			if (other.imm != null)
+				return false;
+		} else if (!imm.equals(other.imm))
+			return false;
+		if (loc == null) {
+			if (other.loc != null)
+				return false;
+		} else if (!loc.equals(other.loc))
+			return false;
+		if(scale != other.scale)
+			return false;
+		return true;
+	}
+
 	public String imm = null;
 	public String base = null;
 	public String loc = null;

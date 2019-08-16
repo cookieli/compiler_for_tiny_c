@@ -5,10 +5,13 @@ void func(){
    printf("%d\n", len(a));
    printf("c: %d\n", len(c));
 }
-
+int add(int a, int b, int c, int d){
+      return a + b + c + d;
+}
 void main(){
     int b[3];
     printf("%d\n", len(b));
     func();
+    add(1,2,3,4);
     printf("c: %d\n", len(c));
 }

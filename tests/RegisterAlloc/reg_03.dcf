@@ -1,0 +1,19 @@
+import printf;
+
+void main(){
+    int a,b,c,d,e,f,h, i, j, k, l, m, n;
+    a = 1;
+    b = 2;
+    c = 3;
+    d = 4;
+    e = 10;
+    h = 11;
+    i = 12;
+    j = 13;
+    k = 14;
+    l = 15;
+    m = 16;
+    n = 17;
+    f = a  +b + c + d + e + h + i + j + k + l + m + n;
+    printf("%d\n", f);
+}

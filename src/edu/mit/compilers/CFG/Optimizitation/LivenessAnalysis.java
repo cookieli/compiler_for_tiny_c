@@ -3,6 +3,7 @@ package edu.mit.compilers.CFG.Optimizitation;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import edu.mit.compilers.CFG.CFG;
@@ -72,6 +73,10 @@ public class LivenessAnalysis extends DataFlow {
 				}
 			}
 		}
+	}
+	
+	public void setDefUseWeb(CFGNode n) {
+		
 	}
 
 	private void setUseForStat(IrStatement s, BitSet use, BitSet def, BitSet mustInUse) {
@@ -187,6 +192,66 @@ public class LivenessAnalysis extends DataFlow {
 		n.in = use;
 
 	}
+	
+	
+	public void addUse() {
+		for(CFGNode n: methodCFG.nodes) {
+			addUse(n);
+		}
+	}
+	
+	public void addUse(CFGNode n) {
+		HashSet<IrLocation> use = new HashSet<>();
+		for(int i = 0; i < n.out.size(); i++) {
+			if(n.out.get(i)) {
+				use.add(intsWithVars.get(i));
+			}
+		}
+		for(int i = n.statements.size()-1; i >= 0; i--) {
+			IrStatement s = n.statements.get(i);
+			addUse(s, use);
+		}
+	}
+	
+	
+	
+	public void addUse(IrStatement s, HashSet<IrLocation> use) {
+		
+		if(s instanceof IrQuad) {
+			IrQuad quad = (IrQuad) s;
+			quad.setSubsequentAlive(use);
+			if(quad.isValueAssign()) {
+				IrLocation dst = (IrLocation) quad.getDest();
+				if(quad.isMovAssign()) {
+					dst = (IrLocation) quad.getOp2();
+				}
+				use.remove(dst);
+				if(quad.getOp1() instanceof IrLocation) {
+					IrLocation op1 = (IrLocation)quad.getOp1();
+					use.add(op1);
+				}
+				if(!quad.isMovAssign()) {
+					if(quad.getOp2() instanceof IrLocation) {
+						IrLocation op2 = (IrLocation) quad.getOp2();
+						use.add(op2);
+					}
+				}
+			} else if(quad.isCmpQuad()) {
+				IrOperand op1 = quad.getOp1();
+				IrOperand op2 = quad.getOp2();
+				if(op1 instanceof IrLocation) {
+					use.add((IrLocation) op1);
+				}
+				if(op2 instanceof IrLocation) {
+					use.add((IrLocation) op2);
+				}
+			}
+			
+			quad.addAllUse(use);
+		}
+	}
+	
+	
 
 	public void setNodeOut(CFGNode n) {
 		BitSet out = new BitSet(count);
